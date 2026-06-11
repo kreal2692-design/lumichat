@@ -1,111 +1,615 @@
 <!DOCTYPE html>
+
 <html lang="tr">
+
 <head>
-    <meta charset="UTF-8">
-    <title>LumiChat - Final Sürümü</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyC-Eg536s2P4Gb38xXEmKstNfBcpmhUaJE",
-            authDomain: "lumichat-64dc8.firebaseapp.com",
-            projectId: "lumichat-64dc8",
-            storageBucket: "lumichat-64dc8.firebasestorage.app",
-            messagingSenderId: "255322307057",
-            appId: "1:255322307057:web:9f19046678fb1332b8ac50"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+<meta charset="UTF-8" />
 
-        window.login = () => signInWithPopup(auth, provider);
+<title>LumiChat - Tam Donanımlı</title>
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-app').style.display = 'flex';
-                initCamera();
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-            }
-        });
-    </script>
-    <style>
-        body { margin: 0; background: #0b0f17; color: white; font-family: sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        
-        #auth-screen { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); z-index: 9999; }
-        .auth-card { background: white; color: #333; padding: 40px; border-radius: 20px; text-align: center; }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
-        #main-app { display: none; flex: 1; flex-direction: column; padding: 15px; gap: 15px; max-width: 1400px; margin: 0 auto; width: 100%; height: 100vh; }
-        .layout { display: grid; grid-template-columns: 1fr 1fr 350px; gap: 15px; flex: 1; min-height: 0; }
-        
-        .box { background: #000; border: 2px solid #00e5ff; border-radius: 16px; position: relative; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        
-        .report-btn { position: absolute; top: 10px; right: 10px; background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757; padding: 8px 12px; border-radius: 8px; opacity: 0; transition: 0.3s; cursor: pointer; }
-        .box:hover .report-btn { opacity: 1; }
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-        .chat-container { background: #142530; border: 1px solid #00e5ff; border-radius: 16px; padding: 15px; display: flex; flex-direction: column; }
-        #chatBox { flex: 1; overflow-y: auto; margin-bottom: 10px; }
-        
-        .controls { display: flex; gap: 15px; height: 120px; }
-        .control-btn { flex: 1; border: none; border-radius: 16px; font-size: 1.5rem; font-weight: bold; cursor: pointer; color: white; }
-    </style>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyC-Eg536s2P4Gb38xXEmKstNfBcpmhUaJE",
+
+authDomain: "lumichat-64dc8.firebaseapp.com",
+
+projectId: "lumichat-64dc8",
+
+storageBucket: "lumichat-64dc8.firebasestorage.app",
+
+messagingSenderId: "255322307057",
+
+appId: "1:255322307057:web:9f19046678fb1332b8ac50"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const provider = new GoogleAuthProvider();
+
+
+
+window.login = () => signInWithPopup(auth, provider);
+
+
+
+onAuthStateChanged(auth, (user) => {
+
+if (user) {
+
+document.getElementById('auth-screen').style.display = 'none';
+
+document.getElementById('main-app').style.display = 'flex';
+
+initChatSystem();
+
+} else {
+
+document.getElementById('auth-screen').style.display = 'flex';
+
+}
+
+});
+
+</script>
+
+<style>
+
+:root{
+
+--bg: #0b0f17;
+
+--card: rgba(20, 40, 60, 0.9);
+
+--accent: #00e5ff;
+
+--accent2: #4cc9f0;
+
+--text: #e8f0f8;
+
+--muted: #a9b6c7;
+
+--shadow: 0 10px 25px rgba(0,0,0,.35);
+
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+
+margin: 0;
+
+background: radial-gradient(circle at 20% -10%, rgba(0,229,255,.15), transparent 40%),
+
+radial-gradient(circle at 100% 0%, rgba(68, 85, 255, .10), transparent 30%),
+
+linear-gradient(135deg, #07131a 0%, #0b0f17 60%, #0b0f17 100%);
+
+color: var(--text);
+
+font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+
+display: flex;
+
+flex-direction: column;
+
+min-height: 100vh;
+
+overflow: hidden;
+
+}
+
+
+
+/* Auth screen (Google giriş) */
+
+#auth-screen {
+
+position: fixed;
+
+inset: 0;
+
+display: grid;
+
+place-items: center;
+
+padding: 20px;
+
+z-index: 9999;
+
+background: radial-gradient(circle at 30% 20%, rgba(0,229,255,.15), transparent 40%),
+
+rgba(5,8,12,.85);
+
+backdrop-filter: saturate(1.2) blur(2px);
+
+}
+
+.auth-card {
+
+background: rgba(10, 20, 30, 0.85);
+
+border: 1px solid rgba(0, 229, 255, 0.25);
+
+border-radius: 20px;
+
+padding: 28px 34px;
+
+box-shadow: var(--shadow);
+
+text-align: center;
+
+min-width: 320px;
+
+}
+
+.auth-title {
+
+font-weight: 700;
+
+font-size: 1.25rem;
+
+margin-bottom: 12px;
+
+}
+
+.main-btn {
+
+border: none;
+
+border-radius: 12px;
+
+padding: 12px 18px;
+
+font-size: 1rem;
+
+cursor: pointer;
+
+color: white;
+
+display: inline-flex;
+
+align-items: center;
+
+gap: 10px;
+
+transition: transform .2s ease, box-shadow .2s ease;
+
+background: #4285F4;
+
+box-shadow: 0 6px 16px rgba(66,133,244,.6);
+
+}
+
+.main-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(66,133,244,.8); }
+
+.btn-icon { font-size: 1.1em; }
+
+
+
+/* Ana app düzeni */
+
+#main-app {
+
+display: none;
+
+flex: 1;
+
+padding: 18px;
+
+gap: 14px;
+
+align-items: stretch;
+
+justify-content: center;
+
+width: 100%;
+
+max-width: 1200px;
+
+margin: 0 auto;
+
+}
+
+
+
+.layout {
+
+display: grid;
+
+grid-template-columns: 1fr 1fr 320px;
+
+gap: 14px;
+
+width: 100%;
+
+height: calc(100vh - 36px);
+
+}
+
+
+
+.box {
+
+position: relative;
+
+border-radius: 16px;
+
+overflow: hidden;
+
+background: rgba(255,255,255,.04);
+
+border: 1px solid rgba(0,229,255,.25);
+
+box-shadow: var(--shadow);
+
+min-height: 0;
+
+}
+
+
+
+video {
+
+width: 100%; height: 100%; object-fit: cover;
+
+display: block;
+
+}
+
+
+
+/* Eşleşme butonuna hafif parıltı efekti */
+
+.report-btn {
+
+position: absolute;
+
+top: 12px; right: 12px;
+
+background: rgba(255, 71, 87, 0.22);
+
+border: 1px solid #ff4757;
+
+color: #ffb3b3;
+
+padding: 8px 12px;
+
+border-radius: 999px;
+
+opacity: 0;
+
+transition: opacity .25s ease;
+
+cursor: pointer;
+
+backdrop-filter: blur(2px);
+
+}
+
+.box:hover .report-btn { opacity: 1; }
+
+
+
+.chat-container {
+
+display: flex; flex-direction: column;
+
+background: rgba(20,32,48,.95);
+
+border-radius: 16px;
+
+border: 1px solid rgba(0,229,255,.25);
+
+padding: 12px;
+
+min-width: 0;
+
+height: 100%;
+
+}
+
+#chatBox {
+
+flex: 1;
+
+overflow-y: auto;
+
+padding: 6px 8px;
+
+border-radius: 10px;
+
+background: rgba(255,255,255,.03);
+
+border: 1px solid rgba(0,0,0,.15);
+
+margin-bottom: 8px;
+
+}
+
+.message {
+
+padding: 6px 8px;
+
+margin: 4px 0;
+
+border-radius: 8px;
+
+background: rgba(0, 229, 255, 0.15);
+
+display: inline-block;
+
+max-width: 90%;
+
+}
+
+#msgInput {
+
+padding: 12px;
+
+border-radius: 10px;
+
+border: 1px solid rgba(0,229,255,.4);
+
+outline: none;
+
+background: rgba(15,23,42,.9);
+
+color: var(--text);
+
+}
+
+
+
+.controls {
+
+display: flex; gap: 12px;
+
+align-items: center;
+
+justify-content: center;
+
+padding: 8px;
+
+border-radius: 12px;
+
+background: rgba(8,12,24,.9);
+
+border: 1px solid rgba(0,229,255,.25);
+
+box-shadow: var(--shadow);
+
+}
+
+.control-btn {
+
+padding: 14px 20px;
+
+border-radius: 12px;
+
+border: none;
+
+cursor: pointer;
+
+color: white;
+
+font-size: 1rem;
+
+min-width: 120px;
+
+transition: transform .2s ease, background .2s ease;
+
+}
+
+.control-btn.primary { background: #2ecc71; }
+
+.control-btn.secondary { background: #ff7675; }
+
+.control-btn.ghost { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); }
+
+
+
+@media (max-width: 1024px) {
+
+.layout { grid-template-columns: 1fr 1fr; height: auto; }
+
+#main-app { padding-bottom: 20px; }
+
+}
+
+@media (max-width: 720px) {
+
+.layout { grid-template-columns: 1fr; height: auto; }
+
+}
+
+</style>
+
 </head>
+
 <body>
 
-    <div id="auth-screen">
-        <div class="auth-card">
-            <h2>LumiChat'e Hoş Geldin!</h2>
-            <button onclick="login()" style="background:#4285F4; color:white; padding:15px 30px; border:none; border-radius:10px; cursor:pointer;">
-                <i class="fab fa-google"></i> Google ile Giriş Yap
-            </button>
-        </div>
-    </div>
 
-    <div id="main-app">
-        <div class="layout">
-            <div class="box"><video id="localVideo" autoplay muted playsinline></video></div>
-            <div class="box">
-                <video id="remoteVideo" autoplay playsinline></video>
-                <button class="report-btn" onclick="alert('Raporlandı!')">Report</button>
-            </div>
-            <aside class="chat-container">
-                <div id="chatBox"></div>
-                <input type="text" id="msgInput" placeholder="Mesaj yaz..." style="width:100%; padding:10px; border-radius:8px; border:none;">
-            </aside>
-        </div>
-        <div class="controls">
-            <button class="control-btn" style="background:#2ecc71" onclick="socket.emit('join')">Eşleş</button>
-            <button class="control-btn" style="background:#ff7675" onclick="location.reload()">Sıradaki</button>
-        </div>
-    </div>
 
-    <script>
-        const socket = io('https://lumichat-motor.onrender.com');
-        let localStream, peerConnection;
+<div id="auth-screen">
 
-        async function initCamera() {
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('localVideo').srcObject = localStream;
-        }
+<div class="auth-card">
 
-        socket.on('matched', async (d) => {
-            peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-            localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
-            peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
-            peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('signal', { candidate: e.candidate }); };
-            if (d.isInitiator) { const o = await peerConnection.createOffer(); await peerConnection.setLocalDescription(o); socket.emit('signal', { offer: o }); }
-        });
+<div class="auth-title">LumiChat'e Hoş Geldiniz</div>
 
-        socket.on('signal', async (d) => {
-            if (d.offer) { await peerConnection.setRemoteDescription(new RTCSessionDescription(d.offer)); const a = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(a); socket.emit('signal', { answer: a }); }
-            else if (d.answer) await peerConnection.setRemoteDescription(new RTCSessionDescription(d.answer));
-            else if (d.candidate) await peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate));
-        });
-    </script>
+<p style="color:var(--muted); margin: 0 0 14px;">Google ile hızlı ve güvenli giriş yapın.</p>
+
+<button class="main-btn" style="background:#4285F4" onclick="login()">
+
+<span class="btn-icon"><i class="fab fa-google"></i></span> Google ile Giriş Yap
+
+</button>
+
+</div>
+
+</div>
+
+
+
+<div id="main-app">
+
+<div class="layout">
+
+<div class="box" aria-label="Kullanıcı kamerası">
+
+<video id="localVideo" autoplay muted playsinline></video>
+
+</div>
+
+
+
+<div class="box" aria-label="Uzak kamera" style="min-height: 240px;">
+
+<video id="remoteVideo" autoplay playsinline></video>
+
+<button class="report-btn" onclick="alert('Raporlandı!')">
+
+<i class="fa fa-flag"></i> Report
+
+</button>
+
+</div>
+
+
+
+<aside class="chat-container" aria-label="Sohbet">
+
+<div id="chatBox"></div>
+
+<input type="text" id="msgInput" placeholder="Mesaj yaz..." onkeydown="if(event.key==='Enter'){ sendMessage(); }" />
+
+</aside>
+
+</div>
+
+
+
+<div class="controls" style="margin-top: 8px;">
+
+<button class="control-btn primary" onclick="socket.emit('join')">
+
+<i class="fa fa-link"></i> Eşleş
+
+</button>
+
+<button class="control-btn ghost" onclick="location.reload()">
+
+Sıradaki
+
+</button>
+
+</div>
+
+</div>
+
+
+
+<script>
+
+const socket = io('https://lumichat-motor.onrender.com');
+
+let localStream;
+
+
+
+async function initChatSystem() {
+
+try {
+
+localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+document.getElementById('localVideo').srcObject = localStream;
+
+} catch (e) {
+
+console.error('Kamera/ Mikrofona erişimde hata:', e);
+
+}
+
+}
+
+
+
+// Basit mesaj gönderme (örnek amaçlı)
+
+function addChatMessage(text) {
+
+const msg = document.createElement('div');
+
+msg.className = 'message';
+
+msg.textContent = text;
+
+document.getElementById('chatBox').appendChild(msg);
+
+const el = document.getElementById('chatBox');
+
+el.scrollTop = el.scrollHeight;
+
+}
+
+
+
+function sendMessage() {
+
+const input = document.getElementById('msgInput');
+
+const text = input.value.trim();
+
+if (!text) return;
+
+addChatMessage("Sen: " + text);
+
+input.value = '';
+
+// Sunucuya iletmek için örnek istek:
+
+// socket.emit('chat', text);
+
+}
+
+
+
+// Giriş durumunu dinleyelim
+
+socket.on('matched', async (d) => {
+
+// Buraya WebRTC oturumu başlatma kodu gelecek
+
+console.log("Eşleşme sağlandı", d);
+
+});
+
+
+
+// Auth state sonrası uygulamayı başlat
+
+window.initChatSystem = initChatSystem;
+
+</script>
+
 </body>
+
 </html>
