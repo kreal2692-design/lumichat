@@ -25,21 +25,27 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        window.loginWithGoogle = () => {
-            signInWithPopup(auth, provider).catch(err => alert("Giriş hatası: " + err.message));
+        // Giriş fonksiyonu: Sekme kapanma sorununu çözer
+        window.loginWithGoogle = async (event) => {
+            if (event) event.preventDefault();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (err) {
+                console.error("Giriş hatası:", err);
+            }
         };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('main-app').style.display = 'flex';
+                // Giriş logu
                 try {
-                    await addDoc(collection(db, "kullanici_loglari"), {
-                        email: user.email,
-                        ad: user.displayName,
-                        girisZamani: serverTimestamp()
-                    });
-                } catch (e) { console.error("Loglama hatası: ", e); }
+                    await addDoc(collection(db, "kullanici_loglari"), { email: user.email, ad: user.displayName, girisZamani: serverTimestamp() });
+                } catch (e) { console.error("Log hatası:", e); }
+                
+                // Otomatik başlat
+                if (!peerConnection) { socket.emit('join'); }
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
@@ -47,107 +53,69 @@
         });
     </script>
     <style>
-body { 
-    background: #0b131a; 
-    color: white; 
-    font-family: 'Segoe UI', sans-serif; 
-    margin: 0; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-    height: 100vh; 
-}
-#auth-screen { 
-    text-align: center; 
-}
-.logo { font-size: 3rem; font-weight: bold; color: #4CAF50; margin-bottom: 30px; }
-button { 
-    padding: 15px 40px; 
-    font-size: 1.2rem; 
-    cursor: pointer; 
-    background: #4285F4; 
-    color: white; 
-    border: none; 
-    border-radius: 8px; 
-    transition: 0.3s;
-}
-button:hover { background: #357ae8; }
-        body { margin: 0; background: #0b131a; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        #auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: #0b131a; }
+        body { margin: 0; background: #0b131a; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .auth-box { background: #fff; padding: 40px; border-radius: 15px; text-align: center; width: 350px; color: #333; }
+        .google-btn { background: #4285F4; color: white; padding: 15px; border-radius: 8px; width: 100%; border: none; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 20px; }
         #main-app { display: none; flex-direction: column; height: 100vh; }
         .header { background: #0f1c24; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00e5ff; }
-        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; box-sizing: border-box; height: calc(100vh - 140px); }
-        .video-box { flex: 1; background: #142530; border: 2px solid #00e5ff; border-radius: 12px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; height: calc(100vh - 140px); }
+        .video-box { flex: 1; background: #142530; border: 2px solid #00e5ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
+        video { width: 100%; height: 100%; object-fit: cover; }
         .chat-container { width: 400px; background: #142530; border: 2px solid #00e5ff; border-radius: 12px; display: flex; flex-direction: column; }
         #chatBox { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .message { padding: 10px; border-radius: 8px; max-width: 80%; word-break: break-all; }
-        .system { background: rgba(0, 229, 255, 0.1); color: #00e5ff; border: 1px solid #00e5ff; align-self: center; }
+        .message { padding: 8px; border-radius: 8px; font-size: 14px; }
         .my-message { background: #00e5ff; color: #000; align-self: flex-end; }
         .stranger-message { background: #3a4f5c; color: #fff; align-self: flex-start; }
-        .input-area { padding: 15px; display: flex; gap: 10px; border-top: 1px solid #233948; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #233948; background: #0f1c24; color: #fff; outline: none; }
-        button { padding: 12px 24px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        #sendBtn { background: #00e5ff; color: #000; }
-        .bottom-bar { height: 70px; display: flex; justify-content: center; align-items: center; background: #0f1c24; gap: 15px; border-top: 1px solid #233948; }
-        #startBtn { background: #00e5ff; color: #000; font-size: 16px; padding: 10px 30px; }
-        #google-btn { background: #4285f4; color: white; padding: 15px 30px; font-size: 18px; }
-        .label { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px; font-size: 12px; border: 1px solid #00e5ff; z-index: 10; }
+        .input-area { padding: 15px; display: flex; gap: 10px; }
+        input { flex: 1; padding: 10px; border-radius: 5px; border: none; }
+        #sendBtn { background: #00e5ff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-<div id="auth-screen">
-    <div class="logo">LumiChat</div>
-    <button onclick="loginWithGoogle()">Google ile Giriş Yap</button>
-</div>
-
-<div id="main-app" style="display: none;">
-    </div>
 
     <div id="auth-screen">
-        <h1>LumiChat</h1>
-        <button id="google-btn" onclick="loginWithGoogle()">Google ile Giriş Yap</button>
+        <div class="auth-box">
+            <h2>LumiChat Üyesi Olun!</h2>
+            <button class="google-btn" onclick="loginWithGoogle(event)">Google ile devam et</button>
+            <p style="font-size: 12px; margin-top: 15px; color: #666;">Kullanım şartlarını kabul ediyorsunuz.</p>
+        </div>
     </div>
 
     <div id="main-app">
-        <div class="header">
-            <h2>LumiChat</h2>
-            <div style="color: #00e5ff;">🟢 Çevrimiçi</div>
-        </div>
+        <div class="header"><h2>LumiChat</h2><div style="color: #00e5ff;">🟢 Çevrimiçi</div></div>
         <div class="main-container">
-            <div class="video-box"><span class="label">Sen</span><video id="localVideo" autoplay muted playsinline></video></div>
-            <div class="video-box"><span class="label">Yabancı</span><div id="placeholder">Bağlantı bekleniyor...</div><video id="remoteVideo" autoplay playsinline style="display:none;"></video></div>
+            <div class="video-box"><video id="localVideo" autoplay muted playsinline></video></div>
+            <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
             <div class="chat-container">
-                <div id="chatBox"><div class="message system">Hoş geldiniz!</div></div>
+                <div id="chatBox"></div>
                 <div class="input-area"><input type="text" id="messageInput" placeholder="Mesaj yaz..."><button id="sendBtn">Gönder</button></div>
             </div>
         </div>
-        <div class="bottom-bar"><button id="startBtn">Sohbete Başla</button></div>
     </div>
 
     <script>
-        const startBtn = document.getElementById('startBtn'), sendBtn = document.getElementById('sendBtn'), messageInput = document.getElementById('messageInput'), chatBox = document.getElementById('chatBox'), localVideo = document.getElementById('localVideo'), remoteVideo = document.getElementById('remoteVideo'), placeholder = document.getElementById('placeholder');
+        const sendBtn = document.getElementById('sendBtn'), messageInput = document.getElementById('messageInput'), chatBox = document.getElementById('chatBox');
         let localStream = null, peerConnection = null;
-        const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-        
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(s => { localStream = s; localVideo.srcObject = s; }).catch(e => console.log(e));
         const socket = io('https://lumichat-motor.onrender.com');
 
-        startBtn.addEventListener('click', () => { socket.emit('join'); startBtn.innerText = "Aranıyor..."; });
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(s => { localStream = s; document.getElementById('localVideo').srcObject = s; });
+
         socket.on('matched', async (d) => {
-            chatBox.innerHTML += '<div class="message system">Biri bulundu!</div>'; placeholder.style.display = 'none'; remoteVideo.style.display = 'block';
-            peerConnection = new RTCPeerConnection(rtcConfig);
+            chatBox.innerHTML += '<div class="message">Biri bulundu!</div>';
+            peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
             localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
-            peerConnection.ontrack = e => remoteVideo.srcObject = e.streams[0];
+            peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
             peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('signal', { candidate: e.candidate }); };
-            if (d.isInitiator) { const offer = await peerConnection.createOffer(); await peerConnection.setLocalDescription(offer); socket.emit('signal', { offer }); }
+            if (d.isInitiator) { const o = await peerConnection.createOffer(); await peerConnection.setLocalDescription(o); socket.emit('signal', { offer: o }); }
         });
+
         socket.on('signal', async (d) => {
-            if (d.offer) { await peerConnection.setRemoteDescription(new RTCSessionDescription(d.offer)); const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer); socket.emit('signal', { answer }); }
+            if (d.offer) { await peerConnection.setRemoteDescription(new RTCSessionDescription(d.offer)); const a = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(a); socket.emit('signal', { answer: a }); }
             else if (d.answer) await peerConnection.setRemoteDescription(new RTCSessionDescription(d.answer));
             else if (d.candidate) await peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate));
         });
+
         sendBtn.addEventListener('click', () => { const m = messageInput.value.trim(); if(m) { socket.emit('message', m); chatBox.innerHTML += `<div class="message my-message"><b>Sen:</b> ${m}</div>`; messageInput.value = ""; } });
         socket.on('message', (m) => chatBox.innerHTML += `<div class="message stranger-message"><b>Yabancı:</b> ${m}</div>`);
     </script>
