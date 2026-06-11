@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LumiChat - Canlı Görüntülü Sohbet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC-Eg536s2P4Gb38xXEmKstNfBcpmhUaJE",
@@ -18,10 +18,8 @@
             messagingSenderId: "255322307057",
             appId: "1:255322307057:web:9f19046678fb1332b8ac50"
         };
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
         window.loginWithGoogle = async (event) => {
@@ -36,11 +34,8 @@
             if (user) {
                 authScreen.style.display = 'none';
                 mainApp.style.display = 'flex';
-                // Girişten sonra otomatik başlat
-                if (!window.socketConnected) {
-                    window.socketConnected = true;
-                    socket.emit('join');
-                }
+                // Kullanıcı giriş yaptı, kamera izni iste ve sohbete başla
+                startCameraAndSocket();
             } else {
                 authScreen.style.display = 'flex';
                 mainApp.style.display = 'none';
@@ -50,17 +45,22 @@
     <style>
         body { margin: 0; background: #0b131a; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
         #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b131a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .auth-box { background: #fff; padding: 40px; border-radius: 15px; text-align: center; width: 350px; color: #333; }
-        .google-btn { background: #4285F4; color: white; padding: 15px; border-radius: 8px; width: 100%; border: none; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        .auth-box { background: #fff; padding: 40px; border-radius: 20px; text-align: center; width: 350px; color: #333; }
+        .google-btn { background: #4285F4; color: white; padding: 15px; border-radius: 10px; width: 100%; border: none; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        
         #main-app { display: none; flex-direction: column; height: 100vh; }
         .video-container { display: flex; flex: 1; padding: 10px; gap: 10px; height: calc(100vh - 100px); }
-        .video-box { flex: 1; background: #000; border: 2px solid #00e5ff; border-radius: 12px; position: relative; }
+        .video-box { flex: 1; background: #000; border: 2px solid #00e5ff; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .controls { height: 80px; display: flex; justify-content: center; align-items: center; gap: 15px; background: #0f1c24; }
-        .chat-container { width: 300px; background: #142530; display: flex; flex-direction: column; }
-        #chatBox { flex: 1; padding: 10px; overflow-y: auto; }
-        .input-area { padding: 10px; display: flex; gap: 5px; }
-        button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
+        
+        .controls { height: 100px; display: flex; justify-content: center; align-items: center; gap: 20px; background: #0f1c24; }
+        .btn-control { padding: 15px 30px; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-next { background: #00e5ff; color: #000; }
+        
+        .chat-container { width: 350px; background: #142530; display: flex; flex-direction: column; border-left: 2px solid #00e5ff; }
+        #chatBox { flex: 1; padding: 15px; overflow-y: auto; }
+        .input-area { padding: 15px; display: flex; gap: 10px; }
+        input { flex: 1; padding: 10px; border-radius: 8px; border: none; }
     </style>
 </head>
 <body>
@@ -68,7 +68,8 @@
     <div id="auth-screen">
         <div class="auth-box">
             <h2>LumiChat Üyesi Olun</h2>
-            <button class="google-btn" onclick="loginWithGoogle(event)">Google ile Giriş Yap</button>
+            <p>Sohbete başlamak için giriş yapın.</p>
+            <button class="google-btn" onclick="loginWithGoogle(event)"><i class="fa-brands fa-google"></i> Google ile Giriş Yap</button>
         </div>
     </div>
 
@@ -80,14 +81,14 @@
                 <div id="chatBox"></div>
                 <div class="input-area">
                     <input type="text" id="messageInput" placeholder="Mesaj yaz...">
-                    <button id="sendBtn">Gönder</button>
+                    <button id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
         <div class="controls">
-            <button onclick="toggleTrack('video')">Kamera</button>
-            <button onclick="toggleTrack('audio')">Mikrofon</button>
-            <button onclick="location.reload()">Sıradaki</button>
+            <button class="btn-control" onclick="toggleTrack('video')"><i class="fa-solid fa-video"></i> Kamera</button>
+            <button class="btn-control" onclick="toggleTrack('audio')"><i class="fa-solid fa-microphone"></i> Mikrofon</button>
+            <button class="btn-control btn-next" onclick="location.reload()"><i class="fa-solid fa-forward"></i> Sıradaki</button>
         </div>
     </div>
 
@@ -95,9 +96,11 @@
         const socket = io('https://lumichat-motor.onrender.com');
         let localStream, peerConnection;
 
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(s => { 
-            localStream = s; document.getElementById('localVideo').srcObject = s; 
-        });
+        async function startCameraAndSocket() {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('localVideo').srcObject = localStream;
+            socket.emit('join');
+        }
 
         function toggleTrack(type) {
             localStream.getTracks().forEach(t => { if (t.kind === type) t.enabled = !t.enabled; });
@@ -108,10 +111,9 @@
 
         function sendMessage() {
             const m = document.getElementById('messageInput').value;
-            if (m) { socket.emit('message', m); document.getElementById('chatBox').innerHTML += `<div>Sen: ${m}</div>`; document.getElementById('messageInput').value = ''; }
+            if (m) { socket.emit('message', m); document.getElementById('chatBox').innerHTML += `<div><b>Sen:</b> ${m}</div>`; document.getElementById('messageInput').value = ''; }
         }
 
-        // WebRTC işlemleri (eşleşme)
         socket.on('matched', async (d) => {
             peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
             localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
