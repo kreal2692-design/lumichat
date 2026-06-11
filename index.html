@@ -16,8 +16,7 @@
             projectId: "lumichat-64dc8",
             storageBucket: "lumichat-64dc8.firebasestorage.app",
             messagingSenderId: "255322307057",
-            appId: "1:255322307057:web:9f19046678fb1332b8ac50",
-            measurementId: "G-27WK7BNGMT"
+            appId: "1:255322307057:web:9f19046678fb1332b8ac50"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -25,84 +24,95 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // Giriş fonksiyonu: Sekme kapanma sorununu çözer
         window.loginWithGoogle = async (event) => {
             if (event) event.preventDefault();
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (err) {
-                console.error("Giriş hatası:", err);
-            }
+            try { await signInWithPopup(auth, provider); } 
+            catch (err) { console.error("Giriş hatası:", err); }
         };
 
         onAuthStateChanged(auth, async (user) => {
+            const authScreen = document.getElementById('auth-screen');
+            const mainApp = document.getElementById('main-app');
             if (user) {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-app').style.display = 'flex';
-                // Giriş logu
-                try {
-                    await addDoc(collection(db, "kullanici_loglari"), { email: user.email, ad: user.displayName, girisZamani: serverTimestamp() });
-                } catch (e) { console.error("Log hatası:", e); }
-                
-                // Otomatik başlat
-                if (!peerConnection) { socket.emit('join'); }
+                authScreen.style.display = 'none';
+                mainApp.style.display = 'flex';
+                // Girişten sonra otomatik başlat
+                if (!window.socketConnected) {
+                    window.socketConnected = true;
+                    socket.emit('join');
+                }
             } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('main-app').style.display = 'none';
+                authScreen.style.display = 'flex';
+                mainApp.style.display = 'none';
             }
         });
     </script>
     <style>
         body { margin: 0; background: #0b131a; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
-        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b131a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .auth-box { background: #fff; padding: 40px; border-radius: 15px; text-align: center; width: 350px; color: #333; }
-        .google-btn { background: #4285F4; color: white; padding: 15px; border-radius: 8px; width: 100%; border: none; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 20px; }
+        .google-btn { background: #4285F4; color: white; padding: 15px; border-radius: 8px; width: 100%; border: none; cursor: pointer; font-size: 16px; margin-top: 20px; }
         #main-app { display: none; flex-direction: column; height: 100vh; }
-        .header { background: #0f1c24; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00e5ff; }
-        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; height: calc(100vh - 140px); }
-        .video-box { flex: 1; background: #142530; border: 2px solid #00e5ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .video-container { display: flex; flex: 1; padding: 10px; gap: 10px; height: calc(100vh - 100px); }
+        .video-box { flex: 1; background: #000; border: 2px solid #00e5ff; border-radius: 12px; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .chat-container { width: 400px; background: #142530; border: 2px solid #00e5ff; border-radius: 12px; display: flex; flex-direction: column; }
-        #chatBox { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .message { padding: 8px; border-radius: 8px; font-size: 14px; }
-        .my-message { background: #00e5ff; color: #000; align-self: flex-end; }
-        .stranger-message { background: #3a4f5c; color: #fff; align-self: flex-start; }
-        .input-area { padding: 15px; display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px; border-radius: 5px; border: none; }
-        #sendBtn { background: #00e5ff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .controls { height: 80px; display: flex; justify-content: center; align-items: center; gap: 15px; background: #0f1c24; }
+        .chat-container { width: 300px; background: #142530; display: flex; flex-direction: column; }
+        #chatBox { flex: 1; padding: 10px; overflow-y: auto; }
+        .input-area { padding: 10px; display: flex; gap: 5px; }
+        button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h2>LumiChat Üyesi Olun!</h2>
-            <button class="google-btn" onclick="loginWithGoogle(event)">Google ile devam et</button>
-            <p style="font-size: 12px; margin-top: 15px; color: #666;">Kullanım şartlarını kabul ediyorsunuz.</p>
+            <h2>LumiChat Üyesi Olun</h2>
+            <button class="google-btn" onclick="loginWithGoogle(event)">Google ile Giriş Yap</button>
         </div>
     </div>
 
     <div id="main-app">
-        <div class="header"><h2>LumiChat</h2><div style="color: #00e5ff;">🟢 Çevrimiçi</div></div>
-        <div class="main-container">
+        <div class="video-container">
             <div class="video-box"><video id="localVideo" autoplay muted playsinline></video></div>
             <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
             <div class="chat-container">
                 <div id="chatBox"></div>
-                <div class="input-area"><input type="text" id="messageInput" placeholder="Mesaj yaz..."><button id="sendBtn">Gönder</button></div>
+                <div class="input-area">
+                    <input type="text" id="messageInput" placeholder="Mesaj yaz...">
+                    <button id="sendBtn">Gönder</button>
+                </div>
             </div>
+        </div>
+        <div class="controls">
+            <button onclick="toggleTrack('video')">Kamera</button>
+            <button onclick="toggleTrack('audio')">Mikrofon</button>
+            <button onclick="location.reload()">Sıradaki</button>
         </div>
     </div>
 
     <script>
-        const sendBtn = document.getElementById('sendBtn'), messageInput = document.getElementById('messageInput'), chatBox = document.getElementById('chatBox');
-        let localStream = null, peerConnection = null;
         const socket = io('https://lumichat-motor.onrender.com');
+        let localStream, peerConnection;
 
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(s => { localStream = s; document.getElementById('localVideo').srcObject = s; });
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(s => { 
+            localStream = s; document.getElementById('localVideo').srcObject = s; 
+        });
 
+        function toggleTrack(type) {
+            localStream.getTracks().forEach(t => { if (t.kind === type) t.enabled = !t.enabled; });
+        }
+
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        document.getElementById('messageInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+
+        function sendMessage() {
+            const m = document.getElementById('messageInput').value;
+            if (m) { socket.emit('message', m); document.getElementById('chatBox').innerHTML += `<div>Sen: ${m}</div>`; document.getElementById('messageInput').value = ''; }
+        }
+
+        // WebRTC işlemleri (eşleşme)
         socket.on('matched', async (d) => {
-            chatBox.innerHTML += '<div class="message">Biri bulundu!</div>';
             peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
             localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
             peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
@@ -115,9 +125,6 @@
             else if (d.answer) await peerConnection.setRemoteDescription(new RTCSessionDescription(d.answer));
             else if (d.candidate) await peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate));
         });
-
-        sendBtn.addEventListener('click', () => { const m = messageInput.value.trim(); if(m) { socket.emit('message', m); chatBox.innerHTML += `<div class="message my-message"><b>Sen:</b> ${m}</div>`; messageInput.value = ""; } });
-        socket.on('message', (m) => chatBox.innerHTML += `<div class="message stranger-message"><b>Yabancı:</b> ${m}</div>`);
     </script>
 </body>
 </html>
