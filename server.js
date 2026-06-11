@@ -1,7 +1,16 @@
 const express = require('express');
 const app = express();
+const path = require('path');
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, { cors: { origin: "*" } });
+
+// 1. Statik dosyaları (HTML, CSS, JS) sunucuya tanıtıyoruz
+app.use(express.static(__dirname));
+
+// 2. Ana sayfaya girilince index.html'i gönderiyoruz
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 let waitingUser = null;
 
@@ -14,11 +23,10 @@ io.on('connection', (socket) => {
             socket.join(roomName);
             waitingUser.join(roomName);
 
-            // İki tarafa da eşleştiğini ve kimin "Arayan (Offer başlatan)" olduğunu bildiriyoruz
             socket.emit('matched', { roomName, isInitiator: true });
             waitingUser.emit('matched', { roomName, isInitiator: false });
             
-            console.log('İki kişi eşleşti ve WebRTC odası kuruldu!');
+            console.log('İki kişi eşleşti!');
             waitingUser = null;
         } else {
             waitingUser = socket;
@@ -26,7 +34,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // WebRTC Sinyal Mesajlarının Taşınması (Offer, Answer, ICE)
     socket.on('signal', (data) => {
         const rooms = Array.from(socket.rooms);
         const roomName = rooms.find(r => r.includes('#'));
@@ -58,6 +65,8 @@ io.on('connection', (socket) => {
     });
 });
 
-http.listen(3000, () => {
-    console.log('LumiChat WebRTC Sunucusu 3000 portunda aktif!');
+// 3. Port ayarı (Render için dinamik)
+const port = process.env.PORT || 3000;
+http.listen(port, () => {
+    console.log('LumiChat Sunucusu ' + port + ' portunda aktif!');
 });
