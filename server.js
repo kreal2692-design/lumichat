@@ -1,3 +1,6 @@
+app.get('/', (req, res) => {
+  res.send('LumiChat Backend aktif ve çalışıyor!');
+});
 const express = require('express');
 const app = express();
 const path = require('path');
