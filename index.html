@@ -17,16 +17,10 @@
       --shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
       --success: #2ecc71;
       --danger: #ff7675;
-      --warning: #f1c40f;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      height: 100%;
-    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
 
     body {
       margin: 0;
@@ -85,26 +79,14 @@
       transition: 0.2s ease;
     }
 
-    .btn:hover {
-      transform: translateY(-1px);
-    }
-
-    .btn-google {
-      background: #4285F4;
-    }
-
-    .btn-primary {
-      background: var(--success);
-    }
-
+    .btn:hover { transform: translateY(-1px); }
+    .btn-google { background: #4285F4; }
+    .btn-primary { background: var(--success); }
     .btn-secondary {
       background: rgba(255,255,255,0.10);
       border: 1px solid rgba(255,255,255,0.15);
     }
-
-    .btn-danger {
-      background: var(--danger);
-    }
+    .btn-danger { background: var(--danger); }
 
     #main-app {
       display: none;
@@ -332,9 +314,7 @@
     }
 
     @media (max-width: 720px) {
-      body {
-        overflow: auto;
-      }
+      body { overflow: auto; }
 
       #main-app {
         padding: 12px;
@@ -437,9 +417,12 @@
 
     function debug(text) {
       console.log(text);
-      if (debugBar) {
-        debugBar.textContent = text;
-      }
+      debugBar.textContent = text;
+    }
+
+    function safeAlert(text) {
+      console.error(text);
+      alert(text);
     }
 
     debug("HTML yüklendi");
@@ -460,14 +443,13 @@
       appId: "1:255322307057:web:9f19046678fb1332b8ac50"
     };
 
-    const firebaseApp = initializeApp(firebaseConfig);
-    const auth = getAuth(firebaseApp);
-    const db = getFirestore(firebaseApp);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
-
-    debug("Firebase initialize edildi");
-
     const socket = io();
+
+    debug("Firebase başlatıldı");
 
     const authScreen = document.getElementById("auth-screen");
     const membershipScreen = document.getElementById("membership-screen");
@@ -482,7 +464,6 @@
     const matchBtn = document.getElementById("matchBtn");
     const nextBtn = document.getElementById("nextBtn");
     const leaveBtn = document.getElementById("leaveBtn");
-
     const loginBtn = document.getElementById("loginBtn");
     const activateMembershipBtn = document.getElementById("activateMembershipBtn");
     const logoutBtnMembership = document.getElementById("logoutBtnMembership");
@@ -492,7 +473,6 @@
     let localStream = null;
     let peerConnection = null;
     let isMatched = false;
-    let isInitiator = false;
     let appInitialized = false;
 
     const rtcConfig = {
@@ -531,17 +511,11 @@
 
     async function initCamera() {
       try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error("Tarayıcı getUserMedia desteklemiyor");
-        }
-
         debug("Kamera izni isteniyor");
-
         localStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true
         });
-
         localVideo.srcObject = localStream;
         debug("Kamera bağlandı");
       } catch (error) {
@@ -645,7 +619,6 @@
 
     function resetChatState(messageText = "") {
       isMatched = false;
-      isInitiator = false;
       setChatEnabled(false);
       closePeerConnection();
 
@@ -665,13 +638,17 @@
 
     loginBtn.addEventListener("click", async () => {
       try {
+        debug("Google giriş başladı");
+
         if (location.protocol === "file:") {
-          alert("Bu sayfayı file:// ile değil, bir sunucu üzerinden çalıştırmalısın.");
+          safeAlert("Bu projeyi file:// ile değil, localhost veya bir sunucu üzerinden açmalısın.");
+          return;
         }
 
-        debug("Google giriş başladı");
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
+
+        debug("Google login tamamlandı: " + (user.email || user.uid));
 
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
@@ -683,22 +660,24 @@
             hasMembership: false,
             createdAt: new Date().toISOString()
           });
+          debug("Yeni kullanıcı Firestore'a yazıldı");
+        } else {
+          debug("Kullanıcı kaydı zaten var");
         }
-
-        debug("Google giriş başarılı");
       } catch (error) {
         console.error(error);
         debug("Google giriş hatası: " + error.message);
-        alert("Google girişi sırasında hata oluştu: " + error.message);
+        safeAlert("Google giriş hatası: " + error.message);
       }
     });
 
     activateMembershipBtn.addEventListener("click", async () => {
       try {
-        const user = auth.currentUser;
+        debug("Üyelik butonuna basıldı");
 
+        const user = auth.currentUser;
         if (!user) {
-          alert("Önce giriş yapmalısın.");
+          safeAlert("Önce giriş yapmalısın.");
           return;
         }
 
@@ -711,13 +690,13 @@
           updatedAt: new Date().toISOString()
         }, { merge: true });
 
-        debug("Üyelik test için aktif edildi");
+        debug("Üyelik aktif edildi");
         showScreen("main");
         await initChatSystem();
       } catch (error) {
         console.error(error);
         debug("Üyelik açma hatası: " + error.message);
-        alert("Üyelik açılırken hata oluştu: " + error.message);
+        safeAlert("Üyelik açma hatası: " + error.message);
       }
     });
 
@@ -773,7 +752,6 @@
 
     socket.on("matched", async (data) => {
       isMatched = true;
-      isInitiator = !!data.isInitiator;
       setChatEnabled(true);
       setStatus("Eşleşti");
       addChatMessage("Biriyle eşleştin. Artık mesaj gönderebilirsin.", "system");
@@ -781,7 +759,7 @@
 
       createPeerConnection();
 
-      if (isInitiator) {
+      if (data.isInitiator) {
         await createOffer();
       }
     });
@@ -822,7 +800,7 @@
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
-          debug("Firestore user kaydı yok, membership ekranı açılıyor");
+          debug("Firestore user kaydı yok");
           showScreen("membership");
           return;
         }
@@ -841,7 +819,7 @@
       } catch (error) {
         console.error(error);
         debug("Auth state hatası: " + error.message);
-        alert("Sistem başlatılırken hata oluştu: " + error.message);
+        safeAlert("Sistem başlatma hatası: " + error.message);
       }
     });
 
