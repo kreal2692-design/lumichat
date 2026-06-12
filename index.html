@@ -5,166 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LumiChat</title>
 
-  <link rel="stylesheet" href="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css)" />
   <script src="/socket.io/socket.io.js"></script>
-
-  
-
- <link rel="stylesheet" href="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css)" />
-<script src="/socket.io/socket.io.js"></script>
-
-  <script type="module">
-    import { initializeApp } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js)";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js)";
-    import { getFirestore, doc, getDoc, setDoc } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js)";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyC-Eg536s2P4Gb38xXEmKstNfBcpmhUaJE",
-      authDomain: "lumichat-64dc8.firebaseapp.com",
-      projectId: "lumichat-64dc8",
-      storageBucket: "lumichat-64dc8.firebasestorage.app",
-      messagingSenderId: "255322307057",
-      appId: "1:255322307057:web:9f19046678fb1332b8ac50"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
-
-    window.firebaseAuth = auth;
-    window.firebaseDb = db;
-
-    window.login = async () => {
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            displayName: user.displayName || '',
-            email: user.email || '',
-            hasMembership: false,
-            createdAt: new Date().toISOString()
-          });
-        }
-      } catch (error) {
-        console.error('Giris hatasi:', error);
-        alert('Google girisi sirasinda hata olustu.');
-      }
-    };
-
-    window.logout = async () => {
-      try {
-        await signOut(auth);
-      } catch (error) {
-        console.error('Cikis hatasi:', error);
-      }
-    };
-
-    async function checkMembershipAndStart(user) {
-      const authScreen = document.getElementById('auth-screen');
-      const membershipScreen = document.getElementById('membership-screen');
-      const mainApp = document.getElementById('main-app');
-      const userInfo = document.getElementById('userInfo');
-
-      authScreen.style.display = 'none';
-      membershipScreen.style.display = 'none';
-      mainApp.style.display = 'none';
-
-      if (userInfo) {
-        userInfo.textContent = user.displayName
-          ? `Giris yapildi: ${user.displayName}`
-          : 'Giris yapildi';
-      }
-
-      try {
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            displayName: user.displayName || '',
-            email: user.email || '',
-            hasMembership: false,
-            createdAt: new Date().toISOString()
-          });
-
-          membershipScreen.style.display = 'grid';
-          return;
-        }
-
-        const userData = userSnap.data();
-
-        if (!userData.hasMembership) {
-          membershipScreen.style.display = 'grid';
-          return;
-        }
-
-        mainApp.style.display = 'flex';
-
-        if (window.startAppAfterLogin) {
-          window.startAppAfterLogin();
-        }
-      } catch (error) {
-        console.error('Uyelik kontrol hatasi:', error);
-        alert('Uyelik kontrolu yapilirken hata olustu.');
-      }
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-      const authScreen = document.getElementById('auth-screen');
-      const membershipScreen = document.getElementById('membership-screen');
-      const mainApp = document.getElementById('main-app');
-      const userInfo = document.getElementById('userInfo');
-
-      if (user) {
-        await checkMembershipAndStart(user);
-      } else {
-        authScreen.style.display = 'grid';
-        membershipScreen.style.display = 'none';
-        mainApp.style.display = 'none';
-
-        if (userInfo) {
-          userInfo.textContent = '';
-        }
-      }
-    });
-
-    window.activateMembershipForTest = async () => {
-      const user = auth.currentUser;
-
-      if (!user) {
-        alert('Once giris yapmalisin.');
-        return;
-      }
-
-      try {
-        const userRef = doc(db, 'users', user.uid);
-        await setDoc(userRef, {
-          displayName: user.displayName || '',
-          email: user.email || '',
-          hasMembership: true,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-
-        alert('Test icin uyelik aktif edildi.');
-        await checkMembershipAndStart(user);
-      } catch (error) {
-        console.error('Uyelik aktif etme hatasi:', error);
-      }
-    };
-  </script>
 
   <style>
     :root {
       --bg: #0b0f17;
       --card: rgba(20, 40, 60, 0.9);
       --accent: #00e5ff;
-      --accent2: #4cc9f0;
       --text: #e8f0f8;
       --muted: #a9b6c7;
       --shadow: 0 10px 25px rgba(0, 0, 0, .35);
@@ -188,99 +35,97 @@
         radial-gradient(circle at 100% 0%, rgba(68, 85, 255, .10), transparent 30%),
         linear-gradient(135deg, #07131a 0%, #0b0f17 60%, #0b0f17 100%);
       color: var(--text);
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
+      font-family: Arial, sans-serif;
       min-height: 100vh;
       overflow: hidden;
     }
 
-    #auth-screen,
-    #membership-screen {
+    .screen {
       position: fixed;
       inset: 0;
       display: none;
       place-items: center;
       padding: 20px;
-      z-index: 9999;
+      z-index: 20;
       background:
         radial-gradient(circle at 30% 20%, rgba(0, 229, 255, .15), transparent 40%),
         rgba(5, 8, 12, .90);
-      backdrop-filter: saturate(1.2) blur(2px);
     }
 
-    .auth-card,
-    .membership-card {
-      background: rgba(10, 20, 30, 0.88);
+    .card {
+      background: rgba(10, 20, 30, 0.92);
       border: 1px solid rgba(0, 229, 255, 0.25);
       border-radius: 20px;
       padding: 28px 34px;
       box-shadow: var(--shadow);
       text-align: center;
       min-width: 320px;
-      max-width: 460px;
+      max-width: 480px;
     }
 
-    .auth-title {
-      font-weight: 700;
-      font-size: 1.25rem;
+    .title {
+      font-size: 28px;
+      font-weight: bold;
       margin-bottom: 12px;
     }
 
-    .main-btn {
+    .subtitle {
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .btn {
       border: none;
       border-radius: 12px;
       padding: 12px 18px;
-      font-size: 1rem;
+      font-size: 16px;
       cursor: pointer;
       color: white;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+      transition: .2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-google {
       background: #4285F4;
-      box-shadow: 0 6px 16px rgba(66, 133, 244, .6);
     }
 
-    .main-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 22px rgba(66, 133, 244, .8);
+    .btn-primary {
+      background: var(--success);
     }
 
-    .secondary-btn {
-      border: 1px solid rgba(255, 255, 255, .16);
-      border-radius: 12px;
-      padding: 12px 18px;
-      background: rgba(255, 255, 255, .08);
-      color: white;
-      cursor: pointer;
-      font-size: 1rem;
+    .btn-secondary {
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.15);
+    }
+
+    .btn-danger {
+      background: var(--danger);
     }
 
     #main-app {
       display: none;
-      flex: 1;
-      padding: 18px;
-      gap: 14px;
-      align-items: stretch;
-      justify-content: center;
       width: 100%;
       max-width: 1280px;
       margin: 0 auto;
+      padding: 18px;
+      height: 100vh;
     }
 
     .app-shell {
       display: flex;
       flex-direction: column;
-      width: 100%;
       gap: 12px;
+      height: 100%;
     }
 
     .topbar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 12px;
       padding: 14px 16px;
       border-radius: 16px;
@@ -290,22 +135,22 @@
     }
 
     .brand {
-      font-size: 1.5rem;
-      font-weight: 800;
+      font-size: 36px;
+      font-weight: bold;
       color: white;
     }
 
     .topbar-right {
       display: flex;
-      align-items: center;
       gap: 12px;
+      align-items: center;
       flex-wrap: wrap;
       justify-content: flex-end;
     }
 
     #userInfo {
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 14px;
     }
 
     .status-pill {
@@ -314,25 +159,15 @@
       border: 1px solid rgba(0, 229, 255, .25);
       background: rgba(0, 229, 255, .08);
       color: var(--text);
-      font-size: 0.92rem;
-      white-space: nowrap;
-    }
-
-    .logout-btn {
-      background: rgba(255, 255, 255, .08);
-      border: 1px solid rgba(255, 255, 255, .15);
-      color: white;
-      padding: 10px 14px;
-      border-radius: 10px;
-      cursor: pointer;
+      font-size: 14px;
     }
 
     .layout {
       display: grid;
       grid-template-columns: 1fr 1fr 340px;
       gap: 14px;
-      width: 100%;
-      height: calc(100vh - 150px);
+      flex: 1;
+      min-height: 0;
     }
 
     .box {
@@ -357,12 +192,11 @@
       position: absolute;
       left: 12px;
       top: 12px;
-      background: rgba(0, 0, 0, .45);
+      background: rgba(0,0,0,.45);
       color: white;
-      font-size: 0.9rem;
+      font-size: 14px;
       padding: 7px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, .12);
       z-index: 2;
     }
 
@@ -375,15 +209,8 @@
       color: #ffb3b3;
       padding: 8px 12px;
       border-radius: 999px;
-      opacity: 0;
-      transition: opacity .25s ease;
       cursor: pointer;
-      backdrop-filter: blur(2px);
       z-index: 2;
-    }
-
-    .box:hover .report-btn {
-      opacity: 1;
     }
 
     .chat-container {
@@ -434,7 +261,7 @@
       color: #ffe08a;
       align-self: center;
       text-align: center;
-      font-size: 0.92rem;
+      font-size: 14px;
     }
 
     .chat-input-row {
@@ -451,12 +278,7 @@
       outline: none;
       background: rgba(15, 23, 42, .9);
       color: var(--text);
-      font-size: 0.96rem;
-    }
-
-    #msgInput:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+      font-size: 15px;
     }
 
     .send-btn {
@@ -466,7 +288,7 @@
       cursor: pointer;
       background: var(--accent);
       color: #00131a;
-      font-weight: 700;
+      font-weight: bold;
       min-width: 90px;
     }
 
@@ -483,55 +305,24 @@
       flex-wrap: wrap;
     }
 
-    .control-btn {
-      padding: 14px 20px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      color: white;
-      font-size: 1rem;
-      min-width: 130px;
-      transition: transform .2s ease, background .2s ease, opacity .2s ease;
-    }
-
-    .control-btn.primary {
-      background: var(--success);
-    }
-
-    .control-btn.secondary {
-      background: var(--danger);
-    }
-
-    .control-btn.ghost {
-      background: rgba(255, 255, 255, .08);
-      border: 1px solid rgba(255, 255, 255, .15);
-    }
-
-    .control-btn:disabled,
-    .send-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .membership-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-
-    .hint {
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.5;
+    .debug-bar {
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      z-index: 99999;
+      background: rgba(0,0,0,.75);
+      color: #7CFFB2;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      max-width: 420px;
+      white-space: pre-wrap;
     }
 
     @media (max-width: 1024px) {
       .layout {
         grid-template-columns: 1fr 1fr;
-        height: auto;
       }
 
       .chat-container {
@@ -547,61 +338,39 @@
 
       #main-app {
         padding: 12px;
+        height: auto;
+        min-height: 100vh;
       }
 
       .layout {
         grid-template-columns: 1fr;
-        height: auto;
       }
 
       .topbar {
+        flex-direction: column;
         align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .topbar-right {
-        width: 100%;
-        justify-content: flex-start;
-      }
-
-      .control-btn,
-      .send-btn {
-        width: 100%;
-      }
-
-      .controls {
-        flex-direction: column;
       }
     }
   </style>
 </head>
 <body>
-  <div id="auth-screen">
-    <div class="auth-card">
-      <div class="auth-title">LumiChat'e Hos Geldiniz</div>
-      <p style="color:var(--muted); margin: 0 0 14px;">Google ile hizli ve guvenli giris yapin.</p>
-      <button class="main-btn" onclick="login()">
-        <i class="fab fa-google"></i>
-        Google ile Giris Yap
-      </button>
+  <div id="auth-screen" class="screen" style="display:grid;">
+    <div class="card">
+      <div class="title">LumiChat</div>
+      <div class="subtitle">Google ile giris yaparak devam et.</div>
+      <button class="btn btn-google" id="loginBtn">Google ile Giris Yap</button>
     </div>
   </div>
 
-  <div id="membership-screen">
-    <div class="membership-card">
-      <div class="auth-title">Uyelik Gerekli</div>
-      <p class="hint">
-        Bu alana girmek icin aktif uyelik gerekiyor.
-        Google ile giris yaptin ama hesabinda su an uyelik aktif gorunmuyor.
-      </p>
-
-      <div class="membership-actions">
-        <button class="main-btn" onclick="activateMembershipForTest()">
-          Test Icin Uyelik Ac
-        </button>
-        <button class="secondary-btn" onclick="logout()">
-          Cikis Yap
-        </button>
+  <div id="membership-screen" class="screen">
+    <div class="card">
+      <div class="title">Uyelik Gerekli</div>
+      <div class="subtitle">
+        Hesabinda aktif uyelik gorunmuyor. Test icin uyelik acabilirsin.
+      </div>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn-primary" id="activateMembershipBtn">Test Icin Uyelik Ac</button>
+        <button class="btn btn-secondary" id="logoutBtnMembership">Cikis Yap</button>
       </div>
     </div>
   </div>
@@ -610,31 +379,27 @@
     <div class="app-shell">
       <div class="topbar">
         <div class="brand">LumiChat</div>
-
         <div class="topbar-right">
           <div id="userInfo"></div>
-          <div id="statusText" class="status-pill">Hazir</div>
-          <button class="logout-btn" onclick="logout()">Cikis Yap</button>
+          <div id="statusText" class="status-pill">Yukleniyor</div>
+          <button class="btn btn-secondary" id="logoutBtnMain">Cikis Yap</button>
         </div>
       </div>
 
       <div class="layout">
-        <div class="box" aria-label="Kullanici kamerasi">
+        <div class="box">
           <div class="video-label">Sen</div>
           <video id="localVideo" autoplay muted playsinline></video>
         </div>
 
-        <div class="box" aria-label="Uzak kamera" style="min-height: 240px;">
+        <div class="box">
           <div class="video-label">Karsi taraf</div>
           <video id="remoteVideo" autoplay playsinline></video>
-          <button class="report-btn" onclick="alert('Raporlama sistemi daha sonra baglanacak.')">
-            <i class="fa fa-flag"></i> Report
-          </button>
+          <button class="report-btn" id="reportBtn">Report</button>
         </div>
 
-        <aside class="chat-container" aria-label="Sohbet">
+        <aside class="chat-container">
           <div id="chatBox"></div>
-
           <div class="chat-input-row">
             <input type="text" id="msgInput" placeholder="Mesaj yaz..." disabled />
             <button id="sendBtn" class="send-btn" disabled>Gonder</button>
@@ -643,24 +408,61 @@
       </div>
 
       <div class="controls">
-        <button id="matchBtn" class="control-btn primary">
-          <i class="fa fa-link"></i> Esles
-        </button>
-
-        <button id="nextBtn" class="control-btn ghost">
-          Siradaki
-        </button>
-
-        <button id="leaveBtn" class="control-btn secondary">
-          Ayril
-        </button>
+        <button id="matchBtn" class="btn btn-primary">Esles</button>
+        <button id="nextBtn" class="btn btn-secondary">Siradaki</button>
+        <button id="leaveBtn" class="btn btn-danger">Ayril</button>
       </div>
     </div>
   </div>
 
-  <script>
+  <div id="debugBar" class="debug-bar">Baslatiliyor...</div>
+
+  <script type="module">
+    const debugBar = document.getElementById('debugBar');
+
+    function debug(text) {
+      console.log(text);
+      debugBar.textContent = text;
+    }
+
+    debug('HTML yuklendi');
+
+    if (typeof io === 'undefined') {
+      debug('HATA: socket.io yuklenemedi');
+      throw new Error('socket.io yuklenemedi');
+    }
+
+    debug('socket.io yuklendi');
+
+    import { initializeApp } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js)";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js)";
+    import { getFirestore, doc, getDoc, setDoc } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js)";
+
+    debug('Firebase modulleri yuklendi');
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-Eg536s2P4Gb38xXEmKstNfBcpmhUaJE",
+      authDomain: "lumichat-64dc8.firebaseapp.com",
+      projectId: "lumichat-64dc8",
+      storageBucket: "lumichat-64dc8.firebasestorage.app",
+      messagingSenderId: "255322307057",
+      appId: "1:255322307057:web:9f19046678fb1332b8ac50"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
+    const provider = new GoogleAuthProvider();
+
+    debug('Firebase initialize edildi');
+
     const socket = io();
 
+    const authScreen = document.getElementById('auth-screen');
+    const membershipScreen = document.getElementById('membership-screen');
+    const mainApp = document.getElementById('main-app');
+    const userInfo = document.getElementById('userInfo');
+    const statusText = document.getElementById('statusText');
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
     const chatBox = document.getElementById('chatBox');
@@ -669,7 +471,11 @@
     const matchBtn = document.getElementById('matchBtn');
     const nextBtn = document.getElementById('nextBtn');
     const leaveBtn = document.getElementById('leaveBtn');
-    const statusText = document.getElementById('statusText');
+
+    const loginBtn = document.getElementById('loginBtn');
+    const activateMembershipBtn = document.getElementById('activateMembershipBtn');
+    const logoutBtnMembership = document.getElementById('logoutBtnMembership');
+    const logoutBtnMain = document.getElementById('logoutBtnMain');
 
     let localStream = null;
     let peerConnection = null;
@@ -685,6 +491,17 @@
 
     function setStatus(text) {
       statusText.textContent = text;
+      debug('STATUS: ' + text);
+    }
+
+    function showScreen(name) {
+      authScreen.style.display = 'none';
+      membershipScreen.style.display = 'none';
+      mainApp.style.display = 'none';
+
+      if (name === 'auth') authScreen.style.display = 'grid';
+      if (name === 'membership') membershipScreen.style.display = 'grid';
+      if (name === 'main') mainApp.style.display = 'block';
     }
 
     function setChatEnabled(enabled) {
@@ -702,14 +519,16 @@
 
     async function initCamera() {
       try {
+        debug('Kamera izni isteniyor');
         localStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true
         });
-
         localVideo.srcObject = localStream;
+        debug('Kamera baglandi');
       } catch (error) {
-        console.error('Kamera/Mikrofon hatasi:', error);
+        console.error(error);
+        debug('Kamera hatasi: ' + error.message);
         addChatMessage('Kamera veya mikrofon izni alinamadi.', 'system');
         setStatus('Kamera izni gerekli');
       }
@@ -773,9 +592,7 @@
 
     async function handleSignal(data) {
       try {
-        if (!peerConnection) {
-          createPeerConnection();
-        }
+        if (!peerConnection) createPeerConnection();
 
         if (data.type === 'offer') {
           await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
@@ -786,17 +603,14 @@
             type: 'answer',
             sdp: answer
           });
-        }
-
-        if (data.type === 'answer') {
+        } else if (data.type === 'answer') {
           await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
-        }
-
-        if (data.type === 'candidate' && data.candidate) {
+        } else if (data.type === 'candidate' && data.candidate) {
           await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
         }
       } catch (error) {
-        console.error('WebRTC signal hatasi:', error);
+        console.error(error);
+        debug('WebRTC hata: ' + error.message);
       }
     }
 
@@ -804,10 +618,11 @@
       if (appInitialized) return;
       appInitialized = true;
 
+      addChatMessage('Uygulama hazirlaniyor...', 'system');
       await initCamera();
       setChatEnabled(false);
       setStatus('Hazir');
-      addChatMessage('Giris basarili. Esles butonuna basarak sohbet baslatabilirsin.', 'system');
+      addChatMessage('Giris basarili. Esles butonuna bas.', 'system');
     }
 
     function resetChatState(messageText = '') {
@@ -823,13 +638,71 @@
 
     function sendMessage() {
       const text = msgInput.value.trim();
-
       if (!text || !isMatched) return;
 
-      addChatMessage(`Sen: ${text}`, 'me');
+      addChatMessage('Sen: ' + text, 'me');
       socket.emit('message', text);
       msgInput.value = '';
     }
+
+    loginBtn.addEventListener('click', async () => {
+      try {
+        debug('Google giris basladi');
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            displayName: user.displayName || '',
+            email: user.email || '',
+            hasMembership: false,
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        debug('Google giris basarili');
+      } catch (error) {
+        console.error(error);
+        debug('Google giris hatasi: ' + error.message);
+        alert('Google girisi sirasinda hata olustu: ' + error.message);
+      }
+    });
+
+    activateMembershipBtn.addEventListener('click', async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          alert('Once giris yapmalisin.');
+          return;
+        }
+
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, {
+          displayName: user.displayName || '',
+          email: user.email || '',
+          hasMembership: true,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        debug('Uyelik test icin aktif edildi');
+        showScreen('main');
+        await initChatSystem();
+      } catch (error) {
+        console.error(error);
+        debug('Uyelik acma hatasi: ' + error.message);
+      }
+    });
+
+    logoutBtnMembership.addEventListener('click', async () => {
+      await signOut(auth);
+    });
+
+    logoutBtnMain.addEventListener('click', async () => {
+      await signOut(auth);
+    });
 
     matchBtn.addEventListener('click', () => {
       resetChatState();
@@ -860,6 +733,7 @@
     });
 
     socket.on('connect', () => {
+      debug('Socket baglandi');
       setStatus('Baglandi');
     });
 
@@ -884,7 +758,7 @@
     });
 
     socket.on('message', (text) => {
-      addChatMessage(`Karsi: ${text}`, 'other');
+      addChatMessage('Karsi: ' + text, 'other');
     });
 
     socket.on('signal', async (data) => {
@@ -901,7 +775,47 @@
       setStatus('Baglanti koptu');
     });
 
-    window.startAppAfterLogin = initChatSystem;
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        if (!user) {
+          debug('Kullanici giris yapmamis');
+          showScreen('auth');
+          return;
+        }
+
+        debug('Kullanici bulundu: ' + (user.email || user.uid));
+        userInfo.textContent = user.displayName
+          ? 'Giris yapildi: ' + user.displayName
+          : 'Giris yapildi';
+
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          debug('Firestore user kaydi yok, membership ekrani aciliyor');
+          showScreen('membership');
+          return;
+        }
+
+        const userData = userSnap.data();
+
+        if (!userData.hasMembership) {
+          debug('Uyelik yok');
+          showScreen('membership');
+          return;
+        }
+
+        debug('Uyelik var, ana ekran aciliyor');
+        showScreen('main');
+        await initChatSystem();
+      } catch (error) {
+        console.error(error);
+        debug('Auth state hatasi: ' + error.message);
+        alert('Sistem baslatilirken hata olustu: ' + error.message);
+      }
+    });
+
+    debug('Script tamamen hazir');
   </script>
 </body>
 </html>
