@@ -1,108 +1,126 @@
-const express = require('express');
-const path = require('path');
-const http = require('http');
-const { Server } = require('socket.io');
+const express = require("express");
+const http = require("http");
+const path = require("path");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*'
-  }
-});
+const io = new Server(server);
 
-app.use(express.static(path.join(__dirname)));
+const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+// Klasordeki statik dosyalari sun
+app.use(express.static(__dirname));
+
+// Ana sayfa
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 let waitingUser = null;
+const pairs = new Map();
 
-function getChatRoom(socket) {
-  return Array.from(socket.rooms).find((room) => room !== socket.id);
+function getPartnerId(socketId) {
+  return pairs.get(socketId) || null;
 }
 
-function removeFromWaiting(socket) {
-  if (waitingUser && waitingUser.id === socket.id) {
-    waitingUser = null;
+function pairUsers(socketA, socketB) {
+  pairs.set(socketA.id, socketB.id);
+  pairs.set(socketB.id, socketA.id);
+
+  socketA.emit("matched", { isInitiator: true });
+  socketB.emit("matched", { isInitiator: false });
+}
+
+function unpair(socket) {
+  const partnerId = pairs.get(socket.id);
+  if (!partnerId) return;
+
+  pairs.delete(socket.id);
+  pairs.delete(partnerId);
+
+  const partnerSocket = io.sockets.sockets.get(partnerId);
+  if (partnerSocket) {
+    partnerSocket.emit("strangerLeft");
   }
 }
 
-function leaveCurrentRoom(socket) {
-  const roomName = getChatRoom(socket);
+io.on("connection", (socket) => {
+  console.log("Baglandi:", socket.id);
 
-  if (roomName) {
-    socket.to(roomName).emit('strangerLeft');
-    socket.leave(roomName);
-  }
-}
+  socket.on("join", () => {
+    console.log("join:", socket.id);
 
-function joinQueue(socket) {
-  if (waitingUser && waitingUser.id !== socket.id) {
-    const roomName = [waitingUser.id, socket.id].sort().join('#');
-
-    socket.join(roomName);
-    waitingUser.join(roomName);
-
-    socket.emit('matched', { roomName, isInitiator: true });
-    waitingUser.emit('matched', { roomName, isInitiator: false });
-
-    console.log(`Eslesme oldu: ${waitingUser.id} <-> ${socket.id}`);
-    waitingUser = null;
-  } else {
-    waitingUser = socket;
-    socket.emit('waiting');
-    console.log(`Bekleme sirasinda: ${socket.id}`);
-  }
-}
-
-io.on('connection', (socket) => {
-  console.log(`Baglanan kisi: ${socket.id}`);
-
-  socket.on('join', () => {
-    removeFromWaiting(socket);
-    leaveCurrentRoom(socket);
-    joinQueue(socket);
-  });
-
-  socket.on('next', () => {
-    removeFromWaiting(socket);
-    leaveCurrentRoom(socket);
-    joinQueue(socket);
-  });
-
-  socket.on('leave', () => {
-    removeFromWaiting(socket);
-    leaveCurrentRoom(socket);
-    socket.emit('waiting');
-  });
-
-  socket.on('message', (data) => {
-    const roomName = getChatRoom(socket);
-
-    if (roomName) {
-      socket.to(roomName).emit('message', data);
+    if (waitingUser && waitingUser.id !== socket.id) {
+      const partner = waitingUser;
+      waitingUser = null;
+      pairUsers(socket, partner);
+    } else {
+      waitingUser = socket;
+      socket.emit("waiting");
     }
   });
 
-  socket.on('signal', (data) => {
-    const roomName = getChatRoom(socket);
+  socket.on("next", () => {
+    console.log("next:", socket.id);
 
-    if (roomName) {
-      socket.to(roomName).emit('signal', data);
+    if (waitingUser && waitingUser.id === socket.id) {
+      waitingUser = null;
+    }
+
+    unpair(socket);
+
+    if (waitingUser && waitingUser.id !== socket.id) {
+      const partner = waitingUser;
+      waitingUser = null;
+      pairUsers(socket, partner);
+    } else {
+      waitingUser = socket;
+      socket.emit("waiting");
     }
   });
 
-  socket.on('disconnect', () => {
-    removeFromWaiting(socket);
-    leaveCurrentRoom(socket);
-    console.log(`Ayrilan kisi: ${socket.id}`);
+  socket.on("leave", () => {
+    console.log("leave:", socket.id);
+
+    if (waitingUser && waitingUser.id === socket.id) {
+      waitingUser = null;
+    }
+
+    unpair(socket);
+  });
+
+  socket.on("message", (text) => {
+    const partnerId = getPartnerId(socket.id);
+    if (!partnerId) return;
+
+    const partnerSocket = io.sockets.sockets.get(partnerId);
+    if (partnerSocket) {
+      partnerSocket.emit("message", text);
+    }
+  });
+
+  socket.on("signal", (data) => {
+    const partnerId = getPartnerId(socket.id);
+    if (!partnerId) return;
+
+    const partnerSocket = io.sockets.sockets.get(partnerId);
+    if (partnerSocket) {
+      partnerSocket.emit("signal", data);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Ayrildi:", socket.id);
+
+    if (waitingUser && waitingUser.id === socket.id) {
+      waitingUser = null;
+    }
+
+    unpair(socket);
   });
 });
 
-const port = process.env.PORT || 3000;
-
-server.listen(port, () => {
-  console.log(`LumiChat sunucusu ${port} portunda aktif`);
+server.listen(PORT, () => {
+  console.log(`Server calisiyor: http://localhost:${PORT}`);
 });
