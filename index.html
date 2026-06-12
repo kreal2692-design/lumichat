@@ -8,16 +8,17 @@
   <script src="/socket.io/socket.io.js"></script>
 
   <style>
-    /* CSS kodların olduğu gibi duruyor */
     :root { --bg: #0b0f17; --card: rgba(20, 40, 60, 0.9); --accent: #00e5ff; --text: #e8f0f8; --muted: #a9b6c7; --shadow: 0 10px 25px rgba(0, 0, 0, 0.35); --success: #2ecc71; --danger: #ff7675; }
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; background: #0b0f17; color: var(--text); font-family: Arial, sans-serif; }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: Arial, sans-serif; overflow: hidden; }
     .screen { position: fixed; inset: 0; display: none; place-items: center; z-index: 20; background: rgba(5, 8, 12, 0.95); }
     .card { background: rgba(10, 20, 30, 0.92); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 20px; padding: 30px; text-align: center; }
-    .btn { border: none; border-radius: 12px; padding: 12px 18px; cursor: pointer; color: white; margin: 5px; }
+    .btn { border: none; border-radius: 12px; padding: 12px 18px; cursor: pointer; color: white; margin: 5px; font-size: 16px; }
     .btn-google { background: #4285F4; }
     #main-app { display: none; width: 100%; height: 100vh; padding: 20px; }
-    /* Diğer stil kuralların aynı kalabilir */
+    .layout { display: grid; grid-template-columns: 1fr 1fr 340px; gap: 14px; height: 80vh; }
+    .box { border-radius: 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(0, 229, 255, 0.25); overflow: hidden; }
+    video { width: 100%; height: 100%; object-fit: cover; }
   </style>
 </head>
 <body>
@@ -29,28 +30,18 @@
     </div>
   </div>
 
-  <div id="membership-screen" class="screen">
-    <div class="card">
-      <div class="title">Üyelik Gerekli</div>
-      <button class="btn btn-primary" id="activateMembershipBtn">Test İçin Üyelik Aç</button>
-    </div>
-  </div>
-
   <div id="main-app">
     <div class="topbar"><div class="brand">LumiChat</div></div>
     <div class="layout">
       <div class="box"><video id="localVideo" autoplay muted playsinline></video></div>
       <div class="box"><video id="remoteVideo" autoplay playsinline></video></div>
+      <div class="box" id="chatBox"></div>
     </div>
   </div>
 
-  <div id="debugBar" class="debug-bar">Başlatılıyor...</div>
-
   <script type="module">
-    // Firebase ve Auth tanımlamalarını tek bir yerde topladım (Hata düzeltildi)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC-Eg536s2P4Gb38xXEmKstNfBcpmhUaJE",
@@ -63,44 +54,27 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
     const socket = io();
 
-    // DOM Elementleri
-    const loginBtn = document.getElementById("loginBtn");
-    const activateBtn = document.getElementById("activateMembershipBtn");
-
-    // Google Giriş Fonksiyonu
-    loginBtn.addEventListener("click", async () => {
+    // Giriş Butonu
+    document.getElementById("loginBtn").addEventListener("click", async () => {
       try {
         await signInWithPopup(auth, provider);
       } catch (error) {
-        alert("Giriş hatası: " + error.message);
+        console.error("Giriş hatası:", error);
       }
     });
 
-    // Üyelik Aktif Etme
-    activateBtn.addEventListener("click", async () => {
-      const user = auth.currentUser;
+    // Kullanıcı Giriş Kontrolü
+    onAuthStateChanged(auth, (user) => {
       if (user) {
-        await setDoc(doc(db, "users", user.uid), { hasMembership: true }, { merge: true });
-        location.reload();
-      }
-    });
-
-    // Kullanıcı Durum Takibi
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        document.getElementById("auth-screen").style.display = "grid";
+        document.getElementById("auth-screen").style.display = "none";
+        document.getElementById("main-app").style.display = "block";
+        console.log("Giriş yapıldı, sohbet başlıyor.");
       } else {
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (userSnap.exists() && userSnap.data().hasMembership) {
-          document.getElementById("auth-screen").style.display = "none";
-          document.getElementById("main-app").style.display = "block";
-        } else {
-          document.getElementById("membership-screen").style.display = "grid";
-        }
+        document.getElementById("auth-screen").style.display = "grid";
+        document.getElementById("main-app").style.display = "none";
       }
     });
   </script>
