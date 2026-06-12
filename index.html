@@ -400,9 +400,13 @@
   <div id="debugBar" class="debug-bar">Başlatılıyor...</div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    // ── Supabase yapılandırması ──────────────────────────────────────
+    const SUPABASE_URL  = "https://aaszyppzidhazpbmcipv.supabase.co";
+    const SUPABASE_KEY  = "sb_publishable_UShAjuEa8A4dFcQ5zXVCdg_tsUKrAP3";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    // ────────────────────────────────────────────────────────────────
 
     const debugBar = document.getElementById("debugBar");
 
@@ -425,51 +429,35 @@
 
     debug("socket.io yüklendi");
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyC-Eg536s2P4Gb38xXEmKstNfBcpmhUaJE",
-      authDomain: "lumichat-64dc8.firebaseapp.com",
-      projectId: "lumichat-64dc8",
-      storageBucket: "lumichat-64dc8.firebasestorage.app",
-      messagingSenderId: "255322307057",
-      appId: "1:255322307057:web:9f19046678fb1332b8ac50"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
     const socket = io();
+    debug("Supabase başlatıldı");
 
-    debug("Firebase başlatıldı");
+    const authScreen        = document.getElementById("auth-screen");
+    const membershipScreen  = document.getElementById("membership-screen");
+    const mainApp           = document.getElementById("main-app");
+    const userInfo          = document.getElementById("userInfo");
+    const statusText        = document.getElementById("statusText");
+    const localVideo        = document.getElementById("localVideo");
+    const remoteVideo       = document.getElementById("remoteVideo");
+    const chatBox           = document.getElementById("chatBox");
+    const msgInput          = document.getElementById("msgInput");
+    const sendBtn           = document.getElementById("sendBtn");
+    const matchBtn          = document.getElementById("matchBtn");
+    const nextBtn           = document.getElementById("nextBtn");
+    const leaveBtn          = document.getElementById("leaveBtn");
+    const loginBtn          = document.getElementById("loginBtn");
+    const activateMembershipBtn  = document.getElementById("activateMembershipBtn");
+    const logoutBtnMembership    = document.getElementById("logoutBtnMembership");
+    const logoutBtnMain          = document.getElementById("logoutBtnMain");
+    const reportBtn              = document.getElementById("reportBtn");
 
-    const authScreen = document.getElementById("auth-screen");
-    const membershipScreen = document.getElementById("membership-screen");
-    const mainApp = document.getElementById("main-app");
-    const userInfo = document.getElementById("userInfo");
-    const statusText = document.getElementById("statusText");
-    const localVideo = document.getElementById("localVideo");
-    const remoteVideo = document.getElementById("remoteVideo");
-    const chatBox = document.getElementById("chatBox");
-    const msgInput = document.getElementById("msgInput");
-    const sendBtn = document.getElementById("sendBtn");
-    const matchBtn = document.getElementById("matchBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    const leaveBtn = document.getElementById("leaveBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const activateMembershipBtn = document.getElementById("activateMembershipBtn");
-    const logoutBtnMembership = document.getElementById("logoutBtnMembership");
-    const logoutBtnMain = document.getElementById("logoutBtnMain");
-    const reportBtn = document.getElementById("reportBtn");
-
-    let localStream = null;
+    let localStream    = null;
     let peerConnection = null;
-    let isMatched = false;
+    let isMatched      = false;
     let appInitialized = false;
 
     const rtcConfig = {
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }
-      ]
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
     };
 
     function setStatus(text) {
@@ -478,18 +466,18 @@
     }
 
     function showScreen(name) {
-      authScreen.style.display = "none";
+      authScreen.style.display       = "none";
       membershipScreen.style.display = "none";
-      mainApp.style.display = "none";
+      mainApp.style.display          = "none";
 
-      if (name === "auth") authScreen.style.display = "grid";
+      if (name === "auth")       authScreen.style.display       = "grid";
       if (name === "membership") membershipScreen.style.display = "grid";
-      if (name === "main") mainApp.style.display = "block";
+      if (name === "main")       mainApp.style.display          = "block";
     }
 
     function setChatEnabled(enabled) {
       msgInput.disabled = !enabled;
-      sendBtn.disabled = !enabled;
+      sendBtn.disabled  = !enabled;
     }
 
     function addChatMessage(text, type = "system") {
@@ -503,10 +491,7 @@
     async function initCamera() {
       try {
         debug("Kamera izni isteniyor");
-        localStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        });
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
         debug("Kamera bağlandı");
       } catch (error) {
@@ -517,9 +502,7 @@
       }
     }
 
-    function clearRemoteVideo() {
-      remoteVideo.srcObject = null;
-    }
+    function clearRemoteVideo() { remoteVideo.srcObject = null; }
 
     function closePeerConnection() {
       if (peerConnection) {
@@ -533,29 +516,21 @@
 
     function createPeerConnection() {
       closePeerConnection();
-
       peerConnection = new RTCPeerConnection(rtcConfig);
 
       if (localStream) {
-        localStream.getTracks().forEach((track) => {
-          peerConnection.addTrack(track, localStream);
-        });
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
       }
 
       peerConnection.onicecandidate = (event) => {
         if (event.candidate && isMatched) {
-          socket.emit("signal", {
-            type: "candidate",
-            candidate: event.candidate
-          });
+          socket.emit("signal", { type: "candidate", candidate: event.candidate });
         }
       };
 
       peerConnection.ontrack = (event) => {
         const [remoteStream] = event.streams;
-        if (remoteStream) {
-          remoteVideo.srcObject = remoteStream;
-        }
+        if (remoteStream) remoteVideo.srcObject = remoteStream;
       };
 
       return peerConnection;
@@ -563,14 +538,9 @@
 
     async function createOffer() {
       if (!peerConnection) createPeerConnection();
-
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
-
-      socket.emit("signal", {
-        type: "offer",
-        sdp: offer
-      });
+      socket.emit("signal", { type: "offer", sdp: offer });
     }
 
     async function handleSignal(data) {
@@ -581,11 +551,7 @@
           await peerConnection.setRemoteDescription(data.sdp);
           const answer = await peerConnection.createAnswer();
           await peerConnection.setLocalDescription(answer);
-
-          socket.emit("signal", {
-            type: "answer",
-            sdp: answer
-          });
+          socket.emit("signal", { type: "answer", sdp: answer });
         } else if (data.type === "answer") {
           await peerConnection.setRemoteDescription(data.sdp);
         } else if (data.type === "candidate" && data.candidate) {
@@ -600,7 +566,6 @@
     async function initChatSystem() {
       if (appInitialized) return;
       appInitialized = true;
-
       addChatMessage("Uygulama hazırlanıyor...", "system");
       await initCamera();
       setChatEnabled(false);
@@ -612,21 +577,18 @@
       isMatched = false;
       setChatEnabled(false);
       closePeerConnection();
-
-      if (messageText) {
-        addChatMessage(messageText, "system");
-      }
+      if (messageText) addChatMessage(messageText, "system");
     }
 
     function sendMessage() {
       const text = msgInput.value.trim();
       if (!text || !isMatched) return;
-
       addChatMessage("Sen: " + text, "me");
       socket.emit("message", text);
       msgInput.value = "";
     }
 
+    // ── Google ile giriş ────────────────────────────────────────────
     loginBtn.addEventListener("click", async () => {
       try {
         debug("Google giriş başladı");
@@ -636,25 +598,13 @@
           return;
         }
 
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: location.origin }
+        });
 
-        debug("Google login tamamlandı: " + (user.email || user.uid));
-
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            displayName: user.displayName || "",
-            email: user.email || "",
-            hasMembership: false,
-            createdAt: new Date().toISOString()
-          });
-          debug("Yeni kullanıcı Firestore'a yazıldı");
-        } else {
-          debug("Kullanıcı kaydı zaten var");
-        }
+        if (error) throw error;
+        // Yönlendirme gerçekleşecek, onAuthStateChange devam eder
       } catch (error) {
         console.error(error);
         debug("Google giriş hatası: " + error.message);
@@ -662,24 +612,24 @@
       }
     });
 
+    // ── Üyelik aktifleştir ──────────────────────────────────────────
     activateMembershipBtn.addEventListener("click", async () => {
       try {
         debug("Üyelik butonuna basıldı");
 
-        const user = auth.currentUser;
-        if (!user) {
-          safeAlert("Önce giriş yapmalısın.");
-          return;
-        }
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { safeAlert("Önce giriş yapmalısın."); return; }
 
-        const userRef = doc(db, "users", user.uid);
+        const { error } = await supabase
+          .from("users")
+          .upsert({
+            id: user.id,
+            display_name: user.user_metadata?.full_name || "",
+            email: user.email || "",
+            has_membership: true
+          });
 
-        await setDoc(userRef, {
-          displayName: user.displayName || "",
-          email: user.email || "",
-          hasMembership: true,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
+        if (error) throw error;
 
         debug("Üyelik aktif edildi");
         showScreen("main");
@@ -691,12 +641,13 @@
       }
     });
 
+    // ── Çıkış ───────────────────────────────────────────────────────
     logoutBtnMembership.addEventListener("click", async () => {
-      await signOut(auth);
+      await supabase.auth.signOut();
     });
 
     logoutBtnMain.addEventListener("click", async () => {
-      await signOut(auth);
+      await supabase.auth.signOut();
     });
 
     reportBtn.addEventListener("click", () => {
@@ -725,21 +676,16 @@
     sendBtn.addEventListener("click", sendMessage);
 
     msgInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        sendMessage();
-      }
+      if (event.key === "Enter") { event.preventDefault(); sendMessage(); }
     });
 
-    socket.on("connect", () => {
-      debug("Socket bağlandı");
-      setStatus("Bağlandı");
-    });
-
-    socket.on("waiting", () => {
-      resetChatState("Şu an bir eşleşme bekleniyor...");
-      setStatus("Bekleniyor...");
-    });
+    // ── Socket olayları ─────────────────────────────────────────────
+    socket.on("connect",      () => { debug("Socket bağlandı"); setStatus("Bağlandı"); });
+    socket.on("waiting",      () => { resetChatState("Şu an bir eşleşme bekleniyor..."); setStatus("Bekleniyor..."); });
+    socket.on("message",      (text) => addChatMessage("Karşı: " + text, "other"));
+    socket.on("signal",       async (data) => await handleSignal(data));
+    socket.on("strangerLeft", () => { resetChatState("Karşı taraf sohbetten ayrıldı."); setStatus("Karşı taraf ayrıldı"); });
+    socket.on("disconnect",   () => { resetChatState("Sunucu bağlantısı kesildi."); setStatus("Bağlantı koptu"); });
 
     socket.on("matched", async (data) => {
       isMatched = true;
@@ -747,58 +693,47 @@
       setStatus("Eşleşti");
       addChatMessage("Biriyle eşleştin. Artık mesaj gönderebilirsin.", "system");
       msgInput.focus();
-
       createPeerConnection();
-
-      if (data.isInitiator) {
-        await createOffer();
-      }
+      if (data.isInitiator) await createOffer();
     });
 
-    socket.on("message", (text) => {
-      addChatMessage("Karşı: " + text, "other");
-    });
-
-    socket.on("signal", async (data) => {
-      await handleSignal(data);
-    });
-
-    socket.on("strangerLeft", () => {
-      resetChatState("Karşı taraf sohbetten ayrıldı.");
-      setStatus("Karşı taraf ayrıldı");
-    });
-
-    socket.on("disconnect", () => {
-      resetChatState("Sunucu bağlantısı kesildi.");
-      setStatus("Bağlantı koptu");
-    });
-
-    onAuthStateChanged(auth, async (user) => {
+    // ── Auth durum takibi ────────────────────────────────────────────
+    supabase.auth.onAuthStateChange(async (event, session) => {
       try {
+        const user = session?.user ?? null;
+
         if (!user) {
           debug("Kullanıcı giriş yapmamış");
           showScreen("auth");
           return;
         }
 
-        debug("Kullanıcı bulundu: " + (user.email || user.uid));
-
-        userInfo.textContent = user.displayName
-          ? "Giriş yapıldı: " + user.displayName
+        debug("Kullanıcı bulundu: " + (user.email || user.id));
+        userInfo.textContent = user.user_metadata?.full_name
+          ? "Giriş yapıldı: " + user.user_metadata.full_name
           : "Giriş yapıldı";
 
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
+        // Kullanıcı kaydını Supabase'den çek
+        const { data: userData, error } = await supabase
+          .from("users")
+          .select("has_membership")
+          .eq("id", user.id)
+          .single();
 
-        if (!userSnap.exists()) {
-          debug("Firestore user kaydı yok");
+        if (error || !userData) {
+          // Kayıt yoksa üyelik ekranı göster, kaydı oluştur
+          await supabase.from("users").upsert({
+            id: user.id,
+            display_name: user.user_metadata?.full_name || "",
+            email: user.email || "",
+            has_membership: false
+          });
+          debug("Yeni kullanıcı oluşturuldu");
           showScreen("membership");
           return;
         }
 
-        const userData = userSnap.data();
-
-        if (!userData.hasMembership) {
+        if (!userData.has_membership) {
           debug("Üyelik yok");
           showScreen("membership");
           return;
