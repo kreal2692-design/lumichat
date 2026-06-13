@@ -193,6 +193,29 @@
       font-weight: bold; min-width: 90px;
     }
 
+    /* ── Emoji picker ── */
+    .emoji-btn {
+      border: none; background: rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 12px; cursor: pointer;
+      font-size: 18px; line-height: 1; transition: 0.2s;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .emoji-btn:hover { background: rgba(255,255,255,0.16); }
+    .emoji-picker {
+      position: absolute; bottom: 60px; right: 0;
+      background: rgba(10,20,35,0.98); border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 14px; padding: 10px; display: none;
+      grid-template-columns: repeat(8, 1fr); gap: 4px;
+      z-index: 50; box-shadow: var(--shadow); width: 280px;
+    }
+    .emoji-picker.open { display: grid; }
+    .emoji-item {
+      font-size: 22px; cursor: pointer; padding: 4px;
+      border-radius: 6px; text-align: center; transition: 0.15s;
+    }
+    .emoji-item:hover { background: rgba(0,229,255,0.15); }
+    .chat-input-wrap { position: relative; display: flex; gap: 8px; align-items: center; flex: 1; }
+
     .controls {
       display: flex; gap: 12px; align-items: center; justify-content: center;
       padding: 10px; border-radius: 12px;
@@ -235,9 +258,21 @@
     }
     @media (max-width: 720px) {
       body { overflow: auto; }
-      #main-app { padding: 12px; height: auto; min-height: 100vh; }
+      #main-app { padding: 8px; height: auto; min-height: 100vh; }
       .layout { grid-template-columns: 1fr; }
-      .topbar { flex-direction: column; align-items: flex-start; }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .topbar-right { width: 100%; justify-content: flex-start; }
+      .brand { font-size: 26px; }
+      .controls { gap: 8px; padding: 8px; }
+      .filter-select { font-size: 13px; padding: 8px 10px; }
+      .btn { padding: 10px 14px; font-size: 14px; }
+      .chat-container { min-height: 300px; }
+      .layout .box { min-height: 200px; }
+    }
+
+    @media (max-width: 480px) {
+      .topbar-right { flex-wrap: wrap; gap: 6px; }
+      .token-pill, .status-pill { font-size: 12px; padding: 6px 10px; }
     }
   </style>
 </head>
@@ -344,7 +379,11 @@
         <aside class="chat-container">
           <div id="chatBox"></div>
           <div class="chat-input-row">
-            <input type="text" id="msgInput" placeholder="Mesaj yaz..." disabled />
+            <div class="chat-input-wrap">
+              <input type="text" id="msgInput" placeholder="Mesaj yaz..." disabled />
+              <div class="emoji-picker" id="emojiPicker"></div>
+            </div>
+            <button class="emoji-btn" id="emojiBtn" title="Emoji">😊</button>
             <button id="sendBtn" class="send-btn" disabled>Gönder</button>
           </div>
         </aside>
@@ -619,7 +658,44 @@
       document.getElementById("langDropdown").classList.remove("open");
     });
 
-    const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+    const rtcConfig = {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443?transport=tcp",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        }
+      ]
+    };
+
+    // ── Küfür filtresi ───────────────────────────────────────────────
+    const badWords = [
+      "sik","orospu","göt","amk","bok","piç","oç","kahpe","kaltak","ibne",
+      "fuck","shit","bitch","ass","dick","nigger","cunt","whore","fag",
+      "putain","merde","salaud","hijo de puta","puta","coño","stronzo","vaffanculo",
+      "scheisse","hurensohn","fick","блядь","хуй","пизда","ебать"
+    ];
+
+    function filterBadWords(text) {
+      let filtered = text;
+      badWords.forEach(w => {
+        const re = new RegExp(w, "gi");
+        filtered = filtered.replace(re, "*".repeat(w.length));
+      });
+      return filtered;
+    }
 
     // ── Yardımcı ────────────────────────────────────────────────────
     function setStatus(text) { statusText.textContent = text; debug("STATUS: " + text); }
@@ -656,7 +732,21 @@
     async function initCamera() {
       try {
         debug("Kamera izni isteniyor");
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width:      { ideal: 1280, min: 640 },
+            height:     { ideal: 720,  min: 480 },
+            frameRate:  { ideal: 30,   min: 15 },
+            facingMode: "user"
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl:  true,
+            sampleRate:       48000,
+            channelCount:     1
+          }
+        });
         localVideo.srcObject = localStream;
         debug("Kamera bağlandı");
       } catch (err) {
@@ -695,7 +785,10 @@
 
     async function createOffer() {
       if (!peerConnection) createPeerConnection();
-      const offer = await peerConnection.createOffer();
+      const offer = await peerConnection.createOffer({
+        offerToReceiveVideo: true,
+        offerToReceiveAudio: true
+      });
       await peerConnection.setLocalDescription(offer);
       socket.emit("signal", { type: "offer", sdp: offer });
     }
@@ -739,8 +832,9 @@
     }
 
     function sendMessage() {
-      const text = msgInput.value.trim();
-      if (!text || !isMatched) return;
+      const raw = msgInput.value.trim();
+      if (!raw || !isMatched) return;
+      const text = filterBadWords(raw);
       addChatMessage("Sen: " + text, "me");
       socket.emit("message", text);
       msgInput.value = "";
@@ -867,6 +961,37 @@
       safeAlert("Ödeme sistemi yakında aktif olacak!");
     });
 
+    // ── Emoji picker ─────────────────────────────────────────────────
+    const emojis = [
+      "😀","😂","😍","😎","😢","😡","👍","👎","❤️","🔥",
+      "😊","🥰","😘","😜","🤣","😭","🙏","💪","🎉","✨",
+      "👋","🤔","😴","🤩","😏","😇","🤝","💯","🙌","😱",
+      "👀","💀","🫡","🤦","🫶","😤","🥹","😋","🤗","🫠"
+    ];
+
+    const emojiPicker = document.getElementById("emojiPicker");
+    const emojiBtn    = document.getElementById("emojiBtn");
+
+    emojis.forEach(em => {
+      const span = document.createElement("span");
+      span.className = "emoji-item";
+      span.textContent = em;
+      span.addEventListener("click", () => {
+        if (msgInput.disabled) return;
+        msgInput.value += em;
+        msgInput.focus();
+        emojiPicker.classList.remove("open");
+      });
+      emojiPicker.appendChild(span);
+    });
+
+    emojiBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      emojiPicker.classList.toggle("open");
+    });
+
+    document.addEventListener("click", () => emojiPicker.classList.remove("open"));
+
     // ── Giriş / Çıkış ───────────────────────────────────────────────
     loginBtn.addEventListener("click", async () => {
       try {
@@ -971,7 +1096,7 @@
 
         const { data: userData, error } = await supabase
           .from("users")
-          .select("has_membership, username, gender, tokens")
+          .select("has_membership, username, gender, tokens, is_banned")
           .eq("id", user.id)
           .single();
 
@@ -989,14 +1114,37 @@
 
         if (!userData.has_membership) { showScreen("membership"); return; }
 
+        // ── Ban kontrolü ──────────────────────────────────────────
+        if (userData.is_banned) {
+          await supabase.auth.signOut();
+          showScreen("auth");
+          document.querySelector("#auth-screen .subtitle").textContent =
+            "⛔ Hesabın askıya alınmıştır. Destek için iletişime geç.";
+          document.getElementById("loginBtn").style.display = "none";
+          return;
+        }
+
         currentProfile = {
           username: userData.username,
           gender:   userData.gender,
-          tokens:   userData.tokens || 0
+          tokens:   userData.tokens || 0,
+          avatar:   user.user_metadata?.avatar_url || null
         };
 
         userInfo.textContent = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
         updateTokenDisplay(currentProfile.tokens);
+
+        // Profil fotoğrafı topbar'da göster
+        if (currentProfile.avatar) {
+          const existingAvatar = document.getElementById("topbarAvatar");
+          if (!existingAvatar) {
+            const img = document.createElement("img");
+            img.id = "topbarAvatar";
+            img.src = currentProfile.avatar;
+            img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)";
+            userInfo.parentNode.insertBefore(img, userInfo);
+          }
+        }
 
         // Profil kurulmamışsa profil ekranına gönder
         if (!currentProfile.username || !currentProfile.gender) {
