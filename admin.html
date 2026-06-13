@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <link rel="icon" href="data:,">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LumiChat Admin</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --accent: #00e5ff;
+      --text: #e8f0f8;
+      --muted: #a9b6c7;
+      --shadow: 0 10px 25px rgba(0,0,0,0.35);
+      --success: #2ecc71;
+      --danger: #ff7675;
+      --warn: #f1c40f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(135deg, #07131a 0%, #0b0f17 100%);
+      color: var(--text); font-family: Arial, sans-serif; min-height: 100vh;
+    }
+
+    /* ── Login ── */
+    #login-screen {
+      position: fixed; inset: 0; display: grid; place-items: center;
+      background: rgba(5,8,12,0.95); z-index: 99;
+    }
+    .login-card {
+      background: rgba(10,20,30,0.95); border: 1px solid rgba(0,229,255,0.25);
+      border-radius: 20px; padding: 36px 40px; text-align: center;
+      min-width: 320px; box-shadow: var(--shadow);
+    }
+    .login-card .logo { font-size: 32px; font-weight: bold; margin-bottom: 6px; }
+    .login-card .sub { color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+
+    /* ── Layout ── */
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+      background: rgba(10,18,30,0.97); border-right: 1px solid rgba(0,229,255,0.15);
+      display: flex; flex-direction: column; padding: 24px 0; z-index: 10;
+    }
+    .sidebar-brand {
+      font-size: 20px; font-weight: bold; padding: 0 20px 24px;
+      border-bottom: 1px solid rgba(0,229,255,0.1); color: var(--accent);
+    }
+    .sidebar-brand span { color: var(--text); font-size: 13px; display: block; margin-top: 4px; }
+    .nav-item {
+      padding: 12px 20px; cursor: pointer; color: var(--muted);
+      font-size: 15px; transition: 0.15s; display: flex; align-items: center; gap: 10px;
+    }
+    .nav-item:hover { background: rgba(0,229,255,0.07); color: var(--text); }
+    .nav-item.active { background: rgba(0,229,255,0.12); color: var(--accent); border-right: 3px solid var(--accent); }
+    .sidebar-bottom { margin-top: auto; padding: 0 20px; }
+
+    .main-content { margin-left: 220px; padding: 28px; min-height: 100vh; }
+
+    /* ── Topbar ── */
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 24px; }
+    .page-header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+    /* ── Stat kartları ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: rgba(20,32,48,0.92); border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
+    }
+    .stat-card .label { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .stat-card .value { font-size: 32px; font-weight: bold; color: var(--accent); }
+    .stat-card .sublabel { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+    /* ── Tablo ── */
+    .table-card {
+      background: rgba(20,32,48,0.92); border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 16px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 24px;
+    }
+    .table-card h2 { font-size: 17px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .table-toolbar { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+    .search-input {
+      padding: 9px 14px; border-radius: 10px; border: 1px solid rgba(0,229,255,0.25);
+      background: rgba(15,23,42,0.9); color: var(--text); font-size: 14px; outline: none; width: 220px;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { color: var(--muted); text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.07); font-weight: normal; }
+    td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    tr:hover td { background: rgba(0,229,255,0.04); }
+
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: bold;
+    }
+    .badge-green  { background: rgba(46,204,113,0.2);  color: #2ecc71; }
+    .badge-red    { background: rgba(255,118,117,0.2); color: #ff7675; }
+    .badge-yellow { background: rgba(241,196,15,0.2);  color: #f1c40f; }
+    .badge-blue   { background: rgba(0,229,255,0.15);  color: var(--accent); }
+    .badge-gray   { background: rgba(255,255,255,0.08); color: var(--muted); }
+
+    /* ── Butonlar ── */
+    .btn {
+      border: none; border-radius: 8px; padding: 7px 14px;
+      font-size: 13px; cursor: pointer; color: white; transition: 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-google  { background: #4285F4; font-size: 15px; padding: 11px 18px; border-radius: 12px; }
+    .btn-danger  { background: var(--danger); }
+    .btn-success { background: var(--success); }
+    .btn-muted   { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); }
+    .btn-accent  { background: var(--accent); color: #00131a; font-weight: bold; }
+
+    /* ── Tab seçici ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Boş durum ── */
+    .empty-state { text-align: center; padding: 40px; color: var(--muted); }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+    /* ── Loading ── */
+    .loading { text-align: center; padding: 30px; color: var(--muted); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.75); display: none; place-items: center; padding: 20px;
+    }
+    .modal-overlay.open { display: grid; }
+    .modal {
+      background: rgba(10,20,30,0.97); border: 1px solid rgba(0,229,255,0.25);
+      border-radius: 18px; padding: 28px 30px; min-width: 340px; max-width: 500px;
+      width: 100%; box-shadow: var(--shadow);
+    }
+    .modal h3 { margin-bottom: 16px; font-size: 18px; }
+    .modal p { color: var(--muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── Notif ── */
+    #notif {
+      position: fixed; bottom: 20px; right: 20px; z-index: 999;
+      background: rgba(20,40,30,0.95); border: 1px solid var(--success);
+      border-radius: 12px; padding: 14px 20px; font-size: 14px;
+      display: none; box-shadow: var(--shadow); max-width: 320px;
+    }
+    #notif.error { border-color: var(--danger); }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .sidebar-brand, .nav-item span { display: none; }
+      .nav-item { justify-content: center; }
+      .main-content { margin-left: 60px; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Giriş ekranı -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="logo">LumiChat</div>
+      <div class="sub">Admin Paneli — Yalnızca yetkili erişim</div>
+      <button class="btn btn-google" id="adminLoginBtn">Google ile Giriş Yap</button>
+      <div id="loginError" style="color:var(--danger);margin-top:14px;font-size:13px;"></div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      ⚡ Admin
+      <span id="adminName">Yükleniyor...</span>
+    </div>
+    <nav>
+      <div class="nav-item active" data-page="dashboard">📊 <span>Dashboard</span></div>
+      <div class="nav-item" data-page="users">👥 <span>Üyeler</span></div>
+      <div class="nav-item" data-page="reports">🚩 <span>Raporlar</span></div>
+      <div class="nav-item" data-page="tokens">🪙 <span>Jetonlar</span></div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="nav-item" id="logoutAdminBtn">🚪 <span>Çıkış</span></div>
+    </div>
+  </aside>
+
+  <!-- Ana içerik -->
+  <main class="main-content">
+
+    <!-- Dashboard -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Genel bakış</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="label">Toplam Üye</div>
+          <div class="value" id="statTotalUsers">—</div>
+          <div class="sublabel">kayıtlı kullanıcı</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Aktif Üyelik</div>
+          <div class="value" id="statActiveMembers">—</div>
+          <div class="sublabel">has_membership = true</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Toplam Rapor</div>
+          <div class="value" id="statTotalReports">—</div>
+          <div class="sublabel">gönderilen rapor</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Banlı Üye</div>
+          <div class="value" id="statBanned">—</div>
+          <div class="sublabel">is_banned = true</div>
+        </div>
+      </div>
+
+      <!-- Son raporlar özet -->
+      <div class="table-card">
+        <h2>🚩 Son Raporlar</h2>
+        <div id="dashReports"><div class="loading">Yükleniyor...</div></div>
+      </div>
+    </div>
+
+    <!-- Üyeler -->
+    <div id="page-users" class="page">
+      <div class="page-header">
+        <h1>👥 Üyeler</h1>
+        <p>Tüm kayıtlı kullanıcılar</p>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <input type="text" class="search-input" id="userSearch" placeholder="İsim veya e-posta ara..." />
+          <button class="btn btn-muted" id="refreshUsers">🔄 Yenile</button>
+        </div>
+        <div id="usersTable"><div class="loading">Yükleniyor...</div></div>
+      </div>
+    </div>
+
+    <!-- Raporlar -->
+    <div id="page-reports" class="page">
+      <div class="page-header">
+        <h1>🚩 Raporlar</h1>
+        <p>Kullanıcıların gönderdiği raporlar</p>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <button class="btn btn-muted" id="refreshReports">🔄 Yenile</button>
+        </div>
+        <div id="reportsTable"><div class="loading">Yükleniyor...</div></div>
+      </div>
+    </div>
+
+    <!-- Jetonlar -->
+    <div id="page-tokens" class="page">
+      <div class="page-header">
+        <h1>🪙 Jetonlar</h1>
+        <p>Kullanıcı jeton bakiyeleri</p>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <input type="text" class="search-input" id="tokenSearch" placeholder="Kullanıcı ara..." />
+          <button class="btn btn-muted" id="refreshTokens">🔄 Yenile</button>
+        </div>
+        <div id="tokensTable"><div class="loading">Yükleniyor...</div></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Ban onay modal -->
+  <div class="modal-overlay" id="banModal">
+    <div class="modal">
+      <h3 id="banModalTitle">Kullanıcıyı Banla</h3>
+      <p id="banModalDesc">Bu kullanıcıyı banlamak istediğine emin misin?</p>
+      <div class="modal-footer">
+        <button class="btn btn-muted" id="cancelBan">İptal</button>
+        <button class="btn btn-danger" id="confirmBan">Banla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bildirim -->
+  <div id="notif"></div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const SUPABASE_URL = "https://aaszyppzidhazpbmcipv.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_UShAjuEa8A4dFcQ5zXVCdg_tsUKrAP3";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentAdmin = null;
+    let banTarget    = null;
+
+    // ── Bildirim ─────────────────────────────────────────────────────
+    function showNotif(msg, isError = false) {
+      const el = document.getElementById("notif");
+      el.textContent = msg;
+      el.className = isError ? "error" : "";
+      el.style.display = "block";
+      setTimeout(() => el.style.display = "none", 3000);
+    }
+
+    // ── Nav ──────────────────────────────────────────────────────────
+    document.querySelectorAll(".nav-item[data-page]").forEach(item => {
+      item.addEventListener("click", () => {
+        document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        item.classList.add("active");
+        document.getElementById("page-" + item.dataset.page).classList.add("active");
+        loadPage(item.dataset.page);
+      });
+    });
+
+    function loadPage(name) {
+      if (name === "dashboard") loadDashboard();
+      if (name === "users")     loadUsers();
+      if (name === "reports")   loadReports();
+      if (name === "tokens")    loadTokens();
+    }
+
+    // ── Auth ─────────────────────────────────────────────────────────
+    document.getElementById("adminLoginBtn").addEventListener("click", async () => {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin + "/admin.html" }
+      });
+      if (error) document.getElementById("loginError").textContent = error.message;
+    });
+
+    document.getElementById("logoutAdminBtn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      location.reload();
+    });
+
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      const user = session?.user ?? null;
+      if (!user) {
+        document.getElementById("login-screen").style.display = "grid";
+        return;
+      }
+
+      // Admin kontrolü
+      const { data, error } = await supabase
+        .from("users")
+        .select("is_admin, username, display_name")
+        .eq("id", user.id)
+        .single();
+
+      if (error || !data || !data.is_admin) {
+        document.getElementById("loginError").textContent = "Bu hesabın admin yetkisi yok.";
+        await supabase.auth.signOut();
+        return;
+      }
+
+      currentAdmin = user;
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("adminName").textContent = data.username || data.display_name || user.email;
+      loadDashboard();
+    });
+
+    // ── Dashboard ────────────────────────────────────────────────────
+    async function loadDashboard() {
+      const [
+        { count: totalUsers },
+        { count: activeMembers },
+        { count: totalReports },
+        { count: banned },
+        { data: recentReports }
+      ] = await Promise.all([
+        supabase.from("users").select("*", { count: "exact", head: true }),
+        supabase.from("users").select("*", { count: "exact", head: true }).eq("has_membership", true),
+        supabase.from("reports").select("*", { count: "exact", head: true }),
+        supabase.from("users").select("*", { count: "exact", head: true }).eq("is_banned", true),
+        supabase.from("reports").select("*").order("created_at", { ascending: false }).limit(5)
+      ]);
+
+      document.getElementById("statTotalUsers").textContent    = totalUsers   ?? "—";
+      document.getElementById("statActiveMembers").textContent = activeMembers ?? "—";
+      document.getElementById("statTotalReports").textContent  = totalReports  ?? "—";
+      document.getElementById("statBanned").textContent        = banned        ?? "—";
+
+      const box = document.getElementById("dashReports");
+      if (!recentReports || recentReports.length === 0) {
+        box.innerHTML = '<div class="empty-state"><div class="icon">✅</div>Henüz rapor yok</div>';
+        return;
+      }
+
+      box.innerHTML = `
+        <table>
+          <thead><tr><th>Sebep</th><th>Raporlanan Socket</th><th>Tarih</th></tr></thead>
+          <tbody>
+            ${recentReports.map(r => `
+              <tr>
+                <td>${escHtml(r.reason || "—")}</td>
+                <td><code style="font-size:12px;color:var(--muted)">${escHtml(r.reported_socket_id || "—")}</code></td>
+                <td>${formatDate(r.created_at)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    // ── Üyeler ───────────────────────────────────────────────────────
+    let allUsers = [];
+
+    async function loadUsers() {
+      document.getElementById("usersTable").innerHTML = '<div class="loading">Yükleniyor...</div>';
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, display_name, username, email, gender, has_membership, is_banned, is_admin, tokens, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) { showNotif("Üyeler yüklenemedi: " + error.message, true); return; }
+      allUsers = data || [];
+      renderUsers(allUsers);
+    }
+
+    function renderUsers(users) {
+      const box = document.getElementById("usersTable");
+      if (!users.length) {
+        box.innerHTML = '<div class="empty-state"><div class="icon">👥</div>Üye bulunamadı</div>';
+        return;
+      }
+      box.innerHTML = `
+        <table>
+          <thead><tr><th>İsim</th><th>E-posta</th><th>Cinsiyet</th><th>Üyelik</th><th>Jeton</th><th>Durum</th><th>Kayıt</th><th>İşlem</th></tr></thead>
+          <tbody>
+            ${users.map(u => `
+              <tr>
+                <td>
+                  <strong>${escHtml(u.username || u.display_name || "—")}</strong>
+                  ${u.is_admin ? '<span class="badge badge-blue" style="margin-left:6px;">Admin</span>' : ""}
+                </td>
+                <td style="color:var(--muted);font-size:13px">${escHtml(u.email || "—")}</td>
+                <td>${genderLabel(u.gender)}</td>
+                <td>${u.has_membership
+                  ? '<span class="badge badge-green">Aktif</span>'
+                  : '<span class="badge badge-gray">Yok</span>'}</td>
+                <td><span style="color:#ffe566">🪙 ${u.tokens || 0}</span></td>
+                <td>${u.is_banned
+                  ? '<span class="badge badge-red">Banlı</span>'
+                  : '<span class="badge badge-green">Aktif</span>'}</td>
+                <td style="font-size:12px;color:var(--muted)">${formatDate(u.created_at)}</td>
+                <td>
+                  ${u.is_admin ? '<span style="color:var(--muted);font-size:12px">—</span>' :
+                    u.is_banned
+                      ? `<button class="btn btn-success" onclick="unbanUser('${u.id}')">Banı Kaldır</button>`
+                      : `<button class="btn btn-danger" onclick="openBanModal('${u.id}','${escHtml(u.username || u.email || u.id)}')">Banla</button>`
+                  }
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    document.getElementById("userSearch").addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      renderUsers(allUsers.filter(u =>
+        (u.username || "").toLowerCase().includes(q) ||
+        (u.display_name || "").toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q)
+      ));
+    });
+
+    document.getElementById("refreshUsers").addEventListener("click", loadUsers);
+
+    // Ban modal
+    const banModal = document.getElementById("banModal");
+    window.openBanModal = (id, name) => {
+      banTarget = id;
+      document.getElementById("banModalTitle").textContent = "Kullanıcıyı Banla";
+      document.getElementById("banModalDesc").textContent  = `"${name}" adlı kullanıcıyı banlamak istediğine emin misin? Kullanıcı siteye giremez.`;
+      banModal.classList.add("open");
+    };
+    document.getElementById("cancelBan").addEventListener("click", () => banModal.classList.remove("open"));
+    document.getElementById("confirmBan").addEventListener("click", async () => {
+      if (!banTarget) return;
+      const { error } = await supabase.from("users").update({ is_banned: true }).eq("id", banTarget);
+      banModal.classList.remove("open");
+      if (error) { showNotif("Ban işlemi başarısız: " + error.message, true); return; }
+      showNotif("Kullanıcı banlandı.");
+      loadUsers();
+    });
+
+    window.unbanUser = async (id) => {
+      const { error } = await supabase.from("users").update({ is_banned: false }).eq("id", id);
+      if (error) { showNotif("Ban kaldırma başarısız: " + error.message, true); return; }
+      showNotif("Ban kaldırıldı.");
+      loadUsers();
+    };
+
+    // ── Raporlar ─────────────────────────────────────────────────────
+    async function loadReports() {
+      document.getElementById("reportsTable").innerHTML = '<div class="loading">Yükleniyor...</div>';
+      const { data, error } = await supabase
+        .from("reports")
+        .select("id, reporter_id, reported_socket_id, reason, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) { showNotif("Raporlar yüklenemedi: " + error.message, true); return; }
+
+      const box = document.getElementById("reportsTable");
+      if (!data || !data.length) {
+        box.innerHTML = '<div class="empty-state"><div class="icon">✅</div>Henüz rapor yok</div>';
+        return;
+      }
+
+      box.innerHTML = `
+        <table>
+          <thead><tr><th>#</th><th>Sebep / Açıklama</th><th>Raporlanan</th><th>Tarih</th><th>İşlem</th></tr></thead>
+          <tbody>
+            ${data.map((r, i) => `
+              <tr>
+                <td style="color:var(--muted);font-size:12px">${i + 1}</td>
+                <td>${escHtml(r.reason || "—")}</td>
+                <td><code style="font-size:12px;color:var(--muted)">${escHtml(r.reported_socket_id || "—")}</code></td>
+                <td style="font-size:12px;color:var(--muted)">${formatDate(r.created_at)}</td>
+                <td><button class="btn btn-muted" onclick="deleteReport('${r.id}')">🗑 Sil</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    document.getElementById("refreshReports").addEventListener("click", loadReports);
+
+    window.deleteReport = async (id) => {
+      const { error } = await supabase.from("reports").delete().eq("id", id);
+      if (error) { showNotif("Rapor silinemedi: " + error.message, true); return; }
+      showNotif("Rapor silindi.");
+      loadReports();
+    };
+
+    // ── Jetonlar ─────────────────────────────────────────────────────
+    let allTokenUsers = [];
+
+    async function loadTokens() {
+      document.getElementById("tokensTable").innerHTML = '<div class="loading">Yükleniyor...</div>';
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, username, display_name, email, tokens")
+        .order("tokens", { ascending: false });
+
+      if (error) { showNotif("Jeton verileri yüklenemedi: " + error.message, true); return; }
+      allTokenUsers = data || [];
+      renderTokens(allTokenUsers);
+    }
+
+    function renderTokens(users) {
+      const box = document.getElementById("tokensTable");
+      if (!users.length) {
+        box.innerHTML = '<div class="empty-state"><div class="icon">🪙</div>Kullanıcı bulunamadı</div>';
+        return;
+      }
+      box.innerHTML = `
+        <table>
+          <thead><tr><th>Kullanıcı</th><th>E-posta</th><th>Jeton</th><th>İşlem</th></tr></thead>
+          <tbody>
+            ${users.map(u => `
+              <tr>
+                <td><strong>${escHtml(u.username || u.display_name || "—")}</strong></td>
+                <td style="color:var(--muted);font-size:13px">${escHtml(u.email || "—")}</td>
+                <td><span style="color:#ffe566;font-size:16px;font-weight:bold">🪙 ${u.tokens || 0}</span></td>
+                <td style="display:flex;gap:8px;align-items:center">
+                  <button class="btn btn-success" onclick="addTokens('${u.id}', ${u.tokens || 0})">+ Jeton Ekle</button>
+                  <button class="btn btn-danger"  onclick="removeTokens('${u.id}', ${u.tokens || 0})">- Çıkar</button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    document.getElementById("tokenSearch").addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      renderTokens(allTokenUsers.filter(u =>
+        (u.username || "").toLowerCase().includes(q) ||
+        (u.display_name || "").toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q)
+      ));
+    });
+
+    document.getElementById("refreshTokens").addEventListener("click", loadTokens);
+
+    window.addTokens = async (id, current) => {
+      const n = prompt("Kaç jeton eklensin?", "50");
+      if (!n || isNaN(n)) return;
+      const { error } = await supabase.from("users").update({ tokens: current + parseInt(n) }).eq("id", id);
+      if (error) { showNotif("Jeton eklenemedi: " + error.message, true); return; }
+      showNotif(`${n} jeton eklendi.`);
+      loadTokens();
+    };
+
+    window.removeTokens = async (id, current) => {
+      const n = prompt("Kaç jeton çıkarılsın?", "50");
+      if (!n || isNaN(n)) return;
+      const newVal = Math.max(0, current - parseInt(n));
+      const { error } = await supabase.from("users").update({ tokens: newVal }).eq("id", id);
+      if (error) { showNotif("Jeton çıkarılamadı: " + error.message, true); return; }
+      showNotif(`${n} jeton çıkarıldı.`);
+      loadTokens();
+    };
+
+    // ── Yardımcılar ──────────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    function formatDate(iso) {
+      if (!iso) return "—";
+      return new Date(iso).toLocaleString("tr-TR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    }
+
+    function genderLabel(g) {
+      if (g === "erkek") return "👨 Erkek";
+      if (g === "kadin") return "👩 Kadın";
+      if (g === "belirtmek-istemiyorum") return "🙂 Belirtmedi";
+      return "<span style='color:var(--muted)'>—</span>";
+    }
+  </script>
+</body>
+</html>

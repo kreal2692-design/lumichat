@@ -116,6 +116,30 @@
     }
     .token-pill:hover { background: rgba(255,200,0,0.18); }
 
+    /* ── Dil seçici ── */
+    .lang-selector {
+      position: relative;
+    }
+    .lang-btn {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px; padding: 7px 12px; cursor: pointer; color: var(--text);
+      font-size: 14px; display: flex; align-items: center; gap: 6px;
+    }
+    .lang-btn:hover { background: rgba(255,255,255,0.14); }
+    .lang-dropdown {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      background: rgba(10,20,35,0.98); border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 12px; padding: 6px; min-width: 180px;
+      box-shadow: var(--shadow); z-index: 999; display: none;
+    }
+    .lang-dropdown.open { display: block; }
+    .lang-option {
+      padding: 9px 12px; border-radius: 8px; cursor: pointer;
+      font-size: 14px; display: flex; align-items: center; gap: 8px; color: var(--text);
+    }
+    .lang-option:hover { background: rgba(0,229,255,0.1); }
+    .lang-option.active { color: var(--accent); }
+
     .layout {
       display: grid; grid-template-columns: 1fr 1fr 340px;
       gap: 14px; flex: 1; min-height: 0;
@@ -267,17 +291,17 @@
       <div class="title">💰 Jeton Satın Al</div>
       <div class="subtitle">Cinsiyet filtresi kullanmak için jeton gereklidir.<br>Kadınla eşleş = 5 jeton / bağlantı</div>
       <div class="token-packages">
-        <div class="token-pkg" data-amount="50" data-price="19.90">
+        <div class="token-pkg" data-amount="50" data-price="1.99">
           <div class="amount">50</div>
-          <div class="price">₺19.90</div>
+          <div class="price">$1.99</div>
         </div>
-        <div class="token-pkg" data-amount="150" data-price="49.90">
+        <div class="token-pkg" data-amount="150" data-price="2.99">
           <div class="amount">150</div>
-          <div class="price">₺49.90</div>
+          <div class="price">$2.99</div>
         </div>
-        <div class="token-pkg" data-amount="350" data-price="99.90">
+        <div class="token-pkg" data-amount="350" data-price="5.99">
           <div class="amount">350</div>
-          <div class="price">₺99.90</div>
+          <div class="price">$5.99</div>
         </div>
       </div>
       <div id="tokenSelectedInfo" style="color:var(--muted);font-size:14px;margin-bottom:14px;">Bir paket seç</div>
@@ -299,6 +323,10 @@
           <div id="tokenDisplay" class="token-pill" title="Jeton satın al">🪙 0 Jeton</div>
           <div id="statusText" class="status-pill">Yükleniyor</div>
           <button class="btn btn-secondary" id="editProfileBtn">Profil</button>
+          <div class="lang-selector" id="langSelector">
+            <button class="lang-btn" id="langBtn">🌐 TR</button>
+            <div class="lang-dropdown" id="langDropdown"></div>
+          </div>
           <button class="btn btn-secondary" id="logoutBtnMain">Çıkış Yap</button>
         </div>
       </div>
@@ -389,6 +417,7 @@
 
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    import { langs, detectLang, t } from "/i18n.js";
 
     const SUPABASE_URL = "https://aaszyppzidhazpbmcipv.supabase.co";
     const SUPABASE_KEY = "sb_publishable_UShAjuEa8A4dFcQ5zXVCdg_tsUKrAP3";
@@ -459,11 +488,136 @@
     let isMatched      = false;
     let appInitialized = false;
     let currentUser    = null;
-    let currentProfile = null; // { username, gender, tokens }
+    let currentProfile = null;
     let selectedGender = "";
     let editSelectedGender = "";
     let remoteSocketId = null;
     let selectedTokenPkg = null;
+    let currentLang = detectLang();
+
+    // ── Dil sistemi ─────────────────────────────────────────────────
+    function applyLang(lang) {
+      currentLang = lang;
+      localStorage.setItem("lumi_lang", lang);
+      const l = langs[lang];
+      const isRtl = lang === "ar";
+      document.documentElement.dir = isRtl ? "rtl" : "ltr";
+      document.documentElement.lang = lang;
+
+      // Dil butonu güncelle
+      document.getElementById("langBtn").textContent = `${l.flag} ${lang.toUpperCase()}`;
+
+      // Auth ekranı
+      document.querySelector("#auth-screen .title").textContent         = t(lang, "loginTitle");
+      document.querySelector("#auth-screen .subtitle").textContent      = t(lang, "loginSubtitle");
+      document.getElementById("loginBtn").textContent                   = t(lang, "loginBtn");
+
+      // Üyelik ekranı
+      document.querySelector("#membership-screen .title").textContent   = t(lang, "membershipTitle");
+      document.querySelector("#membership-screen .subtitle").textContent = t(lang, "membershipSubtitle");
+      document.getElementById("activateMembershipBtn").textContent      = t(lang, "activateBtn");
+      document.getElementById("logoutBtnMembership").textContent        = t(lang, "logoutBtn");
+
+      // Profil kurulum
+      document.querySelector("#profile-screen .title").textContent      = t(lang, "profileTitle");
+      document.querySelector("#profile-screen .subtitle").textContent   = t(lang, "profileSubtitle");
+      document.querySelector("#profile-screen .form-group label").textContent = t(lang, "usernameLabel");
+      document.getElementById("usernameInput").placeholder              = t(lang, "usernamePlaceholder");
+      document.querySelector("#profile-screen .form-group:nth-child(2) label").textContent = t(lang, "genderLabel");
+      const genderBtns = document.querySelectorAll("#profile-screen .gender-btn");
+      if (genderBtns[0]) genderBtns[0].textContent = t(lang, "genderMale");
+      if (genderBtns[1]) genderBtns[1].textContent = t(lang, "genderFemale");
+      if (genderBtns[2]) genderBtns[2].textContent = t(lang, "genderOther");
+      document.getElementById("saveProfileBtn").textContent             = t(lang, "saveProfile");
+
+      // Jeton ekranı
+      document.querySelector("#token-screen .title").textContent        = t(lang, "tokenTitle");
+      document.querySelector("#token-screen .subtitle").textContent     = t(lang, "tokenSubtitle");
+      document.getElementById("buyTokenBtn").textContent                = t(lang, "buyBtn");
+      document.getElementById("closeTokenScreen").textContent           = t(lang, "closeBtn");
+      document.querySelector("#token-screen .btn-secondary + div, #token-screen div[style]").textContent = t(lang, "tokenSoon");
+      const selInfo = document.getElementById("tokenSelectedInfo");
+      if (selInfo && !selectedTokenPkg) selInfo.textContent = t(lang, "tokenSelectPkg");
+
+      // Topbar
+      document.getElementById("statusText").textContent                 = t(lang, "statusLoading");
+      document.getElementById("editProfileBtn").textContent             = t(lang, "profileBtn");
+      document.getElementById("logoutBtnMain").textContent              = t(lang, "logoutBtn");
+
+      // Video etiketleri
+      document.getElementById("myLabel").textContent                    = currentProfile?.username || t(lang, "meLabel");
+      document.querySelector(".box:nth-child(2) .video-label").textContent = t(lang, "remoteLabel");
+
+      // Rapor butonu
+      document.getElementById("reportBtn").textContent                  = t(lang, "reportBtn");
+
+      // Controls
+      document.querySelector(".filter-label").textContent               = t(lang, "matchLabel");
+      const gf = document.getElementById("genderFilter");
+      gf.options[0].textContent = t(lang, "filterAll");
+      gf.options[1].textContent = t(lang, "filterFemale");
+      gf.options[2].textContent = t(lang, "filterMale");
+      document.getElementById("matchBtn").textContent                   = t(lang, "matchBtn");
+      document.getElementById("nextBtn").textContent                    = t(lang, "nextBtn");
+      document.getElementById("leaveBtn").textContent                   = t(lang, "leaveBtn");
+
+      // Chat input
+      document.getElementById("msgInput").placeholder                   = t(lang, "msgPlaceholder");
+      document.getElementById("sendBtn").textContent                    = t(lang, "sendBtn");
+
+      // Rapor modal
+      document.querySelector("#reportModal .modal-title").textContent   = t(lang, "reportTitle");
+      document.querySelector("#reportModal .form-group label").textContent = t(lang, "reportReasonLabel");
+      const rr = document.getElementById("reportReason");
+      rr.options[0].textContent = t(lang, "reportReasonPlaceholder");
+      rr.options[1].textContent = t(lang, "reportR1");
+      rr.options[2].textContent = t(lang, "reportR2");
+      rr.options[3].textContent = t(lang, "reportR3");
+      rr.options[4].textContent = t(lang, "reportR4");
+      rr.options[5].textContent = t(lang, "reportR5");
+      document.querySelector("#reportModal .form-group:nth-child(2) label").textContent = t(lang, "reportDescLabel");
+      document.getElementById("reportDesc").placeholder                 = t(lang, "reportDescPlaceholder");
+      document.getElementById("cancelReport").textContent               = t(lang, "cancelBtn");
+      document.getElementById("submitReport").textContent               = t(lang, "reportSendBtn");
+
+      // Profil modal
+      document.querySelector("#profileModal .modal-title").textContent  = t(lang, "editProfileTitle");
+      document.querySelector("#profileModal .form-group label").textContent = t(lang, "usernameLabel");
+      const editGBtns = document.querySelectorAll("#editGenderRow .gender-btn");
+      if (editGBtns[0]) editGBtns[0].textContent = t(lang, "genderMale");
+      if (editGBtns[1]) editGBtns[1].textContent = t(lang, "genderFemale");
+      if (editGBtns[2]) editGBtns[2].textContent = t(lang, "genderOther");
+      document.getElementById("cancelProfile").textContent              = t(lang, "cancelBtn");
+      document.getElementById("saveProfileEdit").textContent            = t(lang, "saveBtn");
+
+      // Token display
+      updateTokenDisplay(currentProfile?.tokens || 0);
+    }
+
+    // Dil dropdown oluştur
+    function buildLangDropdown() {
+      const dd = document.getElementById("langDropdown");
+      dd.innerHTML = "";
+      Object.entries(langs).forEach(([code, l]) => {
+        const opt = document.createElement("div");
+        opt.className = "lang-option" + (code === currentLang ? " active" : "");
+        opt.textContent = `${l.flag} ${l.name}`;
+        opt.addEventListener("click", () => {
+          applyLang(code);
+          dd.classList.remove("open");
+          buildLangDropdown();
+        });
+        dd.appendChild(opt);
+      });
+    }
+
+    document.getElementById("langBtn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.getElementById("langDropdown").classList.toggle("open");
+    });
+    document.addEventListener("click", () => {
+      document.getElementById("langDropdown").classList.remove("open");
+    });
 
     const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
@@ -495,8 +649,10 @@
     }
 
     function updateTokenDisplay(tokens) {
-      tokenDisplay.textContent = `🪙 ${tokens} Jeton`;
+      tokenDisplay.textContent = t(currentLang, "tokenDisplay", { n: tokens });
     }
+
+    function setStatus(text) { statusText.textContent = text; debug("STATUS: " + text); }
 
     // ── Kamera ──────────────────────────────────────────────────────
     async function initCamera() {
@@ -859,6 +1015,10 @@
     });
 
     debug("Script hazır");
+
+    // Dil sistemini başlat
+    buildLangDropdown();
+    applyLang(currentLang);
   </script>
 </body>
 </html>
