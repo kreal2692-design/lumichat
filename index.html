@@ -855,7 +855,19 @@
           content:          raw,
           filtered_content: text,
           has_bad_word:     hasBadWord
-        }).then(({ error }) => { if (error) console.warn("Mesaj kaydedilemedi:", error.message); });
+        }).then(async ({ error }) => {
+          if (error) { console.warn("Mesaj kaydedilemedi:", error.message); return; }
+
+          // Küfürlü mesaj → otomatik ban
+          if (hasBadWord) {
+            await supabase.from("users").update({ is_banned: true }).eq("id", currentUser.id);
+            await supabase.auth.signOut();
+            showScreen("auth");
+            document.querySelector("#auth-screen .subtitle").textContent =
+              "⛔ Uygunsuz içerik nedeniyle hesabın askıya alındı.";
+            document.getElementById("loginBtn").style.display = "none";
+          }
+        });
       }
     }
 

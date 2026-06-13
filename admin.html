@@ -640,7 +640,19 @@
 
       const { data, error } = await query;
       if (error) { showNotif("Mesajlar yüklenemedi: " + error.message, true); return; }
-      allMessages = data || [];
+
+      // Gönderenlerin ban durumunu çek
+      const senderIds = [...new Set((data || []).map(m => m.sender_id).filter(Boolean))];
+      let banMap = {};
+      if (senderIds.length) {
+        const { data: users } = await supabase
+          .from("users")
+          .select("id, username, display_name, is_banned")
+          .in("id", senderIds);
+        (users || []).forEach(u => banMap[u.id] = u);
+      }
+
+      allMessages = (data || []).map(m => ({ ...m, senderInfo: banMap[m.sender_id] || null }));
       renderMessages(allMessages);
     }
 
@@ -652,20 +664,31 @@
       }
       box.innerHTML = `
         <table>
-          <thead><tr><th>#</th><th>Orijinal Mesaj</th><th>Filtrelenmiş</th><th>Küfür</th><th>Tarih</th><th>İşlem</th></tr></thead>
+          <thead><tr><th>#</th><th>Gönderen</th><th>Orijinal Mesaj</th><th>Küfür</th><th>Durum</th><th>Tarih</th><th>İşlem</th></tr></thead>
           <tbody>
-            ${messages.map((m, i) => `
-              <tr>
+            ${messages.map((m, i) => {
+              const u = m.senderInfo;
+              const name = u ? (u.username || u.display_name || m.sender_id?.slice(0,8)) : (m.sender_id?.slice(0,8) || "—");
+              const isBanned = u?.is_banned || false;
+              return `
+              <tr style="${m.has_bad_word ? 'background:rgba(255,118,117,0.06)' : ''}">
                 <td style="color:var(--muted);font-size:12px">${i + 1}</td>
-                <td style="max-width:200px;word-break:break-all">${escHtml(m.content || "—")}</td>
-                <td style="max-width:200px;word-break:break-all;color:var(--muted)">${escHtml(m.filtered_content || "—")}</td>
+                <td>
+                  <span style="font-size:13px">${escHtml(name)}</span>
+                  ${isBanned ? '<span class="badge badge-red" style="margin-left:4px">Banlı</span>' : ''}
+                </td>
+                <td style="max-width:220px;word-break:break-all">${escHtml(m.content || "—")}</td>
                 <td>${m.has_bad_word
                   ? '<span class="badge badge-red">⚠️ Küfürlü</span>'
                   : '<span class="badge badge-green">Temiz</span>'}</td>
+                <td>${isBanned
+                  ? `<button class="btn btn-success" onclick="unbanFromMsg('${u?.id}')">Banı Kaldır</button>`
+                  : (u ? `<button class="btn btn-danger" onclick="banFromMsg('${u?.id}')">Banla</button>` : '—')
+                }</td>
                 <td style="font-size:12px;color:var(--muted)">${formatDate(m.created_at)}</td>
                 <td><button class="btn btn-muted" onclick="deleteMessage('${m.id}')">🗑 Sil</button></td>
-              </tr>
-            `).join("")}
+              </tr>`
+            }).join("")}
           </tbody>
         </table>`;
     }
@@ -677,6 +700,22 @@
       const { error } = await supabase.from("messages").delete().eq("id", id);
       if (error) { showNotif("Mesaj silinemedi: " + error.message, true); return; }
       showNotif("Mesaj silindi.");
+      loadMessages();
+    };
+
+    window.banFromMsg = async (userId) => {
+      if (!userId) return;
+      const { error } = await supabase.from("users").update({ is_banned: true }).eq("id", userId);
+      if (error) { showNotif("Ban işlemi başarısız: " + error.message, true); return; }
+      showNotif("Kullanıcı banlandı.");
+      loadMessages();
+    };
+
+    window.unbanFromMsg = async (userId) => {
+      if (!userId) return;
+      const { error } = await supabase.from("users").update({ is_banned: false }).eq("id", userId);
+      if (error) { showNotif("Ban kaldırma başarısız: " + error.message, true); return; }
+      showNotif("Ban kaldırıldı.");
       loadMessages();
     };
 
