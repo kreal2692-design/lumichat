@@ -4,69 +4,108 @@ const path = require('path');
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, { cors: { origin: "*" } });
 
-// 1. Statik dosyaları (HTML, CSS, JS) sunucuya tanıtıyoruz
 app.use(express.static(__dirname));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-// 2. Ana sayfaya girilince index.html'i gönderiyoruz
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Bekleyen kullanıcı havuzu: { socketId, genderFilter, myGender }
+let waitingUsers = [];
 
-let waitingUser = null;
+function findMatch(socket, genderFilter, myGender) {
+  for (let i = 0; i < waitingUsers.length; i++) {
+    const w = waitingUsers[i];
+    if (w.socketId === socket.id) continue;
+
+    // Cinsiyet filtresi kontrolü
+    const iMatch = genderFilter === "herkesle" ||
+      (genderFilter === "kadin"  && w.myGender === "kadin") ||
+      (genderFilter === "erkek"  && w.myGender === "erkek");
+
+    // Karşı tarafın filtresi de uyumlu olmalı
+    const theyMatch = w.genderFilter === "herkesle" ||
+      (w.genderFilter === "kadin"  && myGender === "kadin") ||
+      (w.genderFilter === "erkek"  && myGender === "erkek");
+
+    if (iMatch && theyMatch) {
+      waitingUsers.splice(i, 1);
+      return w;
+    }
+  }
+  return null;
+}
 
 io.on('connection', (socket) => {
-    console.log('Sitede yeni biri var: ' + socket.id);
+  console.log('Yeni bağlantı: ' + socket.id);
 
-    socket.on('join', () => {
-        if (waitingUser && waitingUser.id !== socket.id) {
-            let roomName = waitingUser.id + '#' + socket.id;
-            socket.join(roomName);
-            waitingUser.join(roomName);
+  socket.on('join', (data = {}) => {
+    const genderFilter = data.genderFilter || "herkesle";
+    const myGender     = data.myGender     || "belirtmek-istemiyorum";
 
-            socket.emit('matched', { roomName, isInitiator: true });
-            waitingUser.emit('matched', { roomName, isInitiator: false });
-            
-            console.log('İki kişi eşleşti!');
-            waitingUser = null;
-        } else {
-            waitingUser = socket;
-            socket.emit('waiting');
-        }
-    });
+    // Eşleşme ara
+    const match = findMatch(socket, genderFilter, myGender);
 
-    socket.on('signal', (data) => {
-        const rooms = Array.from(socket.rooms);
-        const roomName = rooms.find(r => r.includes('#'));
-        if (roomName) {
-            socket.to(roomName).emit('signal', data);
-        }
-    });
+    if (match) {
+      const roomName = match.socketId + '#' + socket.id;
+      const matchSocket = io.sockets.sockets.get(match.socketId);
+      if (!matchSocket) {
+        // Karşı taraf bağlantısı kopmuş, beklemeye al
+        waitingUsers.push({ socketId: socket.id, genderFilter, myGender });
+        socket.emit('waiting');
+        return;
+      }
 
-    socket.on('leave', () => {
-        const rooms = Array.from(socket.rooms);
-        const roomName = rooms.find(r => r.includes('#'));
-        if (roomName) {
-            socket.to(roomName).emit('strangerLeft');
-            socket.leave(roomName);
-        }
-        if (waitingUser && waitingUser.id === socket.id) waitingUser = null;
-    });
+      socket.join(roomName);
+      matchSocket.join(roomName);
 
-    socket.on('message', (data) => {
-        const rooms = Array.from(socket.rooms);
-        const roomName = rooms.find(r => r.includes('#'));
-        if (roomName) {
-            socket.to(roomName).emit('message', data);
-        }
-    });
+      socket.emit('matched',     { roomName, isInitiator: true,  partnerSocketId: match.socketId });
+      matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id });
 
-    socket.on('disconnect', () => {
-        if (waitingUser && waitingUser.id === socket.id) waitingUser = null;
-    });
+      console.log('Eşleşti: ' + match.socketId + ' <-> ' + socket.id);
+    } else {
+      waitingUsers.push({ socketId: socket.id, genderFilter, myGender });
+      socket.emit('waiting');
+    }
+  });
+
+  socket.on('signal', (data) => {
+    const rooms = Array.from(socket.rooms);
+    const roomName = rooms.find(r => r.includes('#'));
+    if (roomName) socket.to(roomName).emit('signal', data);
+  });
+
+  socket.on('message', (data) => {
+    const rooms = Array.from(socket.rooms);
+    const roomName = rooms.find(r => r.includes('#'));
+    if (roomName) socket.to(roomName).emit('message', data);
+  });
+
+  socket.on('leave', () => {
+    const rooms = Array.from(socket.rooms);
+    const roomName = rooms.find(r => r.includes('#'));
+    if (roomName) {
+      socket.to(roomName).emit('strangerLeft');
+      socket.leave(roomName);
+    }
+    waitingUsers = waitingUsers.filter(w => w.socketId !== socket.id);
+  });
+
+  socket.on('next', () => {
+    const rooms = Array.from(socket.rooms);
+    const roomName = rooms.find(r => r.includes('#'));
+    if (roomName) {
+      socket.to(roomName).emit('strangerLeft');
+      socket.leave(roomName);
+    }
+    waitingUsers = waitingUsers.filter(w => w.socketId !== socket.id);
+  });
+
+  socket.on('disconnect', () => {
+    waitingUsers = waitingUsers.filter(w => w.socketId !== socket.id);
+    const rooms = Array.from(socket.rooms);
+    const roomName = rooms.find(r => r.includes('#'));
+    if (roomName) socket.to(roomName).emit('strangerLeft');
+    console.log('Ayrıldı: ' + socket.id);
+  });
 });
 
-// 3. Port ayarı (Render için dinamik)
 const port = process.env.PORT || 3000;
-http.listen(port, () => {
-    console.log('LumiChat Sunucusu ' + port + ' portunda aktif!');
-});
+http.listen(port, () => console.log('LumiChat ' + port + ' portunda aktif'));
