@@ -116,23 +116,22 @@ class Bot {
 
       const roll = Math.random();
 
-      if (roll < 0.15) {
-        // %15 ihtimalle ayrıl ve yeniden eşleş
+      if (roll < 0.10) {
+        // %10 ihtimalle ayrıl
         console.log(`[${this.name}] Sohbetten ayrılıyor...`);
         this.socket.emit("message", rand(messages.bye));
-        await sleep(800);
+        await sleep(1500);
         this.matched = false;
         clearInterval(this.chatTimer);
         this.socket.emit("next");
-        await sleep(2000 + Math.random() * 2000);
+        await sleep(4000 + Math.random() * 3000);
         this.joinQueue();
       } else {
-        // Mesaj at
         const msg = rand(messages.chat);
         console.log(`[${this.name}] Mesaj gönderiyor: "${msg}"`);
         this.socket.emit("message", msg);
       }
-    }, 5000 + Math.random() * 10000);
+    }, 12000 + Math.random() * 18000); // 12-30 saniye arasında mesaj at
   }
 }
 
