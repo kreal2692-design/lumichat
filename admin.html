@@ -176,6 +176,7 @@
       <div class="nav-item" data-page="users">👥 <span>Üyeler</span></div>
       <div class="nav-item" data-page="reports">🚩 <span>Raporlar</span></div>
       <div class="nav-item" data-page="tokens">🪙 <span>Jetonlar</span></div>
+      <div class="nav-item" data-page="messages">💬 <span>Mesajlar</span></div>
     </nav>
     <div class="sidebar-bottom">
       <div class="nav-item" id="logoutAdminBtn">🚪 <span>Çıkış</span></div>
@@ -265,6 +266,24 @@
       </div>
     </div>
 
+    <!-- Mesajlar -->
+    <div id="page-messages" class="page">
+      <div class="page-header">
+        <h1>💬 Mesajlar</h1>
+        <p>Gönderilen tüm mesajlar — küfürlü olanlar işaretli</p>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;cursor:pointer;">
+            <input type="checkbox" id="onlyBadWords" style="width:16px;height:16px;" />
+            Sadece küfürlüleri göster
+          </label>
+          <button class="btn btn-muted" id="refreshMessages">🔄 Yenile</button>
+        </div>
+        <div id="messagesTable"><div class="loading">Yükleniyor...</div></div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Ban onay modal -->
@@ -317,6 +336,7 @@
       if (name === "users")     loadUsers();
       if (name === "reports")   loadReports();
       if (name === "tokens")    loadTokens();
+      if (name === "messages")  loadMessages();
     }
 
     // ── Auth ─────────────────────────────────────────────────────────
@@ -601,6 +621,63 @@
       if (error) { showNotif("Jeton çıkarılamadı: " + error.message, true); return; }
       showNotif(`${n} jeton çıkarıldı.`);
       loadTokens();
+    };
+
+    // ── Mesajlar ─────────────────────────────────────────────────────
+    let allMessages = [];
+
+    async function loadMessages() {
+      document.getElementById("messagesTable").innerHTML = '<div class="loading">Yükleniyor...</div>';
+      const onlyBad = document.getElementById("onlyBadWords").checked;
+
+      let query = supabase
+        .from("messages")
+        .select("id, sender_id, content, filtered_content, has_bad_word, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      if (onlyBad) query = query.eq("has_bad_word", true);
+
+      const { data, error } = await query;
+      if (error) { showNotif("Mesajlar yüklenemedi: " + error.message, true); return; }
+      allMessages = data || [];
+      renderMessages(allMessages);
+    }
+
+    function renderMessages(messages) {
+      const box = document.getElementById("messagesTable");
+      if (!messages.length) {
+        box.innerHTML = '<div class="empty-state"><div class="icon">💬</div>Mesaj bulunamadı</div>';
+        return;
+      }
+      box.innerHTML = `
+        <table>
+          <thead><tr><th>#</th><th>Orijinal Mesaj</th><th>Filtrelenmiş</th><th>Küfür</th><th>Tarih</th><th>İşlem</th></tr></thead>
+          <tbody>
+            ${messages.map((m, i) => `
+              <tr>
+                <td style="color:var(--muted);font-size:12px">${i + 1}</td>
+                <td style="max-width:200px;word-break:break-all">${escHtml(m.content || "—")}</td>
+                <td style="max-width:200px;word-break:break-all;color:var(--muted)">${escHtml(m.filtered_content || "—")}</td>
+                <td>${m.has_bad_word
+                  ? '<span class="badge badge-red">⚠️ Küfürlü</span>'
+                  : '<span class="badge badge-green">Temiz</span>'}</td>
+                <td style="font-size:12px;color:var(--muted)">${formatDate(m.created_at)}</td>
+                <td><button class="btn btn-muted" onclick="deleteMessage('${m.id}')">🗑 Sil</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    document.getElementById("refreshMessages").addEventListener("click", loadMessages);
+    document.getElementById("onlyBadWords").addEventListener("change", loadMessages);
+
+    window.deleteMessage = async (id) => {
+      const { error } = await supabase.from("messages").delete().eq("id", id);
+      if (error) { showNotif("Mesaj silinemedi: " + error.message, true); return; }
+      showNotif("Mesaj silindi.");
+      loadMessages();
     };
 
     // ── Yardımcılar ──────────────────────────────────────────────────

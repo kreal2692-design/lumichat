@@ -208,6 +208,13 @@
       grid-template-columns: repeat(8, 1fr); gap: 4px;
       z-index: 50; box-shadow: var(--shadow); width: 280px;
     }
+    @media (max-width: 720px) {
+      .emoji-picker {
+        right: auto; left: 0;
+        grid-template-columns: repeat(6, 1fr);
+        width: 240px;
+      }
+    }
     .emoji-picker.open { display: grid; }
     .emoji-item {
       font-size: 22px; cursor: pointer; padding: 4px;
@@ -835,9 +842,21 @@
       const raw = msgInput.value.trim();
       if (!raw || !isMatched) return;
       const text = filterBadWords(raw);
+      const hasBadWord = text !== raw;
+
       addChatMessage("Sen: " + text, "me");
       socket.emit("message", text);
       msgInput.value = "";
+
+      // Mesajı Supabase'e kaydet
+      if (currentUser) {
+        supabase.from("messages").insert({
+          sender_id:        currentUser.id,
+          content:          raw,
+          filtered_content: text,
+          has_bad_word:     hasBadWord
+        }).then(({ error }) => { if (error) console.warn("Mesaj kaydedilemedi:", error.message); });
+      }
     }
 
     // ── Profil kaydet (ilk kurulum) ─────────────────────────────────
