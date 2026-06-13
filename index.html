@@ -90,14 +90,14 @@
     .token-pkg .price { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
     /* ── Ana uygulama ── */
-    #main-app { display: none; width: 100%; max-width: 1280px; margin: 0 auto; padding: 18px; height: 100vh; }
-    .app-shell { display: flex; flex-direction: column; gap: 12px; height: 100%; }
+    #main-app { display: none; width: 100%; max-width: 1280px; margin: 0 auto; padding: 18px; height: 100vh; overflow: hidden; }
+    .app-shell { display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden; }
 
     .topbar {
       display: flex; justify-content: space-between; align-items: center;
       gap: 12px; padding: 14px 16px; border-radius: 16px;
       background: rgba(20,32,48,0.92); border: 1px solid rgba(0,229,255,0.25);
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow); flex-shrink: 0;
     }
     .brand { font-size: 36px; font-weight: bold; color: white; }
     .topbar-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
@@ -142,7 +142,7 @@
 
     .layout {
       display: grid; grid-template-columns: 1fr 1fr 340px;
-      gap: 14px; flex: 1; min-height: 0;
+      gap: 14px; flex: 1; min-height: 0; overflow: hidden;
     }
     .box {
       position: relative; border-radius: 16px; overflow: hidden;
@@ -227,7 +227,7 @@
       display: flex; gap: 12px; align-items: center; justify-content: center;
       padding: 10px; border-radius: 12px;
       background: rgba(8,12,24,0.9); border: 1px solid rgba(0,229,255,0.25);
-      box-shadow: var(--shadow); flex-wrap: wrap;
+      box-shadow: var(--shadow); flex-wrap: wrap; flex-shrink: 0;
     }
     .filter-label { color: var(--muted); font-size: 14px; }
     .filter-select {
