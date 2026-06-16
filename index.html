@@ -294,19 +294,70 @@
 <body>
 
   <!-- Giriş ekranı -->
-  <div id="auth-screen" class="screen" style="display:flex;background:#05080d;padding:0;align-items:stretch;">
-    <div style="display:flex;width:100%;min-height:100vh;">
-
-      <!-- Sol panel -->
-      <div style="flex:3;padding:56px 64px;display:flex;flex-direction:column;justify-content:space-between;background:#05080d;min-width:0;">
-        <div>
-          <div style="display:flex;align-items:center;gap:14px;margin-bottom:64px;">
-            <div style="width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,rgba(0,229,255,0.25),rgba(0,80,180,0.35));border:1px solid rgba(0,229,255,0.5);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 20px rgba(0,229,255,0.15);">💬</div>
-            <div>
-              <div id="authTitle" style="font-size:28px;font-weight:800;color:white;line-height:1;letter-spacing:-0.5px;">LumiMatch</div>
-              <div style="color:var(--accent);font-size:12px;margin-top:3px;letter-spacing:0.5px;">Rastgele görüntülü sohbet</div>
-            </div>
-          </div>
+  <div id="auth-screen" class="screen" style="display:flex;flex-direction:column;background:linear-gradient(135deg,#0f1b2d 0%,#1a2744 50%,#0f1b2d 100%);padding:0;align-items:stretch;overflow-y:auto;">
+    <!-- Üst logo bar -->
+    <div style="padding:28px 48px;display:flex;align-items:center;gap:12px;">
+      <div style="width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,rgba(0,229,255,0.3),rgba(0,80,180,0.4));border:1px solid rgba(0,229,255,0.4);display:flex;align-items:center;justify-content:center;font-size:20px;">💬</div>
+      <div>
+        <div id="authTitle" style="font-size:22px;font-weight:800;color:white;line-height:1;">LumiMatch</div>
+        <div style="color:var(--accent);font-size:11px;margin-top:2px;letter-spacing:0.5px;">Rastgele görüntülü sohbet</div>
+      </div>
+    </div>
+    <!-- Orta alan: sol | giriş | sağ -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:28px;padding:20px 48px;">
+      <!-- Sol kartlar -->
+      <div style="display:flex;flex-direction:column;gap:14px;width:230px;flex-shrink:0;">
+        <div style="padding:20px;border-radius:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);">
+          <div style="font-size:26px;margin-bottom:10px;">📹</div>
+          <div style="font-weight:700;font-size:14px;color:white;margin-bottom:4px;">HD Görüntülü Sohbet</div>
+          <div style="color:var(--muted);font-size:12px;line-height:1.5;">1280x720 kalitesinde gerçek zamanlı bağlantı</div>
+        </div>
+        <div style="padding:20px;border-radius:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);">
+          <div style="font-size:26px;margin-bottom:10px;">🌍</div>
+          <div style="font-weight:700;font-size:14px;color:white;margin-bottom:4px;">12 Dil Desteği</div>
+          <div style="color:var(--muted);font-size:12px;line-height:1.5;">Türkçe, İngilizce, Almanca ve daha fazlası</div>
+        </div>
+      </div>
+      <!-- Orta giriş -->
+      <div style="width:340px;flex-shrink:0;background:rgba(10,18,35,0.85);border:1px solid rgba(0,229,255,0.15);border-radius:24px;padding:40px 36px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+        <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,rgba(0,229,255,0.2),rgba(0,80,180,0.3));border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 22px;">💬</div>
+        <div style="font-size:26px;font-weight:800;color:white;margin-bottom:8px;">Hoş Geldin</div>
+        <div id="authSubtitle" class="subtitle" style="color:var(--muted);font-size:13px;margin-bottom:28px;line-height:1.7;">Başlamak için Google hesabınla giriş yap.</div>
+        <button class="btn btn-google" id="loginBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:15px 20px;font-size:15px;border-radius:14px;font-weight:700;box-shadow:0 4px 24px rgba(66,133,244,0.4);">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Google ile Giriş Yap
+        </button>
+        <div style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.7;">Giriş yaparak <span style="color:var(--accent);cursor:pointer;">Kullanım Koşulları</span>'nı ve <span style="color:var(--accent);cursor:pointer;">Gizlilik Politikası</span>'nı kabul etmiş olursun.</div>
+        <div style="margin-top:12px;display:flex;gap:14px;justify-content:center;color:rgba(255,255,255,0.25);font-size:11px;"><span>🔒 SSL</span><span>🌍 12 Dil</span><span>⚡ Anlık</span></div>
+      </div>
+      <!-- Sağ kartlar -->
+      <div style="display:flex;flex-direction:column;gap:14px;width:230px;flex-shrink:0;">
+        <div style="padding:20px;border-radius:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);">
+          <div style="font-size:26px;margin-bottom:10px;">🎯</div>
+          <div style="font-weight:700;font-size:14px;color:white;margin-bottom:4px;">Cinsiyet Filtresi</div>
+          <div style="color:var(--muted);font-size:12px;line-height:1.5;">Erkek veya kadın — kiminle konuşacağını sen seç</div>
+        </div>
+        <div style="padding:20px;border-radius:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);">
+          <div style="font-size:26px;margin-bottom:10px;">🛡️</div>
+          <div style="font-weight:700;font-size:14px;color:white;margin-bottom:4px;">Güvenli Ortam</div>
+          <div style="color:var(--muted);font-size:12px;line-height:1.5;">Küfür filtresi, rapor sistemi ve 7/24 moderasyon</div>
+        </div>
+      </div>
+    </div>
+    <!-- Alt sosyal medya -->
+    <div style="padding:24px 48px;display:flex;align-items:center;justify-content:center;gap:14px;border-top:1px solid rgba(255,255,255,0.06);">
+      <span style="font-size:12px;color:rgba(255,255,255,0.3);">Bizi takip et:</span>
+      <a href="https://www.instagram.com/LumiMatch" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:white;text-decoration:none;font-size:13px;font-weight:700;transition:0.2s;box-shadow:0 3px 14px rgba(225,48,108,0.35);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        @LumiMatch
+      </a>
+      <a href="https://www.tiktok.com/@lumimatchoffical" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:white;text-decoration:none;font-size:13px;font-weight:700;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/></svg>
+        @lumimatchoffical
+      </a>
+      <span style="font-size:12px;color:rgba(255,255,255,0.2);margin-left:6px;">© 2025 LumiMatch</span>
+    </div>
+  </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div style="display:flex;align-items:flex-start;gap:14px;padding:20px;border-radius:16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);">
@@ -336,57 +387,6 @@
                 <div style="font-weight:700;font-size:14px;color:white;margin-bottom:4px;">Güvenli Ortam</div>
                 <div style="color:var(--muted);font-size:12px;line-height:1.5;">Küfür filtresi, rapor sistemi ve 7/24 moderasyon</div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top:48px;padding-top:40px;border-top:1px solid rgba(255,255,255,0.06);">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:16px;letter-spacing:2px;text-transform:uppercase;">Bizi Takip Et</div>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            <a href="https://www.instagram.com/LumiMatch" target="_blank" rel="noopener"
-               style="display:flex;align-items:center;gap:10px;padding:14px 22px;border-radius:14px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);border:none;color:white;text-decoration:none;font-size:14px;font-weight:700;transition:0.2s;box-shadow:0 4px 20px rgba(225,48,108,0.4);"
-               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(225,48,108,0.6)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(225,48,108,0.4)'">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-              @LumiMatch
-            </a>
-            <a href="https://www.tiktok.com/@lumimatchoffical" target="_blank" rel="noopener"
-               style="display:flex;align-items:center;gap:10px;padding:14px 22px;border-radius:14px;background:#010101;border:2px solid rgba(255,255,255,0.2);color:white;text-decoration:none;font-size:14px;font-weight:700;transition:0.2s;box-shadow:0 4px 20px rgba(0,0,0,0.5);"
-               onmouseover="this.style.transform='translateY(-2px)';this.style.borderColor='rgba(255,255,255,0.6)';this.style.boxShadow='0 8px 28px rgba(0,0,0,0.7)'" onmouseout="this.style.transform='';this.style.borderColor='rgba(255,255,255,0.2)';this.style.boxShadow='0 4px 20px rgba(0,0,0,0.5)'">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/></svg>
-              @lumimatchoffical
-            </a>
-          </div>
-          <div style="color:rgba(255,255,255,0.25);font-size:12px;margin-top:20px;">© 2025 LumiMatch — Tüm hakları saklıdır.</div>
-        </div>
-      </div>
-
-      <!-- Sağ panel -->
-      <div style="flex:2;max-width:480px;background:#020609;border-left:1px solid rgba(255,255,255,0.05);padding:56px 64px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left;">
-        <div style="width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(0,80,180,0.2));border:1px solid rgba(0,229,255,0.25);display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:28px;">💬</div>
-
-        <div style="font-size:32px;font-weight:800;color:white;margin-bottom:8px;letter-spacing:-0.5px;">Hoş Geldin</div>
-        <div id="authSubtitle" class="subtitle" style="color:var(--muted);font-size:14px;margin-bottom:36px;line-height:1.8;text-align:left;">Başlamak için Google hesabınla giriş yap.</div>
-
-        <button class="btn btn-google" id="loginBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 24px;font-size:15px;border-radius:14px;font-weight:700;box-shadow:0 4px 24px rgba(66,133,244,0.4);">
-          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Google ile Giriş Yap
-        </button>
-
-        <div style="margin-top:18px;padding:14px 18px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;width:100%;">
-          <div style="font-size:12px;color:var(--muted);line-height:1.8;text-align:left;">
-            Giriş yaparak <span style="color:var(--accent);cursor:pointer;">Kullanım Koşulları</span>'nı ve <span style="color:var(--accent);cursor:pointer;">Gizlilik Politikası</span>'nı kabul etmiş olursun.
-          </div>
-        </div>
-
-        <div style="margin-top:18px;display:flex;gap:18px;color:rgba(255,255,255,0.3);font-size:12px;">
-          <span>🔒 SSL</span>
-          <span>🌍 12 Dil</span>
-          <span>⚡ Anlık</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Üyelik ekranı -->
   <div id="membership-screen" class="screen">
     <div class="card">
@@ -831,7 +831,7 @@
       tokenScreen.style.display      = "none";
       mainApp.style.display          = "none";
 
-      if (name === "auth")       { authScreen.style.display = "flex"; authScreen.style.alignItems = "stretch"; }
+      if (name === "auth")       { authScreen.style.display = "flex"; authScreen.style.flexDirection = "column"; authScreen.style.alignItems = "stretch"; }
       if (name === "membership") membershipScreen.style.display = "grid";
       if (name === "profile")    profileScreen.style.display    = "grid";
       if (name === "token")      tokenScreen.style.display      = "grid";
