@@ -593,12 +593,12 @@
     const SUPABASE_URL = "https://aaszyppzidhazpbmcipv.supabase.co";
     const SUPABASE_KEY = "sb_publishable_UShAjuEa8A4dFcQ5zXVCdg_tsUKrAP3";
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storageKey: 'lumi-auth-v2'
-      }
+      auth: { storageKey: 'lumi-auth-v2', autoRefreshToken: true, persistSession: true }
+    });
+
+    // Eski oturum anahtarlarını temizle
+    ['sb-aaszyppzidhazpbmcipv-auth-token', 'supabase.auth.token'].forEach(k => {
+      try { localStorage.removeItem(k); } catch(e) {}
     });
 
     const debugBar = document.getElementById("debugBar");
