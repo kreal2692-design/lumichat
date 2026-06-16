@@ -840,17 +840,30 @@
     function setStatus(text) { statusText.textContent = text; debug("STATUS: " + text); }
 
     function showScreen(name) {
-      authScreen.style.display       = "none";
-      membershipScreen.style.display = "none";
-      profileScreen.style.display    = "none";
-      tokenScreen.style.display      = "none";
-      mainApp.style.display          = "none";
+      const screens = {
+        "auth":       { el: authScreen,       display: "flex"  },
+        "membership": { el: membershipScreen, display: "grid"  },
+        "profile":    { el: profileScreen,    display: "grid"  },
+        "token":      { el: tokenScreen,      display: "grid"  },
+        "main":       { el: mainApp,          display: "block" },
+      };
 
-      if (name === "auth")       { authScreen.style.display = "flex"; authScreen.style.flexDirection = "column"; authScreen.style.alignItems = "stretch"; }
-      if (name === "membership") membershipScreen.style.display = "grid";
-      if (name === "profile")    profileScreen.style.display    = "grid";
-      if (name === "token")      tokenScreen.style.display      = "grid";
-      if (name === "main")       { mainApp.style.display = "block"; mainApp.style.visibility = "visible"; mainApp.removeAttribute("hidden"); mainApp.classList.add("visible"); }
+      // Hepsini gizle
+      Object.values(screens).forEach(s => {
+        s.el.style.setProperty("display", "none", "important");
+      });
+
+      // İstenen ekranı göster
+      const target = screens[name];
+      if (target) {
+        target.el.style.setProperty("display", target.display, "important");
+        if (name === "auth") {
+          target.el.style.flexDirection = "column";
+          target.el.style.alignItems = "stretch";
+        }
+      }
+
+      debug("showScreen: " + name);
     }
 
     function setChatEnabled(e) { msgInput.disabled = !e; sendBtn.disabled = !e; }
