@@ -948,13 +948,11 @@
     async function initChatSystem() {
       if (appInitialized) return;
       appInitialized = true;
-      addChatMessage("Uygulama hazırlanıyor...", "system");
+      addChatMessage(t(currentLang, "msgAppReady"), "system");
       await initCamera();
       setChatEnabled(false);
-      setStatus("Hazır");
-      addChatMessage("Giriş başarılı. Eşleş butonuna bas.", "system");
-
-      // Kullanıcı adını label'a yaz
+      setStatus(t(currentLang, "statusReady"));
+      addChatMessage(t(currentLang, "msgLoginSuccess"), "system");
       if (currentProfile?.username) myLabel.textContent = currentProfile.username;
     }
 
@@ -1189,8 +1187,8 @@
     // ── Kontroller ──────────────────────────────────────────────────
     matchBtn.addEventListener("click", async () => {
       resetChatState();
-      setStatus("Eşleşme aranıyor...");
-      addChatMessage("Eşleşme aranıyor...", "system");
+      setStatus(t(currentLang, "msgSearching"));
+      addChatMessage(t(currentLang, "msgSearching"), "system");
       matchBtn.style.display = "none";
       stopBtn.style.display  = "inline-flex";
       const age = currentProfile?.birthdate ? Math.floor((Date.now() - new Date(currentProfile.birthdate)) / 31557600000) : null;
@@ -1199,8 +1197,8 @@
 
     stopBtn.addEventListener("click", () => {
       socket.emit("leave");
-      resetChatState("Eşleşme durduruldu.");
-      setStatus("Hazır");
+      resetChatState(t(currentLang, "msgLeft"));
+      setStatus(t(currentLang, "statusReady"));
       stopBtn.style.display  = "none";
       matchBtn.style.display = "inline-flex";
     });
@@ -1243,8 +1241,8 @@
     // ── Socket olayları ─────────────────────────────────────────────
     socket.on("connect",      () => { debug("Socket bağlandı"); setStatus("Bağlandı"); });
     socket.on("waiting", () => {
-      resetChatState("Eşleşme bekleniyor...");
-      setStatus("Bekleniyor...");
+      resetChatState(t(currentLang, "msgWaiting"));
+      setStatus(t(currentLang, "statusWaiting"));
       matchBtn.style.display = "none";
       stopBtn.style.display  = "inline-flex";
     });
@@ -1252,9 +1250,10 @@
     socket.on("signal",       async (data) => await handleSignal(data));
     socket.on("strangerLeft", () => {
       typingIndicator.classList.remove("visible");
-      resetChatState("Karşı taraf ayrıldı."); setStatus("Karşı taraf ayrıldı");
+      resetChatState(t(currentLang, "msgStrangerLeft"));
+      setStatus(t(currentLang, "statusLeft"));
     });
-    socket.on("disconnect",   () => { resetChatState("Sunucu bağlantısı kesildi."); setStatus("Bağlantı koptu"); });
+    socket.on("disconnect",   () => { resetChatState(t(currentLang, "msgDisconnect")); setStatus(t(currentLang, "statusDisconnected")); });
 
     socket.on("matched", async (data) => {
       isMatched = true;
@@ -1265,8 +1264,8 @@
       stopBtn.style.display  = "none";
       matchBtn.style.display = "inline-flex";
       setChatEnabled(true);
-      setStatus("Eşleşti");
-      addChatMessage(`${partnerName} ile eşleştin! Mesaj gönderebilirsin.`, "system");
+      setStatus(t(currentLang, "statusMatched"));
+      addChatMessage(`${partnerName} ${t(currentLang, "msgMatched")}`, "system");
       msgInput.focus();
       createPeerConnection();
       if (data.isInitiator) await createOffer();
@@ -1341,6 +1340,14 @@
 
         showScreen("main");
         await initChatSystem();
+
+        // IP'yi arka planda kaydet
+        fetch('/api/log-ip').then(r => r.json()).then(async ipData => {
+          if (ipData.ip) {
+            await supabase.from("users").update({ last_ip: ipData.ip }).eq("id", user.id);
+          }
+        }).catch(() => {});
+
       } catch (err) {
         debug("Auth hata: " + err.message);
         safeAlert("Sistem başlatma hatası: " + err.message);

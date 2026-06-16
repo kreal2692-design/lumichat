@@ -70,8 +70,15 @@ function banIP(ip, durationMs = 30 * 60 * 1000) {
 }
 
 // ── Statik dosyalar ──────────────────────────────────────────────────
+app.use(express.json());
 app.use(express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+
+// ── IP kaydet endpoint ────────────────────────────────────────────────
+app.post('/api/log-ip', (req, res) => {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+  res.json({ ip: ip || 'unknown' });
+});
 
 // ── Sağlık kontrolü ──────────────────────────────────────────────────
 app.get('/health', (req, res) => {
