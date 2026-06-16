@@ -415,6 +415,24 @@
           <button class="gender-btn" data-gender="kadin">👩 Kadın</button>
         </div>
       </div>
+      <div class="form-group">
+        <label>Doğum Tarihi</label>
+        <div style="display:flex;gap:8px;">
+          <select id="birthDay" class="form-input" style="flex:1;">
+            <option value="">Gün</option>
+          </select>
+          <select id="birthMonth" class="form-input" style="flex:1.5;">
+            <option value="">Ay</option>
+            <option value="1">Ocak</option><option value="2">Şubat</option><option value="3">Mart</option>
+            <option value="4">Nisan</option><option value="5">Mayıs</option><option value="6">Haziran</option>
+            <option value="7">Temmuz</option><option value="8">Ağustos</option><option value="9">Eylül</option>
+            <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
+          </select>
+          <select id="birthYear" class="form-input" style="flex:1.2;">
+            <option value="">Yıl</option>
+          </select>
+        </div>
+      </div>
       <button class="btn btn-primary" id="saveProfileBtn" style="width:100%;margin-top:8px;">Kaydet ve Devam Et</button>
     </div>
   </div>
@@ -489,12 +507,6 @@
       </div>
 
       <div class="controls">
-        <span class="filter-label">Eşleş:</span>
-        <select id="genderFilter" class="filter-select">
-          <option value="herkesle">Herkesle (Ücretsiz)</option>
-          <option value="kadin">Kadınla (5 Jeton)</option>
-          <option value="erkek">Erkekle (Ücretsiz)</option>
-        </select>
         <button id="matchBtn" class="btn btn-primary">Eşleş</button>
         <button id="nextBtn" class="btn btn-secondary">Sıradaki</button>
         <button id="leaveBtn" class="btn btn-danger">Ayrıl</button>
@@ -593,7 +605,6 @@
     const logoutBtnMain         = document.getElementById("logoutBtnMain");
     const reportBtn             = document.getElementById("reportBtn");
     const editProfileBtn        = document.getElementById("editProfileBtn");
-    const genderFilter          = document.getElementById("genderFilter");
     const myLabel               = document.getElementById("myLabel");
 
     // Profil kurulum
@@ -707,16 +718,6 @@
       setId("reportBtn", "reportBtn");
 
       // Controls
-      try {
-        const fl = document.querySelector(".filter-label");
-        if (fl) fl.textContent = t(lang, "matchLabel");
-        const gf = document.getElementById("genderFilter");
-        if (gf) {
-          gf.options[0].textContent = t(lang, "filterAll");
-          gf.options[1].textContent = t(lang, "filterFemale");
-          gf.options[2].textContent = t(lang, "filterMale");
-        }
-      } catch(e) {}
       setId("matchBtn", "matchBtn");
       setId("nextBtn", "nextBtn");
       setId("leaveBtn", "leaveBtn");
@@ -1177,26 +1178,10 @@
 
     // ── Kontroller ──────────────────────────────────────────────────
     matchBtn.addEventListener("click", async () => {
-      const filter = genderFilter.value;
-
-      // Jeton kontrolü
-      if (filter === "kadin") {
-        if ((currentProfile?.tokens || 0) < 5) {
-          addChatMessage("Kadınla eşleşmek için 5 jeton gerekli. Jeton satın al!", "system");
-          showScreen("token");
-          return;
-        }
-        // Jetonu düş
-        const newTokens = (currentProfile.tokens || 0) - 5;
-        await supabase.from("users").update({ tokens: newTokens }).eq("id", currentUser.id);
-        currentProfile.tokens = newTokens;
-        updateTokenDisplay(newTokens);
-      }
-
       resetChatState();
       setStatus("Eşleşme aranıyor...");
       addChatMessage("Eşleşme aranıyor...", "system");
-      socket.emit("join", { genderFilter: filter, myGender: currentProfile?.gender || "belirtmek-istemiyorum" });
+      socket.emit("join", { genderFilter: "herkesle", myGender: currentProfile?.gender || "belirtmek-istemiyorum" });
     });
 
     nextBtn.addEventListener("click", () => {
