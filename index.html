@@ -665,7 +665,7 @@
     let remoteSocketId = null;
     let selectedTokenPkg = null;
     let currentLang = detectLang();
-    let partnerName = "Karşı taraf";
+    let partnerName = "";
 
     // ── Dil sistemi ─────────────────────────────────────────────────
     function applyLang(lang) {
@@ -894,6 +894,16 @@
     async function initCamera() {
       try {
         debug("Kamera izni isteniyor");
+        // Önce izin durumunu kontrol et
+        const camPerm = await navigator.permissions.query({ name: "camera" }).catch(() => null);
+        const micPerm = await navigator.permissions.query({ name: "microphone" }).catch(() => null);
+
+        if (camPerm?.state === "denied" || micPerm?.state === "denied") {
+          addChatMessage("⚠️ Kamera ve mikrofon izni engellendi. Tarayıcı ayarlarından izin ver.", "system");
+          setStatus("İzin gerekli");
+          return false;
+        }
+
         localStream = await navigator.mediaDevices.getUserMedia({
           video: {
             width:      { ideal: 1280, min: 640 },
@@ -911,10 +921,17 @@
         });
         localVideo.srcObject = localStream;
         debug("Kamera bağlandı");
+        return true;
       } catch (err) {
         debug("Kamera hatası: " + err.message);
-        addChatMessage("Kamera veya mikrofon izni alınamadı.", "system");
-        setStatus("Kamera izni gerekli");
+        if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+          addChatMessage("⚠️ Kamera ve mikrofon izni verilmedi. Tarayıcı adres çubuğundaki 🔒 simgesine tıklayarak izin ver.", "system");
+          setStatus("İzin gerekli");
+        } else {
+          addChatMessage("Kamera veya mikrofon bağlanamadı: " + err.message, "system");
+          setStatus("Kamera hatası");
+        }
+        return false;
       }
     }
 
@@ -1342,7 +1359,10 @@
       matchBtn.style.display = "none";
       stopBtn.style.display  = "inline-flex";
     });
-    socket.on("message",      (text) => addChatMessage(`${partnerName}: ${text}`, "other"));
+    socket.on("message", (text) => {
+      const sender = partnerName || t(currentLang, "remoteLabel");
+      addChatMessage(`${sender}: ${text}`, "other");
+    });
     socket.on("signal",       async (data) => await handleSignal(data));
     socket.on("strangerLeft", () => {
       typingIndicator.classList.remove("visible");
