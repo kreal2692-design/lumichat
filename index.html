@@ -592,7 +592,14 @@
 
     const SUPABASE_URL = "https://aaszyppzidhazpbmcipv.supabase.co";
     const SUPABASE_KEY = "sb_publishable_UShAjuEa8A4dFcQ5zXVCdg_tsUKrAP3";
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'lumi-auth-v2'
+      }
+    });
 
     const debugBar = document.getElementById("debugBar");
     function debug(t) { console.log(t); debugBar.textContent = t; }
