@@ -99,6 +99,7 @@
 
     /* ── Ana uygulama ── */
     #main-app { display: none; width: 100%; max-width: 1280px; margin: 0 auto; padding: 18px; height: 100vh; overflow: hidden; }
+    #main-app.visible { display: block !important; }
     .app-shell { display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden; }
 
     .topbar {
@@ -849,7 +850,7 @@
       if (name === "membership") membershipScreen.style.display = "grid";
       if (name === "profile")    profileScreen.style.display    = "grid";
       if (name === "token")      tokenScreen.style.display      = "grid";
-      if (name === "main")       mainApp.style.display          = "block";
+      if (name === "main")       { mainApp.style.display = "block"; mainApp.style.visibility = "visible"; mainApp.removeAttribute("hidden"); mainApp.classList.add("visible"); }
     }
 
     function setChatEnabled(e) { msgInput.disabled = !e; sendBtn.disabled = !e; }
