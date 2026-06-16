@@ -1338,10 +1338,12 @@
 
         // Profil kurulmamışsa profil ekranına gönder
         if (!currentProfile.username || !currentProfile.gender) {
+          debug("Profil eksik: username=" + currentProfile.username + " gender=" + currentProfile.gender);
           showScreen("profile");
           return;
         }
 
+        debug("Ana ekran gösteriliyor");
         showScreen("main");
         await initChatSystem();
 
