@@ -851,8 +851,12 @@ export const langs = {
 
 // Tarayıcı diline göre otomatik dil tespiti
 export function detectLang() {
-  const saved = localStorage.getItem("lumi_lang");
-  if (saved && langs[saved]) return saved;
+  try {
+    const saved = localStorage.getItem("lumi_lang");
+    if (saved && langs[saved]) return saved;
+  } catch(e) {
+    console.warn("localStorage unavailable, using browser language:", e);
+  }
 
   const bl = (navigator.language || navigator.userLanguage || "en").toLowerCase();
   const code = bl.split("-")[0];

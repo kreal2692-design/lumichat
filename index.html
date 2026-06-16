@@ -592,8 +592,23 @@
 
     const SUPABASE_URL = "https://aaszyppzidhazpbmcipv.supabase.co";
     const SUPABASE_KEY = "sb_publishable_UShAjuEa8A4dFcQ5zXVCdg_tsUKrAP3";
+    
+    // Storage kontrolü - çerezler kapatıldığında localStorage çalışmaz
+    let storageAvailable = true;
+    try {
+      localStorage.setItem('test', 'test');
+      localStorage.removeItem('test');
+    } catch(e) {
+      storageAvailable = false;
+      console.warn("localStorage is not available. Session will not persist across page reloads.");
+    }
+    
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { storageKey: 'lumi-auth-v2', autoRefreshToken: true, persistSession: true }
+      auth: { 
+        storageKey: 'lumi-auth-v2', 
+        autoRefreshToken: true, 
+        persistSession: storageAvailable // Sadece localStorage varsa oturum kalıcı olsun
+      }
     });
 
     // Eski oturum anahtarlarını temizle
@@ -677,7 +692,7 @@
     // ── Dil sistemi ─────────────────────────────────────────────────
     function applyLang(lang) {
       currentLang = lang;
-      localStorage.setItem("lumi_lang", lang);
+      try { localStorage.setItem("lumi_lang", lang); } catch(e) { console.warn("localStorage unavailable:", e); }
       const l = langs[lang];
       if (!l) return;
       const isRtl = lang === "ar";
