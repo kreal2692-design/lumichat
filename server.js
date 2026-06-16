@@ -174,6 +174,8 @@ io.on('connection', (socket) => {
   socket.on('join', (data = {}) => {
     const genderFilter = data.genderFilter || "herkesle";
     const myGender     = data.myGender     || "herkesle";
+    const username     = typeof data.username === 'string' ? data.username.slice(0, 24) : "Kullanıcı";
+    const age          = typeof data.age === 'number' && data.age > 0 ? data.age : null;
 
     const match = findMatch(socket, genderFilter, myGender);
 
@@ -182,7 +184,7 @@ io.on('connection', (socket) => {
       const matchSocket = io.sockets.sockets.get(match.socketId);
 
       if (!matchSocket) {
-        waitingUsers.push({ socketId: socket.id, genderFilter, myGender });
+        waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age });
         socket.emit('waiting');
         return;
       }
@@ -190,12 +192,12 @@ io.on('connection', (socket) => {
       socket.join(roomName);
       matchSocket.join(roomName);
 
-      socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId });
-      matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id });
+      socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId, partnerUsername: match.username, partnerAge: match.age });
+      matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age });
 
       console.log(`Eşleşti: ${match.socketId} <-> ${socket.id}`);
     } else {
-      waitingUsers.push({ socketId: socket.id, genderFilter, myGender });
+      waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age });
       socket.emit('waiting');
     }
   });
@@ -213,8 +215,13 @@ io.on('connection', (socket) => {
     if (roomName) socket.to(roomName).emit('signal', data);
   });
 
-  socket.on('message', (data) => {
-    // Flood kontrolü
+  socket.on('typing', (isTyping) => {
+    const rooms = Array.from(socket.rooms);
+    const roomName = rooms.find(r => r.includes('#'));
+    if (roomName) socket.to(roomName).emit('typing', !!isTyping);
+  });
+
+  socket.on('message', (data) => {    // Flood kontrolü
     if (checkMsgFlood(socket.id)) {
       socket.emit('error', 'Çok hızlı mesaj gönderiyorsun.');
       return;

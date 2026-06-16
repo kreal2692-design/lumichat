@@ -186,7 +186,38 @@
     }
     .message.me { background: rgba(0,229,255,0.15); align-self: flex-end; }
     .message.other { background: rgba(255,255,255,0.10); align-self: flex-start; }
-    .message.system { background: rgba(241,196,15,0.14); color: #ffe08a; align-self: center; text-align: center; font-size: 14px; }
+    .message.system { background: rgba(255,255,255,0.06); color: var(--muted); align-self: center; text-align: center; font-size: 12px; border: 1px solid rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 999px; }
+
+    /* Yazıyor göstergesi */
+    .typing-indicator {
+      display: none; align-self: flex-start;
+      padding: 8px 14px; border-radius: 10px;
+      background: rgba(255,255,255,0.08); color: var(--muted);
+      font-size: 13px; gap: 6px; align-items: center;
+    }
+    .typing-indicator.visible { display: flex; }
+    .typing-dots span {
+      display: inline-block; width: 6px; height: 6px;
+      border-radius: 50%; background: var(--muted);
+      animation: typingBounce 1.2s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* Mikrofon / Kamera butonları */
+    .media-btn {
+      border: none; border-radius: 50%; width: 44px; height: 44px;
+      cursor: pointer; font-size: 18px; transition: 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .media-btn.active   { background: rgba(0,229,255,0.15); border: 1px solid rgba(0,229,255,0.4); }
+    .media-btn.inactive { background: rgba(255,71,87,0.2);  border: 1px solid rgba(255,71,87,0.5); }
+    .media-btn:hover    { transform: scale(1.08); }
 
     .chat-input-row { display: flex; gap: 6px; align-items: center; flex-shrink: 0; width: 100%; }
     #msgInput {
@@ -465,7 +496,12 @@
           <button class="report-btn" id="reportBtn">🚩 Rapor Et</button>
         </div>
         <aside class="chat-container">
-          <div id="chatBox"></div>
+          <div id="chatBox">
+            <div class="typing-indicator" id="typingIndicator">
+              <span id="typingName">Karşı taraf</span>
+              <div class="typing-dots"><span></span><span></span><span></span></div>
+            </div>
+          </div>
           <div class="chat-input-row">
             <div class="chat-input-wrap">
               <input type="text" id="msgInput" placeholder="Mesaj yaz..." disabled />
@@ -479,6 +515,7 @@
 
       <div class="controls">
         <button id="matchBtn" class="btn btn-primary">Eşleş</button>
+        <button id="stopBtn" class="btn btn-secondary" style="display:none;">⏹ Dur</button>
         <button id="nextBtn" class="btn btn-secondary">Sıradaki</button>
         <button id="leaveBtn" class="btn btn-danger">Ayrıl</button>
       </div>
@@ -568,6 +605,7 @@
     const msgInput         = document.getElementById("msgInput");
     const sendBtn          = document.getElementById("sendBtn");
     const matchBtn         = document.getElementById("matchBtn");
+    const stopBtn          = document.getElementById("stopBtn");
     const nextBtn          = document.getElementById("nextBtn");
     const leaveBtn         = document.getElementById("leaveBtn");
     const loginBtn         = document.getElementById("loginBtn");
@@ -613,6 +651,7 @@
     let remoteSocketId = null;
     let selectedTokenPkg = null;
     let currentLang = detectLang();
+    let partnerName = "Karşı taraf";
 
     // ── Dil sistemi ─────────────────────────────────────────────────
     function applyLang(lang) {
@@ -1152,7 +1191,18 @@
       resetChatState();
       setStatus("Eşleşme aranıyor...");
       addChatMessage("Eşleşme aranıyor...", "system");
-      socket.emit("join", { genderFilter: "herkesle", myGender: currentProfile?.gender || "belirtmek-istemiyorum" });
+      matchBtn.style.display = "none";
+      stopBtn.style.display  = "inline-flex";
+      const age = currentProfile?.birthdate ? Math.floor((Date.now() - new Date(currentProfile.birthdate)) / 31557600000) : null;
+      socket.emit("join", { genderFilter: "herkesle", myGender: currentProfile?.gender || "belirtmek-istemiyorum", username: currentProfile?.username || "Kullanıcı", age });
+    });
+
+    stopBtn.addEventListener("click", () => {
+      socket.emit("leave");
+      resetChatState("Eşleşme durduruldu.");
+      setStatus("Hazır");
+      stopBtn.style.display  = "none";
+      matchBtn.style.display = "inline-flex";
     });
 
     nextBtn.addEventListener("click", () => {
@@ -1170,20 +1220,53 @@
     sendBtn.addEventListener("click", sendMessage);
     msgInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); sendMessage(); } });
 
+    // ── Yazıyor göstergesi ──────────────────────────────────────────
+    const typingIndicator = document.getElementById("typingIndicator");
+    const typingName      = document.getElementById("typingName");
+    let typingTimeout = null;
+
+    msgInput.addEventListener("input", () => {
+      if (!isMatched) return;
+      socket.emit("typing", true);
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => socket.emit("typing", false), 1500);
+    });
+
+    socket.on("typing", (isTyping) => {
+      typingName.textContent = partnerName;
+      typingIndicator.classList.toggle("visible", isTyping);
+      if (isTyping) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    });
+
     // ── Socket olayları ─────────────────────────────────────────────
     socket.on("connect",      () => { debug("Socket bağlandı"); setStatus("Bağlandı"); });
-    socket.on("waiting",      () => { resetChatState("Eşleşme bekleniyor..."); setStatus("Bekleniyor..."); });
-    socket.on("message",      (text) => addChatMessage("Karşı: " + text, "other"));
+    socket.on("waiting", () => {
+      resetChatState("Eşleşme bekleniyor...");
+      setStatus("Bekleniyor...");
+      matchBtn.style.display = "none";
+      stopBtn.style.display  = "inline-flex";
+    });
+    socket.on("message",      (text) => addChatMessage(`${partnerName}: ${text}`, "other"));
     socket.on("signal",       async (data) => await handleSignal(data));
-    socket.on("strangerLeft", () => { resetChatState("Karşı taraf ayrıldı."); setStatus("Karşı taraf ayrıldı"); });
+    socket.on("strangerLeft", () => {
+      typingIndicator.classList.remove("visible");
+      resetChatState("Karşı taraf ayrıldı."); setStatus("Karşı taraf ayrıldı");
+    });
     socket.on("disconnect",   () => { resetChatState("Sunucu bağlantısı kesildi."); setStatus("Bağlantı koptu"); });
 
     socket.on("matched", async (data) => {
       isMatched = true;
       remoteSocketId = data.partnerSocketId || null;
+      partnerName = data.partnerUsername && data.partnerAge
+        ? `${data.partnerUsername}, ${data.partnerAge}`
+        : data.partnerUsername || "Karşı taraf";
+      stopBtn.style.display  = "none";
+      matchBtn.style.display = "inline-flex";
       setChatEnabled(true);
       setStatus("Eşleşti");
-      addChatMessage("Biriyle eşleştin. Mesaj gönderebilirsin.", "system");
+      addChatMessage(`${partnerName} ile eşleştin! Mesaj gönderebilirsin.`, "system");
       msgInput.focus();
       createPeerConnection();
       if (data.isInitiator) await createOffer();
