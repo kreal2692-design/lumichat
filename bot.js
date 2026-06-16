@@ -6,7 +6,7 @@
 
 const { io } = require("socket.io-client");
 
-const SERVER_URL = "https://lumichat-canli.onrender.com";
+const SERVER_URL = "http://13.53.161.193:3000";
 const BOT_COUNT  = 3; // Kaç bot çalışsın
 
 // ── Bot mesaj havuzu ────────────────────────────────────────────────────────
