@@ -1306,13 +1306,50 @@
     // ── Giriş / Çıkış ───────────────────────────────────────────────
     loginBtn.addEventListener("click", async () => {
       try {
-        if (location.protocol === "file:") { safeAlert("localhost veya sunucu üzerinden aç."); return; }
-        const { error } = await supabase.auth.signInWithOAuth({
+        debug("Google giriş butonu tıklandı");
+        
+        // Protocol kontrolü
+        if (location.protocol === "file:") { 
+          safeAlert("localhost veya sunucu üzerinden aç."); 
+          return; 
+        }
+        
+        // Redirect URL'i belirle
+        const redirectUrl = window.location.origin + window.location.pathname;
+        debug("Redirect URL: " + redirectUrl);
+        
+        // Login butonunu devre dışı bırak
+        loginBtn.disabled = true;
+        loginBtn.textContent = "Yönlendiriliyor...";
+        
+        // OAuth başlat
+        const { data, error } = await supabase.auth.signInWithOAuth({
           provider: "google",
-          options: { redirectTo: window.location.origin }
+          options: { 
+            redirectTo: redirectUrl,
+            skipBrowserRedirect: false,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            }
+          }
         });
-        if (error) throw error;
-      } catch (err) { safeAlert("Google giriş hatası: " + err.message); }
+        
+        if (error) {
+          debug("OAuth hata: " + error.message);
+          throw error;
+        }
+        
+        debug("OAuth başarılı, yönlendiriliyor...");
+        // Supabase otomatik olarak yönlendirecek
+        
+      } catch (err) { 
+        debug("Google giriş hatası: " + err.message);
+        console.error("Detaylı hata:", err);
+        safeAlert("Google giriş hatası: " + err.message + "\n\nLütfen Supabase Dashboard'da Google OAuth ayarlarını kontrol edin.");
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Google ile Giriş Yap";
+      }
     });
 
     activateMembershipBtn.addEventListener("click", async () => {
