@@ -297,7 +297,7 @@
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:48px;">
             <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,rgba(0,229,255,0.3),rgba(0,80,180,0.4));border:1px solid rgba(0,229,255,0.4);display:flex;align-items:center;justify-content:center;font-size:22px;">💬</div>
             <div>
-              <div style="font-size:26px;font-weight:bold;color:white;line-height:1;">LumiMatch</div>
+              <div id="authTitle" style="font-size:26px;font-weight:bold;color:white;line-height:1;">LumiMatch</div>
               <div style="color:var(--accent);font-size:12px;margin-top:2px;">Rastgele görüntülü sohbet</div>
             </div>
           </div>
@@ -359,7 +359,7 @@
         <div style="width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,rgba(0,229,255,0.2),rgba(0,80,180,0.3));border:1px solid rgba(0,229,255,0.4);display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:28px;box-shadow:0 0 40px rgba(0,229,255,0.12);">💬</div>
 
         <div style="font-size:28px;font-weight:bold;color:white;margin-bottom:8px;">Hoş Geldin</div>
-        <div style="color:var(--muted);font-size:14px;margin-bottom:36px;line-height:1.7;">Başlamak için Google hesabınla<br>giriş yap.</div>
+        <div id="authSubtitle" class="subtitle" style="color:var(--muted);font-size:14px;margin-bottom:36px;line-height:1.7;">Başlamak için Google hesabınla<br>giriş yap.</div>
 
         <button class="btn btn-google" id="loginBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 20px;font-size:16px;border-radius:14px;font-weight:bold;box-shadow:0 4px 24px rgba(66,133,244,0.45);letter-spacing:0.3px;">
           <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -376,81 +376,6 @@
           <span>🔒 SSL</span>
           <span>🌍 12 Dil</span>
           <span>⚡ Anlık</span>
-        </div>
-      </div>
-    </div>
-  </div>
-        <div>
-          <div style="font-size:32px;font-weight:bold;color:white;margin-bottom:8px;">LumiChat</div>
-          <div style="color:var(--accent);font-size:14px;margin-bottom:40px;">Rastgele görüntülü sohbet</div>
-
-          <div style="display:flex;flex-direction:column;gap:20px;">
-            <div style="display:flex;align-items:flex-start;gap:14px;">
-              <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.25);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📹</div>
-              <div>
-                <div style="font-weight:bold;margin-bottom:4px;">HD Görüntülü Sohbet</div>
-                <div style="color:var(--muted);font-size:13px;line-height:1.5;">1280x720 kalitesinde, gerçek zamanlı görüntülü bağlantı.</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:14px;">
-              <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.25);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎯</div>
-              <div>
-                <div style="font-weight:bold;margin-bottom:4px;">Cinsiyet Filtresi</div>
-                <div style="color:var(--muted);font-size:13px;line-height:1.5;">Erkek veya kadın — kiminle konuşacağını sen seç.</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:14px;">
-              <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.25);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🌍</div>
-              <div>
-                <div style="font-weight:bold;margin-bottom:4px;">12 Dil Desteği</div>
-                <div style="color:var(--muted);font-size:13px;line-height:1.5;">Türkçe, İngilizce, Almanca ve daha fazlası.</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:14px;">
-              <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.25);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🛡️</div>
-              <div>
-                <div style="font-weight:bold;margin-bottom:4px;">Güvenli Ortam</div>
-                <div style="color:var(--muted);font-size:13px;line-height:1.5;">Küfür filtresi, rapor sistemi ve 7/24 moderasyon.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top:32px;">
-          <div style="display:flex;gap:12px;margin-bottom:12px;">
-            <a href="https://www.instagram.com/LumiMatch" target="_blank" rel="noopener"
-               style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;background:rgba(225,48,108,0.12);border:1px solid rgba(225,48,108,0.3);color:#e1306c;text-decoration:none;font-size:13px;transition:0.2s;"
-               onmouseover="this.style.background='rgba(225,48,108,0.22)'" onmouseout="this.style.background='rgba(225,48,108,0.12)'">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-              @LumiMatch
-            </a>
-            <a href="https://www.tiktok.com/@lumimatchoffical" target="_blank" rel="noopener"
-               style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:var(--text);text-decoration:none;font-size:13px;transition:0.2s;"
-               onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/></svg>
-              @lumimatchoffical
-            </a>
-          </div>
-          <div style="color:var(--muted);font-size:12px;">© 2025 LumiMatch — Tüm hakları saklıdır.</div>
-        </div>
-      </div>
-
-      <!-- Sağ panel -->
-      <div style="width:360px;background:rgba(8,15,28,0.98);padding:48px 36px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
-        <div style="width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,rgba(0,229,255,0.3),rgba(0,100,180,0.3));border:1px solid rgba(0,229,255,0.4);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:24px;">💬</div>
-
-        <div class="title" style="font-size:24px;margin-bottom:8px;">Hoş Geldin</div>
-        <div class="subtitle" style="font-size:14px;margin-bottom:32px;">Başlamak için Google hesabınla giriş yap.</div>
-
-        <button class="btn btn-google" id="loginBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;font-size:15px;border-radius:14px;">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Google ile Giriş Yap
-        </button>
-
-        <div style="margin-top:24px;padding:16px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:12px;width:100%;">
-          <div style="font-size:12px;color:var(--muted);line-height:1.6;">
-            Giriş yaparak <span style="color:var(--accent)">Kullanım Koşulları</span>'nı ve <span style="color:var(--accent)">Gizlilik Politikası</span>'nı kabul etmiş olursun.
-          </div>
         </div>
       </div>
     </div>
@@ -725,8 +650,12 @@
       setId("langBtn", ""); document.getElementById("langBtn").textContent = `${l.flag} ${lang.toUpperCase()}`;
 
       // Auth
-      setText("#auth-screen .title", "loginTitle");
-      setText("#auth-screen .subtitle", "loginSubtitle");
+      try {
+        const title = document.getElementById("authTitle");
+        if (title) title.textContent = t(lang, "loginTitle");
+        const sub = document.getElementById("authSubtitle");
+        if (sub) sub.textContent = t(lang, "loginSubtitle");
+      } catch(e) {}
       setId("loginBtn", "loginBtn");
 
       // Üyelik
@@ -1045,7 +974,7 @@
             await supabase.from("users").update({ is_banned: true }).eq("id", currentUser.id);
             await supabase.auth.signOut();
             showScreen("auth");
-            document.querySelector("#auth-screen .subtitle").textContent =
+          document.getElementById("authSubtitle").textContent =
               "⛔ Uygunsuz içerik nedeniyle hesabın askıya alındı.";
             document.getElementById("loginBtn").style.display = "none";
           }
@@ -1331,7 +1260,7 @@
         if (userData.is_banned) {
           await supabase.auth.signOut();
           showScreen("auth");
-          document.querySelector("#auth-screen .subtitle").textContent =
+          document.getElementById("authSubtitle").textContent =
             "⛔ Hesabın askıya alınmıştır. Destek için iletişime geç.";
           document.getElementById("loginBtn").style.display = "none";
           return;
