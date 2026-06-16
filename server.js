@@ -18,12 +18,12 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=self, microphone=self');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  // HTML dosyaları için cache'i kapat
-  if (req.path.endsWith('.html') || req.path === '/') {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-  }
+  
+  // TÜM dosyalar için cache'i tamamen kapat (boş sayfa sorununu çözmek için)
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  
   next();
 });
 

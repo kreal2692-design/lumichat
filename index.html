@@ -6,9 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LumiChat</title>
   <script src="/socket.io/socket.io.js"></script>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <!-- Tarayıcı cache'ini tamamen devre dışı bırak -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+  <meta name="robots" content="noindex, nofollow" />
   <style>
     :root {
       --bg: #0b0f17;  
@@ -607,14 +609,31 @@
       auth: { 
         storageKey: 'lumi-auth-v2', 
         autoRefreshToken: true, 
-        persistSession: storageAvailable // Sadece localStorage varsa oturum kalıcı olsun
+        persistSession: storageAvailable, // Sadece localStorage varsa oturum kalıcı olsun
+        detectSessionInUrl: true,
+        flowType: 'pkce'
       }
     });
 
     // Eski oturum anahtarlarını temizle
-    ['sb-aaszyppzidhazpbmcipv-auth-token', 'supabase.auth.token'].forEach(k => {
-      try { localStorage.removeItem(k); } catch(e) {}
-    });
+    if (storageAvailable) {
+      ['sb-aaszyppzidhazpbmcipv-auth-token', 'supabase.auth.token'].forEach(k => {
+        try { localStorage.removeItem(k); } catch(e) {}
+      });
+      
+      // Bozuk oturum verilerini temizle
+      try {
+        const authKey = 'lumi-auth-v2';
+        const stored = localStorage.getItem(authKey);
+        if (stored) {
+          // JSON parse edebiliyor muyuz kontrol et
+          JSON.parse(stored);
+        }
+      } catch(e) {
+        console.warn("Bozuk oturum verisi temizleniyor:", e);
+        try { localStorage.clear(); } catch(clearErr) {}
+      }
+    }
 
     const debugBar = document.getElementById("debugBar");
     function debug(t) { console.log(t); debugBar.textContent = t; }
@@ -1418,55 +1437,87 @@
     supabase.auth.onAuthStateChange(async (event, session) => {
       try {
         const user = session?.user ?? null;
-        if (!user) { debug("Giriş yok"); showScreen("auth"); return; }
+        if (!user) { 
+          debug("Giriş yok"); 
+          showScreen("auth"); 
+          return; 
+        }
 
         currentUser = user;
         debug("Kullanıcı: " + (user.email || user.id));
 
+        // Veritabanından kullanıcı verilerini çek
         const { data: userData, error } = await supabase
           .from("users")
-          .select("has_membership, username, gender, tokens, is_banned")
+          .select("has_membership, username, gender, tokens, is_banned, avatar_url, birthdate")
           .eq("id", user.id)
           .single();
 
+        // Hata durumunda veya veri yoksa yeni kullanıcı oluştur
         if (error || !userData) {
-          await supabase.from("users").upsert({
+          debug("Kullanıcı verisi bulunamadı, yeni kayıt oluşturuluyor");
+          const { error: upsertError } = await supabase.from("users").upsert({
             id: user.id,
             display_name: user.user_metadata?.full_name || "",
             email: user.email || "",
             has_membership: false,
             tokens: 0
           });
+          
+          if (upsertError) {
+            debug("Kullanıcı oluşturulamadı: " + upsertError.message);
+            await supabase.auth.signOut();
+            showScreen("auth");
+            return;
+          }
+          
           showScreen("membership");
           return;
         }
 
-        if (!userData.has_membership) { showScreen("membership"); return; }
+        // Üyelik kontrolü
+        if (!userData.has_membership) { 
+          debug("Üyelik yok");
+          showScreen("membership"); 
+          return; 
+        }
 
         // ── Ban kontrolü ──────────────────────────────────────────
         if (userData.is_banned) {
+          debug("Kullanıcı banlı");
           await supabase.auth.signOut();
           showScreen("auth");
-          document.getElementById("authSubtitle").textContent =
-            "⛔ Hesabın askıya alınmıştır. Destek için iletişime geç.";
-          document.getElementById("loginBtn").style.display = "none";
+          const authSubtitle = document.getElementById("authSubtitle");
+          const loginButton = document.getElementById("loginBtn");
+          if (authSubtitle) authSubtitle.textContent = "⛔ Hesabın askıya alınmıştır. Destek için iletişime geç.";
+          if (loginButton) loginButton.style.display = "none";
           return;
         }
 
+        // Profil verilerini güvenli şekilde oluştur
         currentProfile = {
-          username:  userData.username,
-          gender:    userData.gender,
+          username:  userData.username || null,
+          gender:    userData.gender || null,
           tokens:    userData.tokens || 0,
           avatar:    userData.avatar_url || user.user_metadata?.avatar_url || null,
           birthdate: userData.birthdate || null,
           age:       userData.birthdate ? Math.floor((Date.now() - new Date(userData.birthdate)) / 31557600000) : null,
         };
 
-        userInfo.textContent = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
+        debug("Profil yüklendi: " + JSON.stringify({
+          username: currentProfile.username,
+          gender: currentProfile.gender,
+          hasAvatar: !!currentProfile.avatar
+        }));
+
+        // Kullanıcı bilgilerini güncelle
+        if (userInfo) {
+          userInfo.textContent = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
+        }
         updateTokenDisplay(currentProfile.tokens);
 
         // Profil fotoğrafı topbar'da göster
-        if (currentProfile.avatar) {
+        if (currentProfile.avatar && userInfo && userInfo.parentNode) {
           const existingAvatar = document.getElementById("topbarAvatar");
           if (!existingAvatar) {
             const img = document.createElement("img");
@@ -1479,11 +1530,12 @@
 
         // Profil kurulmamışsa profil ekranına gönder
         if (!currentProfile.username || !currentProfile.gender) {
-          debug("Profil eksik: username=" + currentProfile.username + " gender=" + currentProfile.gender);
+          debug("Profil eksik - profil ekranına yönlendiriliyor");
           showScreen("profile");
           return;
         }
 
+        // Ana ekranı göster
         debug("Ana ekran gösteriliyor");
         showScreen("main");
         await initChatSystem();
@@ -1497,7 +1549,15 @@
 
       } catch (err) {
         debug("Auth hata: " + err.message);
-        safeAlert("Sistem başlatma hatası: " + err.message);
+        console.error("Auth hatası detayı:", err);
+        // Hata durumunda login ekranına dön
+        showScreen("auth");
+        // Oturumu temizle
+        try {
+          await supabase.auth.signOut();
+        } catch (signOutErr) {
+          debug("Çıkış hatası: " + signOutErr.message);
+        }
       }
     });
 
@@ -1506,6 +1566,22 @@
     // Dil sistemini başlat
     buildLangDropdown();
     applyLang(currentLang);
+    
+    // Sayfa yüklendiğinde en az auth ekranını göster (boş sayfa olmaması için)
+    // Auth state change zaten doğru ekranı gösterecek
+    setTimeout(() => {
+      // Eğer hiçbir ekran gösterilmemişse (hata durumu) auth ekranını göster
+      const allScreens = [authScreen, membershipScreen, profileScreen, tokenScreen, mainApp];
+      const anyVisible = allScreens.some(screen => {
+        const display = window.getComputedStyle(screen).display;
+        return display !== 'none';
+      });
+      
+      if (!anyVisible) {
+        debug("Hiçbir ekran gösterilmemiş, auth ekranı açılıyor");
+        showScreen("auth");
+      }
+    }, 1000);
   </script>
 </body>
 </html>
