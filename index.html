@@ -40,8 +40,7 @@
     #auth-screen {
       padding: 0;
       display: none;
-      place-items: unset;
-      background: #05080d;
+      background: linear-gradient(135deg,#0f1b2d 0%,#1a2744 50%,#0f1b2d 100%);
     }
     .card {
       background: rgba(10,20,30,0.92);
@@ -294,7 +293,7 @@
 <body>
 
   <!-- Giriş ekranı -->
-  <div id="auth-screen" class="screen" style="display:flex;flex-direction:column;background:linear-gradient(135deg,#0f1b2d 0%,#1a2744 50%,#0f1b2d 100%);padding:0;align-items:stretch;overflow-y:auto;">
+  <div id="auth-screen" class="screen" style="display:none;flex-direction:column;background:linear-gradient(135deg,#0f1b2d 0%,#1a2744 50%,#0f1b2d 100%);padding:0;align-items:stretch;overflow-y:auto;">
     <!-- Üst logo bar -->
     <div style="padding:28px 48px;display:flex;align-items:center;gap:12px;">
       <div style="width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,rgba(0,229,255,0.3),rgba(0,80,180,0.4));border:1px solid rgba(0,229,255,0.4);display:flex;align-items:center;justify-content:center;font-size:20px;">💬</div>
