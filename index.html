@@ -409,7 +409,17 @@
   <div id="profile-screen" class="screen">
     <div class="card">
       <div class="title">Profilini Oluştur</div>
-      <div class="subtitle">Kullanıcı adı ve cinsiyetini seç.</div>
+      <div class="subtitle">Kullanıcı adı, cinsiyet ve doğum tarihini gir.</div>
+
+      <!-- Profil fotoğrafı -->
+      <div class="form-group" style="text-align:center;">
+        <div id="avatarPreview" style="width:80px;height:80px;border-radius:50%;background:rgba(0,229,255,0.1);border:2px solid rgba(0,229,255,0.3);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:32px;cursor:pointer;overflow:hidden;" onclick="document.getElementById('avatarInput').click()">
+          📷
+        </div>
+        <div style="font-size:12px;color:var(--muted);">Fotoğraf seç (isteğe bağlı)</div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none;" />
+      </div>
+
       <div class="form-group">
         <label>Kullanıcı Adı</label>
         <input type="text" id="usernameInput" class="form-input" placeholder="örn: LumiKullanici" maxlength="24" />
@@ -1029,25 +1039,94 @@
     setupGenderButtons(profileScreenContainer, () => selectedGender, (v) => selectedGender = v);
     setupGenderButtons(editGenderRow, () => editSelectedGender, (v) => editSelectedGender = v);
 
+    // Doğum tarihi dropdown'larını doldur
+    const daySelect  = document.getElementById("birthDay");
+    const yearSelect = document.getElementById("birthYear");
+    for (let d = 1; d <= 31; d++) {
+      const o = document.createElement("option");
+      o.value = d; o.textContent = d;
+      daySelect.appendChild(o);
+    }
+    const thisYear = new Date().getFullYear();
+    for (let y = thisYear - 13; y >= thisYear - 80; y--) {
+      const o = document.createElement("option");
+      o.value = y; o.textContent = y;
+      yearSelect.appendChild(o);
+    }
+
+    // Fotoğraf önizleme
+    let selectedAvatarFile = null;
+    document.getElementById("avatarInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { safeAlert("Fotoğraf 2MB'dan küçük olmalı."); return; }
+      selectedAvatarFile = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const preview = document.getElementById("avatarPreview");
+        preview.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;" />`;
+      };
+      reader.readAsDataURL(file);
+    });
+
     saveProfileBtn.addEventListener("click", async () => {
       const username = usernameInput.value.trim();
       if (!username) { safeAlert("Kullanıcı adı boş olamaz."); return; }
       if (!selectedGender) { safeAlert("Cinsiyet seçmelisin."); return; }
 
-      try {
-        const { error } = await supabase.from("users").update({
-          username,
-          gender: selectedGender
-        }).eq("id", currentUser.id);
+      const day   = document.getElementById("birthDay").value;
+      const month = document.getElementById("birthMonth").value;
+      const year  = document.getElementById("birthYear").value;
+      let birthdate = null;
+      if (day && month && year) {
+        birthdate = `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+      }
 
+      // Yaş hesapla
+      let age = null;
+      if (birthdate) {
+        age = Math.floor((Date.now() - new Date(birthdate)) / 31557600000);
+        if (age < 13) { safeAlert("13 yaşından küçükler kayıt olamaz."); return; }
+      }
+
+      saveProfileBtn.disabled = true;
+      saveProfileBtn.textContent = "Kaydediliyor...";
+
+      try {
+        // Fotoğraf yükle
+        let avatarUrl = null;
+        if (selectedAvatarFile) {
+          const ext = selectedAvatarFile.name.split('.').pop();
+          const path = `avatars/${currentUser.id}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from("avatars")
+            .upload(path, selectedAvatarFile, { upsert: true, contentType: selectedAvatarFile.type });
+          if (!upErr) {
+            const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+            avatarUrl = urlData?.publicUrl || null;
+          }
+        }
+
+        const updateData = { username, gender: selectedGender };
+        if (birthdate) updateData.birthdate = birthdate;
+        if (avatarUrl)  updateData.avatar_url = avatarUrl;
+
+        const { error } = await supabase.from("users").update(updateData).eq("id", currentUser.id);
         if (error) throw error;
 
-        currentProfile.username = username;
-        currentProfile.gender   = selectedGender;
+        currentProfile.username  = username;
+        currentProfile.gender    = selectedGender;
+        if (birthdate) currentProfile.birthdate = birthdate;
+        if (avatarUrl) currentProfile.avatar    = avatarUrl;
+        if (age)       currentProfile.age        = age;
+
         showScreen("main");
         await initChatSystem();
       } catch (err) {
         safeAlert("Profil kaydedilemedi: " + err.message);
+      } finally {
+        saveProfileBtn.disabled = false;
+        saveProfileBtn.textContent = "Kaydet ve Devam Et";
       }
     });
 
@@ -1267,6 +1346,8 @@
     socket.on("signal",       async (data) => await handleSignal(data));
     socket.on("strangerLeft", () => {
       typingIndicator.classList.remove("visible");
+      const remoteLabel = document.querySelector(".box:nth-child(2) .video-label");
+      if (remoteLabel) remoteLabel.textContent = t(currentLang, "remoteLabel");
       resetChatState(t(currentLang, "msgStrangerLeft"));
       setStatus(t(currentLang, "statusLeft"));
     });
@@ -1283,6 +1364,9 @@
       setChatEnabled(true);
       setStatus(t(currentLang, "statusMatched"));
       addChatMessage(`${partnerName} ${t(currentLang, "msgMatched")}`, "system");
+      // Video label'ını güncelle
+      const remoteLabel = document.querySelector(".box:nth-child(2) .video-label");
+      if (remoteLabel) remoteLabel.textContent = partnerName;
       msgInput.focus();
       createPeerConnection();
       if (data.isInitiator) await createOffer();
@@ -1299,7 +1383,7 @@
 
         const { data: userData, error } = await supabase
           .from("users")
-          .select("has_membership, username, gender, tokens, is_banned")
+          .select("has_membership, username, gender, tokens, is_banned, birthdate, avatar_url")
           .eq("id", user.id)
           .single();
 
@@ -1328,10 +1412,12 @@
         }
 
         currentProfile = {
-          username: userData.username,
-          gender:   userData.gender,
-          tokens:   userData.tokens || 0,
-          avatar:   user.user_metadata?.avatar_url || null
+          username:  userData.username,
+          gender:    userData.gender,
+          tokens:    userData.tokens || 0,
+          avatar:    userData.avatar_url || user.user_metadata?.avatar_url || null,
+          birthdate: userData.birthdate || null,
+          age:       userData.birthdate ? Math.floor((Date.now() - new Date(userData.birthdate)) / 31557600000) : null,
         };
 
         userInfo.textContent = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";

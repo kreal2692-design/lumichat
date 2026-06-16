@@ -102,10 +102,15 @@ class Bot {
   }
 
   joinQueue() {
+    const names = ["Ayşe", "Mehmet", "Zeynep", "Ali", "Elif", "Can", "Selin", "Burak", "Deniz", "Emre"];
+    const botUsername = names[Math.floor(Math.random() * names.length)];
+    const botAge = 18 + Math.floor(Math.random() * 15); // 18-32 arası
     console.log(`[${this.name}] Kuyruğa girdi (cinsiyet: ${this.gender})`);
     this.socket.emit("join", {
       genderFilter: "herkesle",
-      myGender:     this.gender
+      myGender:     this.gender,
+      username:     botUsername,
+      age:          botAge
     });
   }
 
