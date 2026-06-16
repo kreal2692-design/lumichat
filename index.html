@@ -1410,7 +1410,7 @@
 
         const { data: userData, error } = await supabase
           .from("users")
-          .select("has_membership, username, gender, tokens, is_banned, birthdate, avatar_url")
+          .select("has_membership, username, gender, tokens, is_banned")
           .eq("id", user.id)
           .single();
 
