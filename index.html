@@ -1432,9 +1432,7 @@
       remoteSocketId = data.partnerSocketId || null;
       
       // Kullanıcı adı ve yaşı birleştir - partnerUsername sunucudan geliyor
-      const pName = data.partnerUsername && data.partnerUsername !== "Anonim" 
-        ? data.partnerUsername 
-        : (data.partnerUsername || "?");
+      const pName = data.partnerUsername || "Bilinmiyor";
       const pAge  = data.partnerAge ? `, ${data.partnerAge}` : "";
       partnerName = `${pName}${pAge}`;
       
