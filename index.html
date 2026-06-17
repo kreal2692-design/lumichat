@@ -1495,7 +1495,18 @@
     });
 
     // ── Auth durum takibi ────────────────────────────────────────────
+    let authChangeCount = 0; // Loop kontrolü için sayaç
+    
     supabase.auth.onAuthStateChange(async (event, session) => {
+      authChangeCount++;
+      console.log(`[AUTH ${authChangeCount}] Auth state changed:`, event, session?.user?.email || 'no user');
+      
+      // Infinite loop koruması
+      if (authChangeCount > 5) {
+        console.error("⚠️ Auth state change loop tespit edildi! Durduruluyor...");
+        return;
+      }
+      
       try {
         const user = session?.user ?? null;
         if (!user) { 
