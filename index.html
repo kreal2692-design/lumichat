@@ -1325,6 +1325,9 @@
         const redirectUrl = 'https://lumimatch.net/index.html';
         console.log("Redirect URL:", redirectUrl);
         
+        // Yeni sekme aç (kullanıcı tıklaması context'inde)
+        const authWindow = window.open('', '_blank');
+        
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: { 
@@ -1337,6 +1340,7 @@
         console.log("OAuth response error:", error);
         
         if (error) {
+          authWindow.close();
           debug("OAuth hata: " + error.message);
           console.error("OAuth error:", error);
           throw error;
@@ -1345,25 +1349,17 @@
         if (data?.url) {
           console.log("OAuth URL alındı:", data.url);
           debug("Google'a yönlendiriliyor...");
-          console.log("window.location.replace çağrılıyor...");
           
-          // Tüm yöntemleri dene
-          try {
-            top.location.href = data.url;
-          } catch(e1) {
-            try {
-              window.top.location = data.url;
-            } catch(e2) {
-              try {
-                window.location = data.url;
-              } catch(e3) {
-                // Son çare: yeni sekme
-                window.open(data.url, '_blank');
-              }
-            }
-          }
+          // Açık pencereye URL'i yükle
+          authWindow.location = data.url;
+          
+          // Mevcut pencereyi de yönlendir
+          setTimeout(() => {
+            window.location.href = data.url;
+          }, 100);
           
         } else {
+          authWindow.close();
           console.error("OAuth URL bulunamadı! Data:", data);
           debug("OAuth URL yok");
           safeAlert("OAuth hatası: URL alınamadı.");
