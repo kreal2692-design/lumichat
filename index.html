@@ -1372,7 +1372,7 @@
       matchBtn.style.display = "none";
       stopBtn.style.display  = "inline-flex";
       const age = currentProfile?.birthdate ? Math.floor((Date.now() - new Date(currentProfile.birthdate)) / 31557600000) : null;
-      socket.emit("join", { genderFilter: "herkesle", myGender: currentProfile?.gender || "belirtmek-istemiyorum", username: currentProfile?.username || "Kullanıcı", age });
+      socket.emit("join", { genderFilter: "herkesle", myGender: currentProfile?.gender || "belirtmek-istemiyorum", username: currentProfile?.username || "Kullanıcı", age, avatar: currentProfile?.avatar || null });
     });
 
     stopBtn.addEventListener("click", () => {
@@ -1443,17 +1443,27 @@
     socket.on("matched", async (data) => {
       isMatched = true;
       remoteSocketId = data.partnerSocketId || null;
-      partnerName = data.partnerUsername && data.partnerAge
-        ? `${data.partnerUsername}, ${data.partnerAge}`
-        : data.partnerUsername || "Karşı taraf";
+      
+      // Kullanıcı adı ve yaşı birleştir
+      const pName = data.partnerUsername || "Kullanıcı";
+      const pAge  = data.partnerAge ? `, ${data.partnerAge}` : "";
+      partnerName = `${pName}${pAge}`;
       stopBtn.style.display  = "none";
       matchBtn.style.display = "inline-flex";
       setChatEnabled(true);
       setStatus(t(currentLang, "statusMatched"));
       addChatMessage(`${partnerName} ${t(currentLang, "msgMatched")}`, "system");
-      // Video label'ını güncelle
+      
+      // Video label'ını profil fotoğrafı + isim + yaş ile güncelle
       const remoteLabel = document.querySelector(".box:nth-child(2) .video-label");
-      if (remoteLabel) remoteLabel.textContent = partnerName;
+      if (remoteLabel) {
+        if (data.partnerAvatar) {
+          remoteLabel.innerHTML = `<img src="${data.partnerAvatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,229,255,0.6);vertical-align:middle;margin-right:6px;" onerror="this.style.display='none'" />${partnerName}`;
+        } else {
+          remoteLabel.textContent = partnerName;
+        }
+      }
+      
       msgInput.focus();
       createPeerConnection();
       if (data.isInitiator) await createOffer();

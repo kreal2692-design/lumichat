@@ -195,6 +195,7 @@ io.on('connection', (socket) => {
     const myGender     = data.myGender     || "herkesle";
     const username     = typeof data.username === 'string' ? data.username.slice(0, 24) : "Kullanıcı";
     const age          = typeof data.age === 'number' && data.age > 0 ? data.age : null;
+    const avatar       = typeof data.avatar === 'string' ? data.avatar.slice(0, 500) : null;
 
     const match = findMatch(socket, genderFilter, myGender);
 
@@ -203,7 +204,7 @@ io.on('connection', (socket) => {
       const matchSocket = io.sockets.sockets.get(match.socketId);
 
       if (!matchSocket) {
-        waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age });
+        waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar });
         socket.emit('waiting');
         return;
       }
@@ -211,12 +212,12 @@ io.on('connection', (socket) => {
       socket.join(roomName);
       matchSocket.join(roomName);
 
-      socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId, partnerUsername: match.username, partnerAge: match.age });
-      matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age });
+      socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId, partnerUsername: match.username, partnerAge: match.age, partnerAvatar: match.avatar });
+      matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age,       partnerAvatar: avatar });
 
       console.log(`Eşleşti: ${match.socketId} <-> ${socket.id}`);
     } else {
-      waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age });
+      waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar });
       socket.emit('waiting');
     }
   });
