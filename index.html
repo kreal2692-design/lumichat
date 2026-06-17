@@ -1331,6 +1331,13 @@
     matchBtn.addEventListener("click", async () => {
       console.log("[MATCH] currentProfile:", JSON.stringify(currentProfile));
       
+      // Profil eksikse eşleşmeye izin verme
+      if (!currentProfile?.username || !currentProfile?.gender) {
+        safeAlert("Eşleşmeden önce profilini tamamlamalısın!");
+        showScreen("profile");
+        return;
+      }
+      
       // Profil yüklenmediyse DB'den tekrar çek
       if (!currentProfile?.username && currentUser) {
         const { data } = await supabase.from("users").select("username, gender, tokens, avatar_url, birthdate").eq("id", currentUser.id).single();
