@@ -1372,7 +1372,7 @@
       matchBtn.style.display = "none";
       stopBtn.style.display  = "inline-flex";
       const age = currentProfile?.birthdate ? Math.floor((Date.now() - new Date(currentProfile.birthdate)) / 31557600000) : null;
-      socket.emit("join", { genderFilter: "herkesle", myGender: currentProfile?.gender || "belirtmek-istemiyorum", username: currentProfile?.username || "Kullanıcı", age, avatar: currentProfile?.avatar || null });
+      socket.emit("join", { genderFilter: "herkesle", myGender: currentProfile?.gender || "belirtmek-istemiyorum", username: currentProfile?.username || currentUser?.user_metadata?.full_name?.split(" ")[0] || "Anonim", age, avatar: currentProfile?.avatar || null });
     });
 
     stopBtn.addEventListener("click", () => {
