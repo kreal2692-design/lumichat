@@ -1146,7 +1146,7 @@
         let avatarUrl = null;
         if (selectedAvatarFile) {
           const ext = selectedAvatarFile.name.split('.').pop();
-          const path = `avatars/${currentUser.id}.${ext}`;
+          const path = `${currentUser.id}.${ext}`;
           const { error: upErr } = await supabase.storage
             .from("avatars")
             .upload(path, selectedAvatarFile, { upsert: true, contentType: selectedAvatarFile.type });
