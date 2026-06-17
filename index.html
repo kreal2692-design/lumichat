@@ -1497,7 +1497,9 @@
             id: user.id,
             display_name: user.user_metadata?.full_name || "",
             email: user.email || "",
-            has_membership: false,
+            has_membership: true,  // ✅ Otomatik üyelik ver
+            username: null,
+            gender: null,
             tokens: 0
           });
           
@@ -1508,7 +1510,18 @@
             return;
           }
           
-          showScreen("membership");
+          // ✅ Yeni kullanıcı için profil oluştur ve profil ekranına gönder
+          currentProfile = {
+            username: null,
+            gender: null,
+            tokens: 0,
+            avatar: user.user_metadata?.avatar_url || null,
+            birthdate: null,
+            age: null
+          };
+          
+          debug("Yeni kullanıcı oluşturuldu, profil ekranına yönlendiriliyor");
+          showScreen("profile");
           return;
         }
 
