@@ -222,6 +222,14 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('identify', (data = {}) => {
+    const username = typeof data.username === 'string' && data.username.trim() ? data.username.trim().slice(0, 24) : "Anonim";
+    const age = typeof data.age === 'number' && data.age > 0 ? data.age : null;
+    const rooms = Array.from(socket.rooms);
+    const roomName = rooms.find(r => r.includes('#'));
+    if (roomName) socket.to(roomName).emit('partnerIdentity', { username, age });
+  });
+
   socket.on('signal', (data) => {
     // Signal boyutu kontrolü (1MB'dan büyük olmasın)
     const size = JSON.stringify(data).length;

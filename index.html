@@ -1424,6 +1424,17 @@
       resetChatState(t(currentLang, "msgStrangerLeft"));
       setStatus(t(currentLang, "statusLeft"));
     });
+
+    // Karşı tarafın kimliğini al
+    socket.on("partnerIdentity", (data) => {
+      const pName = data.username || "Anonim";
+      const pAge  = data.age ? `, ${data.age}` : "";
+      partnerName = `${pName}${pAge}`;
+      typingName.textContent = partnerName;
+      const remoteLabel = document.getElementById("remoteLabel") || document.querySelector(".box:nth-child(2) .video-label");
+      if (remoteLabel) remoteLabel.textContent = partnerName;
+      console.log("[IDENTITY] Karşı taraf:", partnerName);
+    });
     socket.on("disconnect",   () => { resetChatState(t(currentLang, "msgDisconnect")); setStatus(t(currentLang, "statusDisconnected")); });
 
     socket.on("matched", async (data) => {
@@ -1440,6 +1451,13 @@
       setStatus(t(currentLang, "statusMatched"));
       addChatMessage(`${partnerName} ${t(currentLang, "msgMatched")}`, "system");
       
+      // Eşleşince kendi kimliğini karşı tarafa gönder (sadece username doluysa)
+      const myUsername = currentProfile?.username;
+      if (myUsername) {
+        const myAge = currentProfile?.birthdate ? Math.floor((Date.now() - new Date(currentProfile.birthdate)) / 31557600000) : null;
+        socket.emit('identify', { username: myUsername, age: myAge });
+      }
+
       // Video label'ını isim + yaş ile güncelle
       const remoteLabel = document.getElementById("remoteLabel") || document.querySelector(".box:nth-child(2) .video-label");
       if (remoteLabel) remoteLabel.textContent = partnerName;
