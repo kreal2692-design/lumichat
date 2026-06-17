@@ -1307,7 +1307,8 @@
 
     // ── Giriş / Çıkış ───────────────────────────────────────────────
     loginBtn.addEventListener("click", async (e) => {
-      e.preventDefault(); // Form submit'i engelle
+      e.preventDefault();
+      e.stopPropagation();
       
       try {
         debug("Google giriş butonu tıklandı");
@@ -1328,11 +1329,12 @@
           provider: "google",
           options: { 
             redirectTo: redirectUrl,
-            skipBrowserRedirect: false
+            skipBrowserRedirect: true  // Manuel yönlendirme yapacağız
           }
         });
         
-        console.log("OAuth response:", { data, error });
+        console.log("OAuth response data:", data);
+        console.log("OAuth response error:", error);
         
         if (error) {
           debug("OAuth hata: " + error.message);
@@ -1341,12 +1343,20 @@
         }
         
         if (data?.url) {
-          console.log("Yönlendiriliyor:", data.url);
+          console.log("OAuth URL alındı:", data.url);
           debug("Google'a yönlendiriliyor...");
-          window.location.href = data.url; // Manuel yönlendirme
+          
+          // Direkt assignment ile yönlendir
+          console.log("window.location.href atanıyor...");
+          setTimeout(() => {
+            window.location.href = data.url;
+          }, 100);
         } else {
-          console.warn("OAuth URL bulunamadı:", data);
+          console.error("OAuth URL bulunamadı! Data:", data);
           debug("OAuth URL yok");
+          safeAlert("OAuth hatası: URL alınamadı. Supabase ayarlarını kontrol et.");
+          loginBtn.disabled = false;
+          loginBtn.textContent = "Google ile Giriş Yap";
         }
         
       } catch (err) { 
