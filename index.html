@@ -4,8 +4,8 @@
 <link rel="icon" href="data:,">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LumiChat v2.1</title>
-  <script src="/socket.io/socket.io.js?v=2.1"></script>
+  <title>LumiChat</title>
+  <script src="/socket.io/socket.io.js"></script>
   <!-- Tarayıcı cache'ini tamamen devre dışı bırak -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -1341,7 +1341,7 @@
           id: user.id,
           display_name: user.user_metadata?.full_name || "",
           email: user.email || "",
-          has_membership: true,
+          has_member: true,
           tokens: 0
         });
         if (error) throw error;
@@ -1484,24 +1484,30 @@
         debug("Kullanıcı: " + (user.email || user.id));
 
         // Veritabanından kullanıcı verilerini çek
+        console.log("[AUTH 2] Veritabanından kullanıcı verisi çekiliyor...");
         const { data: userData, error } = await supabase
           .from("users")
-          .select("has_membership, username, gender, tokens, is_banned, avatar_url, birthdate")
+          .select("has_member, username, gender, tokens, is_banned, avatar_url, birthdate")
           .eq("id", user.id)
           .single();
 
+        console.log("[AUTH 3] Veritabanı yanıtı:", { userData, error });
+
         // Hata durumunda veya veri yoksa yeni kullanıcı oluştur
         if (error || !userData) {
+          console.log("[AUTH 4] Kullanıcı bulunamadı, yeni kayıt oluşturuluyor...");
           debug("Kullanıcı verisi bulunamadı, yeni kayıt oluşturuluyor");
           const { error: upsertError } = await supabase.from("users").upsert({
             id: user.id,
             display_name: user.user_metadata?.full_name || "",
             email: user.email || "",
-            has_membership: true,  // ✅ Otomatik üyelik ver
+            has_member: true,  // ✅ Otomatik üyelik ver
             username: null,
             gender: null,
             tokens: 0
           });
+          
+          console.log("[AUTH 5] Upsert sonucu:", { upsertError });
           
           if (upsertError) {
             debug("Kullanıcı oluşturulamadı: " + upsertError.message);
@@ -1520,20 +1526,27 @@
             age: null
           };
           
+          console.log("[AUTH 6] Yeni kullanıcı oluşturuldu, profil ekranına yönlendiriliyor");
           debug("Yeni kullanıcı oluşturuldu, profil ekranına yönlendiriliyor");
           showScreen("profile");
           return;
         }
 
+        console.log("[AUTH 7] Kullanıcı bulundu, üyelik kontrolü yapılıyor...");
+
         // Üyelik kontrolü
-        if (!userData.has_membership) { 
+        if (!userData.has_member) { 
+          console.log("[AUTH 8] Üyelik yok, membership ekranına yönlendiriliyor");
           debug("Üyelik yok");
           showScreen("membership"); 
           return; 
         }
 
+        console.log("[AUTH 9] Üyelik var, ban kontrolü yapılıyor...");
+
         // ── Ban kontrolü ──────────────────────────────────────────
         if (userData.is_banned) {
+          console.log("[AUTH 10] Kullanıcı banlı");
           debug("Kullanıcı banlı");
           await supabase.auth.signOut();
           showScreen("auth");
@@ -1543,6 +1556,8 @@
           if (loginButton) loginButton.style.display = "none";
           return;
         }
+
+        console.log("[AUTH 11] Ban yok, profil oluşturuluyor...");
 
         // Profil verilerini güvenli şekilde oluştur
         currentProfile = {
@@ -1554,6 +1569,7 @@
           age:       userData.birthdate ? Math.floor((Date.now() - new Date(userData.birthdate)) / 31557600000) : null,
         };
 
+        console.log("[AUTH 12] Profil oluşturuldu:", currentProfile);
         debug("Profil yüklendi: " + JSON.stringify({
           username: currentProfile.username,
           gender: currentProfile.gender,
@@ -1578,12 +1594,20 @@
           }
         }
 
+        console.log("[AUTH 13] Profil eksiklik kontrolü:", { 
+          username: currentProfile.username, 
+          gender: currentProfile.gender 
+        });
+
         // Profil kurulmamışsa profil ekranına gönder
         if (!currentProfile.username || !currentProfile.gender) {
+          console.log("[AUTH 14] Profil eksik, profil ekranına yönlendiriliyor");
           debug("Profil eksik - profil ekranına yönlendiriliyor");
           showScreen("profile");
           return;
         }
+
+        console.log("[AUTH 15] Profil tam, ana ekrana geçiliyor");
 
         // Ana ekranı göster
         debug("Ana ekran gösteriliyor");
