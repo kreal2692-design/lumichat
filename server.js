@@ -193,7 +193,7 @@ io.on('connection', (socket) => {
   socket.on('join', (data = {}) => {
     const genderFilter = data.genderFilter || "herkesle";
     const myGender     = data.myGender     || "herkesle";
-    const username     = typeof data.username === 'string' ? data.username.slice(0, 24) : "Kullanıcı";
+    const username     = typeof data.username === 'string' && data.username.trim() ? data.username.trim().slice(0, 24) : "Anonim";
     const age          = typeof data.age === 'number' && data.age > 0 ? data.age : null;
     const avatar       = typeof data.avatar === 'string' ? data.avatar.slice(0, 500) : null;
 
