@@ -1329,7 +1329,7 @@
           provider: "google",
           options: { 
             redirectTo: redirectUrl,
-            skipBrowserRedirect: true  // Manuel yönlendirme yapacağız
+            skipBrowserRedirect: true
           }
         });
         
@@ -1345,16 +1345,15 @@
         if (data?.url) {
           console.log("OAuth URL alındı:", data.url);
           debug("Google'a yönlendiriliyor...");
+          console.log("window.location.replace çağrılıyor...");
           
-          // Direkt assignment ile yönlendir
-          console.log("window.location.href atanıyor...");
-          setTimeout(() => {
-            window.location.href = data.url;
-          }, 100);
+          // En güvenilir yöntem: replace kullan
+          window.location.replace(data.url);
+          
         } else {
           console.error("OAuth URL bulunamadı! Data:", data);
           debug("OAuth URL yok");
-          safeAlert("OAuth hatası: URL alınamadı. Supabase ayarlarını kontrol et.");
+          safeAlert("OAuth hatası: URL alınamadı.");
           loginBtn.disabled = false;
           loginBtn.textContent = "Google ile Giriş Yap";
         }
@@ -1366,7 +1365,7 @@
         loginBtn.disabled = false;
         loginBtn.textContent = "Google ile Giriş Yap";
       }
-    });
+    }, { once: false, capture: true });
 
     activateMembershipBtn.addEventListener("click", async () => {
       try {

@@ -86,6 +86,12 @@ app.post('/api/log-ip', (req, res) => {
   res.json({ ip: ip || 'unknown' });
 });
 
+// GET de destekle (frontend GET kullanıyor)
+app.get('/api/log-ip', (req, res) => {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+  res.json({ ip: ip || 'unknown' });
+});
+
 // ── Sağlık kontrolü ──────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({
