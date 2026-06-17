@@ -516,7 +516,7 @@
         <aside class="chat-container">
           <div id="chatBox">
             <div class="typing-indicator" id="typingIndicator">
-              <span id="typingName">Karşı taraf</span>
+              <span id="typingName">Karşı taraf</span><span style="margin-left:2px;"> yazıyor</span>
               <div class="typing-dots"><span></span><span></span><span></span></div>
             </div>
           </div>
@@ -1463,6 +1463,9 @@
           remoteLabel.textContent = partnerName;
         }
       }
+
+      // Yazıyor göstergesinde de ismi güncelle
+      typingName.textContent = partnerName;
       
       msgInput.focus();
       createPeerConnection();
