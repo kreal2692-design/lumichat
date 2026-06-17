@@ -106,17 +106,25 @@ app.get('/health', (req, res) => {
 let waitingUsers = [];
 
 function findMatch(socket, genderFilter, myGender) {
+  // Bilinmeyen / belirtilmemiş cinsiyetler "herkesle" gibi davransın
+  const normalizeGender = (g) => (g === "kadin" || g === "erkek") ? g : "herkesle";
+  const myGenderNorm = normalizeGender(myGender);
+
   for (let i = 0; i < waitingUsers.length; i++) {
     const w = waitingUsers[i];
     if (w.socketId === socket.id) continue;
 
-    const iMatch = genderFilter === "herkesle" ||
-      (genderFilter === "kadin" && w.myGender === "kadin") ||
-      (genderFilter === "erkek" && w.myGender === "erkek");
+    const wGenderNorm = normalizeGender(w.myGender);
 
+    // Ben onun cinsiyetini istiyorum mu?
+    const iMatch = genderFilter === "herkesle" ||
+      (genderFilter === "kadin" && wGenderNorm === "kadin") ||
+      (genderFilter === "erkek" && wGenderNorm === "erkek");
+
+    // O benim cinsiyetimi istiyor mu?
     const theyMatch = w.genderFilter === "herkesle" ||
-      (w.genderFilter === "kadin" && myGender === "kadin") ||
-      (w.genderFilter === "erkek" && myGender === "erkek");
+      (w.genderFilter === "kadin" && myGenderNorm === "kadin") ||
+      (w.genderFilter === "erkek" && myGenderNorm === "erkek");
 
     if (iMatch && theyMatch) {
       waitingUsers.splice(i, 1);

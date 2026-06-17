@@ -1358,7 +1358,7 @@
       matchBtn.style.display = "none";
       stopBtn.style.display  = "inline-flex";
       const age = currentProfile?.birthdate ? Math.floor((Date.now() - new Date(currentProfile.birthdate)) / 31557600000) : null;
-      socket.emit("join", { genderFilter: "herkesle", myGender: currentProfile?.gender || "belirtmek-istemiyorum", username: currentProfile?.username || currentUser?.user_metadata?.full_name?.split(" ")[0] || "Anonim", age });
+      socket.emit("join", { genderFilter: "herkesle", myGender: (currentProfile?.gender === "kadin" || currentProfile?.gender === "erkek") ? currentProfile.gender : "herkesle", username: currentProfile?.username || currentUser?.user_metadata?.full_name?.split(" ")[0] || "Anonim", age });
     });
 
     stopBtn.addEventListener("click", () => {
@@ -1369,10 +1369,15 @@
       matchBtn.style.display = "inline-flex";
     });
 
-    nextBtn.addEventListener("click", () => {
+    nextBtn.addEventListener("click", async () => {
       resetChatState("Yeni biri aranıyor...");
       setStatus("Sıradaki aranıyor...");
       socket.emit("next");
+      // Kuyruğa otomatik yeniden gir
+      matchBtn.style.display = "none";
+      stopBtn.style.display  = "inline-flex";
+      const age = currentProfile?.birthdate ? Math.floor((Date.now() - new Date(currentProfile.birthdate)) / 31557600000) : null;
+      socket.emit("join", { genderFilter: "herkesle", myGender: (currentProfile?.gender === "kadin" || currentProfile?.gender === "erkek") ? currentProfile.gender : "herkesle", username: currentProfile?.username || currentUser?.user_metadata?.full_name?.split(" ")[0] || "Anonim", age });
     });
 
     leaveBtn.addEventListener("click", () => {
