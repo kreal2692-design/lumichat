@@ -415,15 +415,6 @@
       <div class="title">Profilini Oluştur</div>
       <div class="subtitle">Kullanıcı adı, cinsiyet ve doğum tarihini gir.</div>
 
-      <!-- Profil fotoğrafı -->
-      <div class="form-group" style="text-align:center;">
-        <div id="avatarPreview" style="width:80px;height:80px;border-radius:50%;background:rgba(0,229,255,0.1);border:2px solid rgba(0,229,255,0.3);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:32px;cursor:pointer;overflow:hidden;" onclick="document.getElementById('avatarInput').click()">
-          📷
-        </div>
-        <div style="font-size:12px;color:var(--muted);">Fotoğraf seç (isteğe bağlı)</div>
-        <input type="file" id="avatarInput" accept="image/*" style="display:none;" />
-      </div>
-
       <div class="form-group">
         <label>Kullanıcı Adı</label>
         <input type="text" id="usernameInput" class="form-input" placeholder="örn: LumiKullanici" maxlength="24" />
@@ -1103,20 +1094,8 @@
       yearSelect.appendChild(o);
     }
 
-    // Fotoğraf önizleme
+    // Fotoğraf önizleme - kaldırıldı
     let selectedAvatarFile = null;
-    document.getElementById("avatarInput").addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      if (file.size > 2 * 1024 * 1024) { safeAlert("Fotoğraf 2MB'dan küçük olmalı."); return; }
-      selectedAvatarFile = file;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const preview = document.getElementById("avatarPreview");
-        preview.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;" />`;
-      };
-      reader.readAsDataURL(file);
-    });
 
     saveProfileBtn.addEventListener("click", async () => {
       const username = usernameInput.value.trim();
@@ -1142,23 +1121,8 @@
       saveProfileBtn.textContent = "Kaydediliyor...";
 
       try {
-        // Fotoğraf yükle
-        let avatarUrl = null;
-        if (selectedAvatarFile) {
-          const ext = selectedAvatarFile.name.split('.').pop();
-          const path = `${currentUser.id}.${ext}`;
-          const { error: upErr } = await supabase.storage
-            .from("avatars")
-            .upload(path, selectedAvatarFile, { upsert: true, contentType: selectedAvatarFile.type });
-          if (!upErr) {
-            const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-            avatarUrl = urlData?.publicUrl || null;
-          }
-        }
-
         const updateData = { username, gender: selectedGender };
         if (birthdate) updateData.birthdate = birthdate;
-        if (avatarUrl)  updateData.avatar_url = avatarUrl;
 
         const { error } = await supabase.from("users").update(updateData).eq("id", currentUser.id);
         if (error) throw error;
@@ -1166,7 +1130,6 @@
         currentProfile.username  = username;
         currentProfile.gender    = selectedGender;
         if (birthdate) currentProfile.birthdate = birthdate;
-        if (avatarUrl) currentProfile.avatar    = avatarUrl;
         if (age)       currentProfile.age        = age;
 
         showScreen("main");
@@ -1472,15 +1435,9 @@
       setStatus(t(currentLang, "statusMatched"));
       addChatMessage(`${partnerName} ${t(currentLang, "msgMatched")}`, "system");
       
-      // Video label'ını profil fotoğrafı + isim + yaş ile güncelle
-      const remoteLabel = document.querySelector(".box:nth-child(2) .video-label");
-      if (remoteLabel) {
-        if (data.partnerAvatar) {
-          remoteLabel.innerHTML = `<img src="${data.partnerAvatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,229,255,0.6);vertical-align:middle;margin-right:6px;" onerror="this.style.display='none'" />${partnerName}`;
-        } else {
-          remoteLabel.textContent = partnerName;
-        }
-      }
+      // Video label'ını isim + yaş ile güncelle
+      const remoteLabel = document.getElementById("remoteLabel") || document.querySelector(".box:nth-child(2) .video-label");
+      if (remoteLabel) remoteLabel.textContent = partnerName;
 
       // Yazıyor göstergesinde de ismi güncelle
       typingName.textContent = partnerName;
@@ -1570,14 +1527,6 @@
 
         if (userInfo) userInfo.textContent = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
         updateTokenDisplay(currentProfile.tokens);
-
-        if (currentProfile.avatar && userInfo?.parentNode && !document.getElementById("topbarAvatar")) {
-          const img = document.createElement("img");
-          img.id = "topbarAvatar";
-          img.src = currentProfile.avatar;
-          img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)";
-          userInfo.parentNode.insertBefore(img, userInfo);
-        }
 
         if (!currentProfile.username || !currentProfile.gender) {
           console.log("[AUTH] Profil eksik, profil ekranına yönlendiriliyor");
