@@ -215,19 +215,11 @@ io.on('connection', (socket) => {
       socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId, partnerUsername: match.username, partnerAge: match.age, partnerAvatar: match.avatar });
       matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age,       partnerAvatar: avatar });
 
-      console.log(`Eşleşti: ${match.socketId} <-> ${socket.id}`);
+      console.log(`Eşleşti: ${match.socketId}(${match.username}) <-> ${socket.id}(${username})`);
     } else {
       waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar });
       socket.emit('waiting');
     }
-  });
-
-  socket.on('identify', (data = {}) => {
-    const username = typeof data.username === 'string' && data.username.trim() ? data.username.trim().slice(0, 24) : "Anonim";
-    const age = typeof data.age === 'number' && data.age > 0 ? data.age : null;
-    const rooms = Array.from(socket.rooms);
-    const roomName = rooms.find(r => r.includes('#'));
-    if (roomName) socket.to(roomName).emit('partnerIdentity', { username, age });
   });
 
   socket.on('signal', (data) => {
