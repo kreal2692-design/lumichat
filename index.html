@@ -1427,7 +1427,7 @@
       stopBtn.style.display  = "inline-flex";
     });
     socket.on("message", (text) => {
-      const sender = partnerName || t(currentLang, "remoteLabel");
+      const sender = partnerName || "Karşı taraf";
       addChatMessage(`${sender}: ${text}`, "other");
     });
     socket.on("signal",       async (data) => await handleSignal(data));
