@@ -1460,201 +1460,124 @@
     });
 
     // ── Auth durum takibi ────────────────────────────────────────────
-    let authProcessed = false; // ✅ İlk auth işlemini takip et
-    let authInProgress = false; // ✅ Auth işlemi devam ediyor mu?
-    
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[AUTH] Event:', event, 'User:', session?.user?.email || 'no user');
-      
-      // ✅ İlk auth işlemi tamamlanmışsa ve SIGNED_OUT değilse, tekrar işleme
-      if (authProcessed && event !== 'SIGNED_OUT') {
-        console.log('[AUTH] Auth zaten işlendi, tekrar etme');
+    async function handleUser(user) {
+      if (!user) {
+        debug("Giriş yok");
+        showScreen("auth");
         return;
       }
-      
-      // ✅ Zaten işlem devam ediyorsa tekrar başlatma
-      if (authInProgress) {
-        console.log('[AUTH] Auth işlemi zaten devam ediyor');
-        return;
-      }
-      
-      authInProgress = true;
-      
+
+      currentUser = user;
+      debug("Kullanıcı: " + (user.email || user.id));
+      console.log("[AUTH] Kullanıcı bulundu:", user.email, "ID:", user.id);
+
       try {
-        const user = session?.user ?? null;
-        if (!user) { 
-          debug("Giriş yok");
-          authProcessed = false;  // ✅ Çıkış yapıldı, bayrağı sıfırla
-          showScreen("auth"); 
-          return; 
-        }
-
-        currentUser = user;
-        debug("Kullanıcı: " + (user.email || user.id));
-
-        // Veritabanından kullanıcı verilerini çek
-        console.log("[AUTH 2] Veritabanından kullanıcı verisi çekiliyor... User ID:", user.id);
         const { data: userData, error } = await supabase
           .from("users")
           .select("has_member, username, gender, tokens, is_banned, avatar_url, birthdate")
           .eq("id", user.id)
           .single();
 
-        // ⚠️ HATA AYIKLAMA - her durumu logla
-        console.log("[AUTH 3] Veritabanı yanıtı:", JSON.stringify({ userData, error }, null, 2));
-        if (error) {
-          console.error("[AUTH 3 HATA] Kod:", error.code, "| Mesaj:", error.message, "| Detay:", error.details);
-          alert("DEBUG - Veritabanı hatası:\nKod: " + error.code + "\nMesaj: " + error.message);
+        console.log("[AUTH] DB yanıtı:", { userData, error: error?.message });
+
+        if (error && error.code !== 'PGRST116') {
+          // PGRST116 = kayıt bulunamadı, bu normal
+          console.error("[AUTH] DB hatası:", error.message);
+          alert("Veritabanı hatası: " + error.message);
+          showScreen("auth");
+          return;
         }
 
-        // Hata durumunda veya veri yoksa yeni kullanıcı oluştur
-        if (error || !userData) {
-          console.log("[AUTH 4] Kullanıcı bulunamadı, yeni kayıt oluşturuluyor...");
-          debug("Kullanıcı verisi bulunamadı, yeni kayıt oluşturuluyor");
+        if (!userData) {
+          // Yeni kullanıcı — kayıt oluştur
+          console.log("[AUTH] Yeni kullanıcı, kayıt oluşturuluyor...");
           const { error: upsertError } = await supabase.from("users").upsert({
             id: user.id,
             display_name: user.user_metadata?.full_name || "",
             email: user.email || "",
-            has_member: true,  // ✅ Otomatik üyelik ver
+            has_member: true,
             username: null,
             gender: null,
             tokens: 0
           });
-          
-          console.log("[AUTH 5] Upsert sonucu:", { upsertError });
-          
+
           if (upsertError) {
-            debug("Kullanıcı oluşturulamadı: " + upsertError.message);
-            await supabase.auth.signOut();
+            console.error("[AUTH] Kayıt oluşturulamadı:", upsertError.message);
+            alert("Kayıt hatası: " + upsertError.message);
             showScreen("auth");
             return;
           }
-          
-          // ✅ Yeni kullanıcı için profil oluştur ve profil ekranına gönder
-          currentProfile = {
-            username: null,
-            gender: null,
-            tokens: 0,
-            avatar: user.user_metadata?.avatar_url || null,
-            birthdate: null,
-            age: null
-          };
-          
-          console.log("[AUTH 6] Yeni kullanıcı oluşturuldu, profil ekranına yönlendiriliyor");
-          debug("Yeni kullanıcı oluşturuldu, profil ekranına yönlendiriliyor");
+
+          currentProfile = { username: null, gender: null, tokens: 0, avatar: user.user_metadata?.avatar_url || null };
+          console.log("[AUTH] Yeni kullanıcı oluşturuldu, profil ekranına yönlendiriliyor");
           showScreen("profile");
-          authProcessed = true;  // ✅ Yeni kullanıcı için auth işlemi tamamlandı
           return;
         }
 
-        console.log("[AUTH 7] Kullanıcı bulundu, üyelik kontrolü yapılıyor...");
-
-        // Üyelik kontrolü
-        if (!userData.has_member) { 
-          console.log("[AUTH 8] Üyelik yok, membership ekranına yönlendiriliyor");
-          debug("Üyelik yok");
-          showScreen("membership"); 
-          return; 
-        }
-
-        console.log("[AUTH 9] Üyelik var, ban kontrolü yapılıyor...");
-
-        // ── Ban kontrolü ──────────────────────────────────────────
+        // Mevcut kullanıcı kontrolleri
         if (userData.is_banned) {
-          console.log("[AUTH 10] Kullanıcı banlı");
-          debug("Kullanıcı banlı");
           await supabase.auth.signOut();
           showScreen("auth");
-          const authSubtitle = document.getElementById("authSubtitle");
-          const loginButton = document.getElementById("loginBtn");
-          if (authSubtitle) authSubtitle.textContent = "⛔ Hesabın askıya alınmıştır. Destek için iletişime geç.";
-          if (loginButton) loginButton.style.display = "none";
+          document.getElementById("authSubtitle").textContent = "⛔ Hesabın askıya alınmıştır.";
+          document.getElementById("loginBtn").style.display = "none";
           return;
         }
 
-        console.log("[AUTH 11] Ban yok, profil oluşturuluyor...");
+        if (!userData.has_member) {
+          showScreen("membership");
+          return;
+        }
 
-        // Profil verilerini güvenli şekilde oluştur
         currentProfile = {
-          username:  userData.username || null,
-          gender:    userData.gender || null,
-          tokens:    userData.tokens || 0,
+          username:  userData.username  || null,
+          gender:    userData.gender    || null,
+          tokens:    userData.tokens    || 0,
           avatar:    userData.avatar_url || user.user_metadata?.avatar_url || null,
           birthdate: userData.birthdate || null,
           age:       userData.birthdate ? Math.floor((Date.now() - new Date(userData.birthdate)) / 31557600000) : null,
         };
 
-        console.log("[AUTH 12] Profil oluşturuldu:", currentProfile);
-        debug("Profil yüklendi: " + JSON.stringify({
-          username: currentProfile.username,
-          gender: currentProfile.gender,
-          hasAvatar: !!currentProfile.avatar
-        }));
-
-        // Kullanıcı bilgilerini güncelle
-        if (userInfo) {
-          userInfo.textContent = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
-        }
+        if (userInfo) userInfo.textContent = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
         updateTokenDisplay(currentProfile.tokens);
 
-        // Profil fotoğrafı topbar'da göster
-        if (currentProfile.avatar && userInfo && userInfo.parentNode) {
-          const existingAvatar = document.getElementById("topbarAvatar");
-          if (!existingAvatar) {
-            const img = document.createElement("img");
-            img.id = "topbarAvatar";
-            img.src = currentProfile.avatar;
-            img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)";
-            userInfo.parentNode.insertBefore(img, userInfo);
-          }
+        if (currentProfile.avatar && userInfo?.parentNode && !document.getElementById("topbarAvatar")) {
+          const img = document.createElement("img");
+          img.id = "topbarAvatar";
+          img.src = currentProfile.avatar;
+          img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)";
+          userInfo.parentNode.insertBefore(img, userInfo);
         }
 
-        console.log("[AUTH 13] Profil eksiklik kontrolü:", { 
-          username: currentProfile.username, 
-          gender: currentProfile.gender 
-        });
-
-        // Profil kurulmamışsa profil ekranına gönder
         if (!currentProfile.username || !currentProfile.gender) {
-          console.log("[AUTH 14] Profil eksik, profil ekranına yönlendiriliyor");
-          debug("Profil eksik - profil ekranına yönlendiriliyor");
+          console.log("[AUTH] Profil eksik, profil ekranına yönlendiriliyor");
           showScreen("profile");
-          authProcessed = true;  // ✅ Profil kurulumu için de işlem tamamlandı say
           return;
         }
 
-        console.log("[AUTH 15] Profil tam, ana ekrana geçiliyor");
-
-        // Ana ekranı göster
-        debug("Ana ekran gösteriliyor");
+        console.log("[AUTH] Her şey tamam, ana ekrana geçiliyor");
         showScreen("main");
         await initChatSystem();
-        
-        // ✅ Auth işlemi tamamlandı, tekrar tetiklenmemeli
-        authProcessed = true;
-
-        // IP'yi arka planda kaydet
-        fetch('/api/log-ip').then(r => r.json()).then(async ipData => {
-          if (ipData.ip) {
-            await supabase.from("users").update({ last_ip: ipData.ip }).eq("id", user.id);
-          }
-        }).catch(() => {});
 
       } catch (err) {
-        debug("Auth hata: " + err.message);
-        console.error("Auth hatası detayı:", err);
-        authProcessed = false;  // ✅ Hata durumunda bayrağı sıfırla
-        authInProgress = false;
-        // Hata durumunda login ekranına dön
+        console.error("[AUTH] Beklenmeyen hata:", err.message);
+        alert("Beklenmeyen hata: " + err.message);
         showScreen("auth");
-        // Oturumu temizle
-        try {
-          await supabase.auth.signOut();
-        } catch (signOutErr) {
-          debug("Çıkış hatası: " + signOutErr.message);
-        }
-      } finally {
-        authInProgress = false;
+      }
+    }
+
+    // Sayfa yüklendiğinde mevcut session'ı kontrol et
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("[AUTH] Sayfa yüklendiğinde session:", session?.user?.email || "yok");
+      handleUser(session?.user ?? null);
+    });
+
+    // Auth değişikliklerini dinle (login/logout)
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[AUTH] onAuthStateChange:", event, session?.user?.email || "yok");
+      if (event === 'SIGNED_IN') {
+        handleUser(session?.user ?? null);
+      } else if (event === 'SIGNED_OUT') {
+        showScreen("auth");
       }
     });
 
@@ -1663,25 +1586,6 @@
     // Dil sistemini başlat
     buildLangDropdown();
     applyLang(currentLang);
-    
-    // Sayfa yüklendiğinde en az auth ekranını göster (boş sayfa olmaması için)
-    // Auth state change zaten doğru ekranı gösterecek
-    setTimeout(() => {
-      // Eğer hiçbir ekran gösterilmemişse (hata durumu) auth ekranını göster
-      // Ama authProcessed true ise dokunma!
-      if (authProcessed) return;
-      
-      const allScreens = [authScreen, membershipScreen, profileScreen, tokenScreen, mainApp];
-      const anyVisible = allScreens.some(screen => {
-        const display = window.getComputedStyle(screen).display;
-        return display !== 'none';
-      });
-      
-      if (!anyVisible) {
-        debug("Hiçbir ekran gösterilmemiş, auth ekranı açılıyor");
-        showScreen("auth");
-      }
-    }, 3000); // 1 saniyeden 3 saniyeye çıkardık
   </script>
 </body>
 </html>
