@@ -1347,8 +1347,21 @@
           debug("Google'a yönlendiriliyor...");
           console.log("window.location.replace çağrılıyor...");
           
-          // En güvenilir yöntem: replace kullan
-          window.location.replace(data.url);
+          // Tüm yöntemleri dene
+          try {
+            top.location.href = data.url;
+          } catch(e1) {
+            try {
+              window.top.location = data.url;
+            } catch(e2) {
+              try {
+                window.location = data.url;
+              } catch(e3) {
+                // Son çare: yeni sekme
+                window.open(data.url, '_blank');
+              }
+            }
+          }
           
         } else {
           console.error("OAuth URL bulunamadı! Data:", data);
