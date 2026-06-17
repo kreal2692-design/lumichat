@@ -1304,14 +1304,14 @@
         loginBtn.disabled = true;
         loginBtn.textContent = "Yönlendiriliyor...";
         
-        // Supabase OAuth - official yöntem
+        // Supabase OAuth - doğru redirectTo URL'i
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}/index.html`,
+            redirectTo: window.location.origin,  // ✅ Sadece origin kullan, index.html ekleme
             queryParams: {
               access_type: 'offline',
-              prompt: 'select_account'
+              prompt: 'consent'  // ✅ 'select_account' yerine 'consent' kullan
             }
           }
         });
@@ -1460,22 +1460,22 @@
     });
 
     // ── Auth durum takibi ────────────────────────────────────────────
-    let authChangeCount = 0; // Loop kontrolü için sayaç
+    let authProcessed = false; // ✅ İlk auth işlemini takip et
     
     supabase.auth.onAuthStateChange(async (event, session) => {
-      authChangeCount++;
-      console.log(`[AUTH ${authChangeCount}] Auth state changed:`, event, session?.user?.email || 'no user');
+      console.log('[AUTH] Event:', event, 'User:', session?.user?.email || 'no user');
       
-      // Infinite loop koruması
-      if (authChangeCount > 5) {
-        console.error("⚠️ Auth state change loop tespit edildi! Durduruluyor...");
+      // ✅ İlk auth işlemi tamamlanmışsa ve event SIGNED_IN değilse, tekrar işleme
+      if (authProcessed && event !== 'SIGNED_OUT') {
+        console.log('[AUTH] Auth zaten işlendi, tekrar etme');
         return;
       }
       
       try {
         const user = session?.user ?? null;
         if (!user) { 
-          debug("Giriş yok"); 
+          debug("Giriş yok");
+          authProcessed = false;  // ✅ Çıkış yapıldı, bayrağı sıfırla
           showScreen("auth"); 
           return; 
         }
@@ -1529,6 +1529,7 @@
           console.log("[AUTH 6] Yeni kullanıcı oluşturuldu, profil ekranına yönlendiriliyor");
           debug("Yeni kullanıcı oluşturuldu, profil ekranına yönlendiriliyor");
           showScreen("profile");
+          authProcessed = true;  // ✅ Yeni kullanıcı için auth işlemi tamamlandı
           return;
         }
 
@@ -1604,6 +1605,7 @@
           console.log("[AUTH 14] Profil eksik, profil ekranına yönlendiriliyor");
           debug("Profil eksik - profil ekranına yönlendiriliyor");
           showScreen("profile");
+          authProcessed = true;  // ✅ Profil kurulumu için de işlem tamamlandı say
           return;
         }
 
@@ -1613,6 +1615,9 @@
         debug("Ana ekran gösteriliyor");
         showScreen("main");
         await initChatSystem();
+        
+        // ✅ Auth işlemi tamamlandı, tekrar tetiklenmemeli
+        authProcessed = true;
 
         // IP'yi arka planda kaydet
         fetch('/api/log-ip').then(r => r.json()).then(async ipData => {
@@ -1624,6 +1629,7 @@
       } catch (err) {
         debug("Auth hata: " + err.message);
         console.error("Auth hatası detayı:", err);
+        authProcessed = false;  // ✅ Hata durumunda bayrağı sıfırla
         // Hata durumunda login ekranına dön
         showScreen("auth");
         // Oturumu temizle
