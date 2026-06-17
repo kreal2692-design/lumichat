@@ -1555,14 +1555,13 @@
       handleUser(session?.user ?? null);
     });
 
-    // Auth değişikliklerini dinle (login/logout)
+    // Auth değişikliklerini dinle (sadece logout)
     supabase.auth.onAuthStateChange((event, session) => {
       console.log("[AUTH] onAuthStateChange:", event, session?.user?.email || "yok");
-      if (event === 'SIGNED_IN') {
-        handleUser(session?.user ?? null);
-      } else if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT') {
         showScreen("auth");
       }
+      // SIGNED_IN'i burada işlemiyoruz — getSession zaten halletti
     });
 
     debug("Script hazır");
