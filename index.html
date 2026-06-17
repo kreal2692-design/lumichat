@@ -4,7 +4,7 @@
 <link rel="icon" href="data:,">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LumiChat</title>
+  <title>LumiMatch</title>
   <script src="/socket.io/socket.io.js"></script>
   <!-- Tarayıcı cache'ini tamamen devre dışı bırak -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
@@ -480,7 +480,7 @@
   <div id="main-app">
     <div class="app-shell">
       <div class="topbar">
-        <div class="brand">LumiChat</div>
+        <div class="brand">LumiMatch</div>
         <div class="topbar-right">
           <div id="userInfo"></div>
           <div id="tokenDisplay" class="token-pill" title="Jeton satın al">🪙 0 Jeton</div>
@@ -1020,7 +1020,7 @@
       setChatEnabled(false);
       setStatus(t(currentLang, "statusReady"));
       addChatMessage(t(currentLang, "msgLoginSuccess"), "system");
-      if (currentProfile?.username) myLabel.textContent = currentProfile.username;
+      if (currentProfile?.username) myLabel.textContent = currentProfile.username.charAt(0).toUpperCase() + currentProfile.username.slice(1);
     }
 
     function resetChatState(msg = "") {
@@ -1436,10 +1436,9 @@
       isMatched = true;
       remoteSocketId = data.partnerSocketId || null;
       
-      // Kullanıcı adı ve yaşı birleştir - partnerUsername sunucudan geliyor
-      const pName = data.partnerUsername || "Bilinmiyor";
-      const pAge  = data.partnerAge ? `, ${data.partnerAge}` : "";
-      partnerName = `${pName}${pAge}`;
+      // Kullanıcı adı - baş harf büyük, yaş yok
+      const rawName = data.partnerUsername || "Bilinmiyor";
+      partnerName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
       
       stopBtn.style.display  = "none";
       matchBtn.style.display = "inline-flex";
@@ -1532,7 +1531,10 @@
           age:       userData.birthdate ? Math.floor((Date.now() - new Date(userData.birthdate)) / 31557600000) : null,
         };
 
-        if (userInfo) userInfo.textContent = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
+        if (userInfo) {
+          const uname = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
+          userInfo.textContent = uname.charAt(0).toUpperCase() + uname.slice(1);
+        }
         updateTokenDisplay(currentProfile.tokens);
 
         if (!currentProfile.username || !currentProfile.gender) {
