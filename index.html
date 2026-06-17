@@ -609,32 +609,21 @@
     
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: { 
-        storageKey: 'lumi-auth-v2', 
-        autoRefreshToken: true, 
-        persistSession: storageAvailable, // Sadece localStorage varsa oturum kalıcı olsun
+        storageKey: 'lumi-auth-v2',
+        autoRefreshToken: true,
+        persistSession: storageAvailable,
         detectSessionInUrl: true,
-        flowType: 'pkce'
+        flowType: 'pkce', // Güvenli PKCE flow
+        debug: false // Production'da false yapılmalı
       }
     });
 
-    // Eski oturum anahtarlarını temizle
-    if (storageAvailable) {
+    // Eski oturum anahtarlarını temizle (sadece bir kez)
+    if (storageAvailable && !sessionStorage.getItem('storage_cleaned')) {
       ['sb-aaszyppzidhazpbmcipv-auth-token', 'supabase.auth.token'].forEach(k => {
         try { localStorage.removeItem(k); } catch(e) {}
       });
-      
-      // Bozuk oturum verilerini temizle
-      try {
-        const authKey = 'lumi-auth-v2';
-        const stored = localStorage.getItem(authKey);
-        if (stored) {
-          // JSON parse edebiliyor muyuz kontrol et
-          JSON.parse(stored);
-        }
-      } catch(e) {
-        console.warn("Bozuk oturum verisi temizleniyor:", e);
-        try { localStorage.clear(); } catch(clearErr) {}
-      }
+      sessionStorage.setItem('storage_cleaned', 'true');
     }
 
     const debugBar = document.getElementById("debugBar");
@@ -1305,76 +1294,43 @@
 
     document.addEventListener("click", () => emojiPicker.classList.remove("open"));
 
-    // ── Giriş / Çıkış ───────────────────────────────────────────────
+    // ── Giriş / Çıkış (Supabase OAuth) ──────────────────────────────
     loginBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      e.stopPropagation();
       
       try {
-        debug("Google giriş butonu tıklandı");
-        console.log("OAuth başlatılıyor...");
-        
-        if (location.protocol === "file:") { 
-          safeAlert("Sunucu üzerinden aç."); 
-          return; 
-        }
+        console.log("[AUTH] Google OAuth başlatılıyor...");
         
         loginBtn.disabled = true;
         loginBtn.textContent = "Yönlendiriliyor...";
         
-        const redirectUrl = 'https://lumimatch.net/index.html';
-        console.log("Redirect URL:", redirectUrl);
-        
-        // Yeni sekme aç (kullanıcı tıklaması context'inde)
-        const authWindow = window.open('', '_blank');
-        
+        // Supabase OAuth - official yöntem
         const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { 
-            redirectTo: redirectUrl,
-            skipBrowserRedirect: true
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/index.html`,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'select_account'
+            }
           }
         });
         
-        console.log("OAuth response data:", data);
-        console.log("OAuth response error:", error);
-        
         if (error) {
-          authWindow.close();
-          debug("OAuth hata: " + error.message);
-          console.error("OAuth error:", error);
+          console.error("[AUTH] OAuth error:", error);
           throw error;
         }
         
-        if (data?.url) {
-          console.log("OAuth URL alındı:", data.url);
-          debug("Google'a yönlendiriliyor...");
-          
-          // Açık pencereye URL'i yükle
-          authWindow.location = data.url;
-          
-          // Mevcut pencereyi de yönlendir
-          setTimeout(() => {
-            window.location.href = data.url;
-          }, 100);
-          
-        } else {
-          authWindow.close();
-          console.error("OAuth URL bulunamadı! Data:", data);
-          debug("OAuth URL yok");
-          safeAlert("OAuth hatası: URL alınamadı.");
-          loginBtn.disabled = false;
-          loginBtn.textContent = "Google ile Giriş Yap";
-        }
+        console.log("[AUTH] OAuth başlatıldı, Supabase yönlendiriyor...");
+        // Supabase otomatik yönlendirecek
         
-      } catch (err) { 
-        debug("Google giriş hatası: " + err.message);
-        console.error("OAuth exception:", err);
-        safeAlert("Google giriş hatası: " + err.message);
+      } catch (err) {
+        console.error("[AUTH] Login failed:", err);
+        alert(`Giriş hatası: ${err.message}`);
         loginBtn.disabled = false;
         loginBtn.textContent = "Google ile Giriş Yap";
       }
-    }, { once: false, capture: true });
+    });
 
     activateMembershipBtn.addEventListener("click", async () => {
       try {
@@ -1396,8 +1352,17 @@
       } catch (err) { safeAlert("Üyelik açma hatası: " + err.message); }
     });
 
-    logoutBtnMembership.addEventListener("click", async () => await supabase.auth.signOut());
-    logoutBtnMain.addEventListener("click", async () => await supabase.auth.signOut());
+    logoutBtnMembership.addEventListener("click", async () => {
+      console.log("[AUTH] Çıkış yapılıyor...");
+      await supabase.auth.signOut();
+      window.location.reload();
+    });
+    
+    logoutBtnMain.addEventListener("click", async () => {
+      console.log("[AUTH] Çıkış yapılıyor...");
+      await supabase.auth.signOut();
+      window.location.reload();
+    });
 
     // ── Kontroller ──────────────────────────────────────────────────
     matchBtn.addEventListener("click", async () => {
