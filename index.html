@@ -1338,22 +1338,20 @@
         return;
       }
       
-      // Profil yüklenmediyse DB'den tekrar çek
-      if (!currentProfile?.username && currentUser) {
-        const { data } = await supabase.from("users").select("username, gender, tokens, avatar_url, birthdate").eq("id", currentUser.id).single();
-        if (data) {
+      // Her zaman DB'den güncel profili çek
+      if (currentUser) {
+        const { data } = await supabase.from("users").select("username, gender, tokens, birthdate").eq("id", currentUser.id).single();
+        if (data && data.username) {
           currentProfile = {
             ...currentProfile,
-            username:  data.username  || currentProfile?.username || "Anonim",
+            username:  data.username,
             gender:    data.gender    || currentProfile?.gender,
             tokens:    data.tokens    || 0,
-            avatar:    data.avatar_url || currentProfile?.avatar,
             birthdate: data.birthdate || currentProfile?.birthdate,
           };
           console.log("[MATCH] Profil DB'den güncellendi:", currentProfile.username);
         }
       }
-      
       resetChatState();
       setStatus(t(currentLang, "msgSearching"));
       addChatMessage(t(currentLang, "msgSearching"), "system");
