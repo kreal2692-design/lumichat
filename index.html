@@ -1461,15 +1461,24 @@
 
     // ── Auth durum takibi ────────────────────────────────────────────
     let authProcessed = false; // ✅ İlk auth işlemini takip et
+    let authInProgress = false; // ✅ Auth işlemi devam ediyor mu?
     
     supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('[AUTH] Event:', event, 'User:', session?.user?.email || 'no user');
       
-      // ✅ İlk auth işlemi tamamlanmışsa ve event SIGNED_IN değilse, tekrar işleme
+      // ✅ İlk auth işlemi tamamlanmışsa ve SIGNED_OUT değilse, tekrar işleme
       if (authProcessed && event !== 'SIGNED_OUT') {
         console.log('[AUTH] Auth zaten işlendi, tekrar etme');
         return;
       }
+      
+      // ✅ Zaten işlem devam ediyorsa tekrar başlatma
+      if (authInProgress) {
+        console.log('[AUTH] Auth işlemi zaten devam ediyor');
+        return;
+      }
+      
+      authInProgress = true;
       
       try {
         const user = session?.user ?? null;
@@ -1635,6 +1644,7 @@
         debug("Auth hata: " + err.message);
         console.error("Auth hatası detayı:", err);
         authProcessed = false;  // ✅ Hata durumunda bayrağı sıfırla
+        authInProgress = false;
         // Hata durumunda login ekranına dön
         showScreen("auth");
         // Oturumu temizle
@@ -1643,6 +1653,8 @@
         } catch (signOutErr) {
           debug("Çıkış hatası: " + signOutErr.message);
         }
+      } finally {
+        authInProgress = false;
       }
     });
 
@@ -1656,6 +1668,9 @@
     // Auth state change zaten doğru ekranı gösterecek
     setTimeout(() => {
       // Eğer hiçbir ekran gösterilmemişse (hata durumu) auth ekranını göster
+      // Ama authProcessed true ise dokunma!
+      if (authProcessed) return;
+      
       const allScreens = [authScreen, membershipScreen, profileScreen, tokenScreen, mainApp];
       const anyVisible = allScreens.some(screen => {
         const display = window.getComputedStyle(screen).display;
@@ -1666,7 +1681,7 @@
         debug("Hiçbir ekran gösterilmemiş, auth ekranı açılıyor");
         showScreen("auth");
       }
-    }, 1000);
+    }, 3000); // 1 saniyeden 3 saniyeye çıkardık
   </script>
 </body>
 </html>
