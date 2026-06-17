@@ -1484,14 +1484,19 @@
         debug("Kullanıcı: " + (user.email || user.id));
 
         // Veritabanından kullanıcı verilerini çek
-        console.log("[AUTH 2] Veritabanından kullanıcı verisi çekiliyor...");
+        console.log("[AUTH 2] Veritabanından kullanıcı verisi çekiliyor... User ID:", user.id);
         const { data: userData, error } = await supabase
           .from("users")
           .select("has_member, username, gender, tokens, is_banned, avatar_url, birthdate")
           .eq("id", user.id)
           .single();
 
-        console.log("[AUTH 3] Veritabanı yanıtı:", { userData, error });
+        // ⚠️ HATA AYIKLAMA - her durumu logla
+        console.log("[AUTH 3] Veritabanı yanıtı:", JSON.stringify({ userData, error }, null, 2));
+        if (error) {
+          console.error("[AUTH 3 HATA] Kod:", error.code, "| Mesaj:", error.message, "| Detay:", error.details);
+          alert("DEBUG - Veritabanı hatası:\nKod: " + error.code + "\nMesaj: " + error.message);
+        }
 
         // Hata durumunda veya veri yoksa yeni kullanıcı oluştur
         if (error || !userData) {
