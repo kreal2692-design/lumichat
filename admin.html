@@ -232,6 +232,8 @@
       <div class="nav-item" data-page="reports">🚩 <span>Raporlar</span></div>
       <div class="nav-item" data-page="tokens">🪙 <span>Jetonlar</span></div>
       <div class="nav-item" data-page="messages">💬 <span>Mesajlar</span></div>
+      <div class="nav-item" data-page="gifts">🎁 <span>Hediyeler</span></div>
+      <div class="nav-item" data-page="friends">👥 <span>Arkadaşlar</span></div>
     </nav>
     <div class="sidebar-bottom">
       <div class="nav-item" id="logoutAdminBtn">🚪 <span>Çıkış</span></div>
@@ -267,6 +269,16 @@
           <div class="label">Banlı Üye</div>
           <div class="value" id="statBanned">—</div>
           <div class="sublabel">is_banned = true</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Premium Üye</div>
+          <div class="value" id="statPremium">—</div>
+          <div class="sublabel">is_premium = true</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Toplam Hediye</div>
+          <div class="value" id="statGifts">—</div>
+          <div class="sublabel">gönderilen hediye</div>
         </div>
       </div>
 
@@ -336,6 +348,34 @@
           <button class="btn btn-muted" id="refreshMessages">🔄 Yenile</button>
         </div>
         <div id="messagesTable"><div class="loading">Yükleniyor...</div></div>
+      </div>
+    </div>
+
+    <!-- Hediyeler -->
+    <div id="page-gifts" class="page">
+      <div class="page-header">
+        <h1>🎁 Hediyeler</h1>
+        <p>Gönderilen tüm hediyeler</p>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <button class="btn btn-muted" id="refreshGifts">🔄 Yenile</button>
+        </div>
+        <div id="giftsTable"><div class="loading">Yükleniyor...</div></div>
+      </div>
+    </div>
+
+    <!-- Arkadaşlar -->
+    <div id="page-friends" class="page">
+      <div class="page-header">
+        <h1>👥 Arkadaşlıklar</h1>
+        <p>Tüm arkadaşlık ilişkileri ve bekleyen istekler</p>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <button class="btn btn-muted" id="refreshFriends">🔄 Yenile</button>
+        </div>
+        <div id="friendsTable"><div class="loading">Yükleniyor...</div></div>
       </div>
     </div>
 
@@ -419,6 +459,8 @@
       if (name === "reports")   loadReports();
       if (name === "tokens")    loadTokens();
       if (name === "messages")  loadMessages();
+      if (name === "gifts")     loadGifts();
+      if (name === "friends")   loadFriendsAdmin();
     }
 
     // ── Auth ─────────────────────────────────────────────────────────
@@ -468,12 +510,16 @@
         { count: activeMembers },
         { count: totalReports },
         { count: banned },
+        { count: premium },
+        { count: totalGifts },
         { data: recentReports }
       ] = await Promise.all([
         supabase.from("users").select("*", { count: "exact", head: true }),
         supabase.from("users").select("*", { count: "exact", head: true }).eq("has_membership", true),
         supabase.from("reports").select("*", { count: "exact", head: true }),
         supabase.from("users").select("*", { count: "exact", head: true }).eq("is_banned", true),
+        supabase.from("users").select("*", { count: "exact", head: true }).eq("is_premium", true),
+        supabase.from("gifts").select("*", { count: "exact", head: true }),
         supabase.from("reports").select("*").order("created_at", { ascending: false }).limit(5)
       ]);
 
@@ -481,6 +527,8 @@
       document.getElementById("statActiveMembers").textContent = activeMembers ?? "—";
       document.getElementById("statTotalReports").textContent  = totalReports  ?? "—";
       document.getElementById("statBanned").textContent        = banned        ?? "—";
+      document.getElementById("statPremium").textContent       = premium       ?? "—";
+      document.getElementById("statGifts").textContent         = totalGifts    ?? "—";
 
       const box = document.getElementById("dashReports");
       if (!recentReports || recentReports.length === 0) {
@@ -848,6 +896,89 @@
       if (g === "belirtmek-istemiyorum") return "🙂 Belirtmedi";
       return "<span style='color:var(--muted)'>—</span>";
     }
+
+    // ── Hediyeler ────────────────────────────────────────────────────
+    const GIFT_EMOJIS = { rose: "🌹 Gül", heart: "❤️ Kalp", star: "⭐ Yıldız", crown: "👑 Taç", diamond: "💎 Elmas" };
+
+    async function loadGifts() {
+      document.getElementById("giftsTable").innerHTML = '<div class="loading">Yükleniyor...</div>';
+      const { data, error } = await supabase
+        .from("gifts")
+        .select(`id, gift_type, token_cost, created_at,
+          sender:users!gifts_sender_id_fkey(id, username, display_name),
+          receiver:users!gifts_receiver_id_fkey(id, username, display_name)`)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      const box = document.getElementById("giftsTable");
+      if (error) { box.innerHTML = `<div class="empty-state"><div class="icon">❌</div>${escHtml(error.message)}</div>`; return; }
+      if (!data || !data.length) { box.innerHTML = '<div class="empty-state"><div class="icon">🎁</div>Henüz hediye yok</div>'; return; }
+
+      box.innerHTML = `
+        <table>
+          <thead><tr><th>#</th><th>Gönderen</th><th>Alan</th><th>Hediye</th><th>Maliyet</th><th>Tarih</th></tr></thead>
+          <tbody>
+            ${data.map((g, i) => `
+              <tr>
+                <td style="color:var(--muted);font-size:12px">${i + 1}</td>
+                <td>${escHtml(g.sender?.username || g.sender?.display_name || "—")}</td>
+                <td>${escHtml(g.receiver?.username || g.receiver?.display_name || "—")}</td>
+                <td>${GIFT_EMOJIS[g.gift_type] || escHtml(g.gift_type)}</td>
+                <td><span style="color:#ffe566">🎁 ${g.token_cost}</span></td>
+                <td style="font-size:12px;color:var(--muted)">${formatDate(g.created_at)}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    document.getElementById("refreshGifts").addEventListener("click", loadGifts);
+
+    // ── Arkadaşlıklar ────────────────────────────────────────────────
+    async function loadFriendsAdmin() {
+      document.getElementById("friendsTable").innerHTML = '<div class="loading">Yükleniyor...</div>';
+      const { data, error } = await supabase
+        .from("friends")
+        .select(`id, status, created_at,
+          requester:users!friends_requester_id_fkey(id, username, display_name),
+          receiver:users!friends_receiver_id_fkey(id, username, display_name)`)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      const box = document.getElementById("friendsTable");
+      if (error) { box.innerHTML = `<div class="empty-state"><div class="icon">❌</div>${escHtml(error.message)}</div>`; return; }
+      if (!data || !data.length) { box.innerHTML = '<div class="empty-state"><div class="icon">👥</div>Henüz arkadaşlık yok</div>'; return; }
+
+      const statusBadge = (s) => {
+        if (s === "accepted") return '<span class="badge badge-green">Arkadaş</span>';
+        if (s === "pending")  return '<span class="badge badge-yellow">Bekliyor</span>';
+        return '<span class="badge badge-gray">Reddedildi</span>';
+      };
+
+      box.innerHTML = `
+        <table>
+          <thead><tr><th>#</th><th>Gönderen</th><th>Alıcı</th><th>Durum</th><th>Tarih</th><th>İşlem</th></tr></thead>
+          <tbody>
+            ${data.map((f, i) => `
+              <tr>
+                <td style="color:var(--muted);font-size:12px">${i + 1}</td>
+                <td>${escHtml(f.requester?.username || f.requester?.display_name || "—")}</td>
+                <td>${escHtml(f.receiver?.username  || f.receiver?.display_name  || "—")}</td>
+                <td>${statusBadge(f.status)}</td>
+                <td style="font-size:12px;color:var(--muted)">${formatDate(f.created_at)}</td>
+                <td><button class="btn btn-danger" onclick="deleteFriendship('${f.id}')">Sil</button></td>
+              </tr>`).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    document.getElementById("refreshFriends").addEventListener("click", loadFriendsAdmin);
+
+    window.deleteFriendship = async (id) => {
+      const { error } = await supabase.from("friends").delete().eq("id", id);
+      if (error) { showNotif("Silinemedi: " + error.message, true); return; }
+      showNotif("Arkadaşlık silindi.");
+      loadFriendsAdmin();
+    };
   </script>
 </body>
 </html>

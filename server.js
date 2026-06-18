@@ -2,6 +2,13 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const http = require('http').createServer(app);
+const { createClient } = require('@supabase/supabase-js');
+
+// ── Supabase (server-side service role) ────────────────────────────
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://aaszyppzidhazpbmcipv.supabase.co';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || ''; // .env veya ortam değişkeninden al
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
 const io = require('socket.io')(http, {
   cors: { origin: "*" },
   // Socket.IO güvenlik ayarları
@@ -90,6 +97,178 @@ app.post('/api/log-ip', (req, res) => {
 app.get('/api/log-ip', (req, res) => {
   const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
   res.json({ ip: ip || 'unknown' });
+});
+
+// ── Arkadaş sistemi API'ları ─────────────────────────────────────────
+
+// Arkadaşlık isteği gönder
+app.post('/api/friends/request', async (req, res) => {
+  const { requesterId, receiverId } = req.body;
+  if (!requesterId || !receiverId) return res.status(400).json({ error: 'requesterId ve receiverId gerekli' });
+  if (requesterId === receiverId) return res.status(400).json({ error: 'Kendinize istek gönderemezsiniz' });
+
+  // Mevcut kayıt var mı kontrol et
+  const { data: existing } = await supabase
+    .from('friends')
+    .select('id, status')
+    .or(`and(requester_id.eq.${requesterId},receiver_id.eq.${receiverId}),and(requester_id.eq.${receiverId},receiver_id.eq.${requesterId})`)
+    .maybeSingle();
+
+  if (existing) {
+    if (existing.status === 'accepted') return res.json({ ok: false, message: 'Zaten arkadaşsınız' });
+    if (existing.status === 'pending')  return res.json({ ok: false, message: 'İstek zaten gönderilmiş' });
+  }
+
+  const { error } = await supabase.from('friends').insert({ requester_id: requesterId, receiver_id: receiverId });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, message: 'Arkadaşlık isteği gönderildi' });
+});
+
+// İsteği kabul / reddet
+app.post('/api/friends/respond', async (req, res) => {
+  const { friendId, userId, action } = req.body; // action: 'accepted' | 'rejected'
+  if (!friendId || !userId || !action) return res.status(400).json({ error: 'Eksik parametre' });
+  if (!['accepted', 'rejected'].includes(action)) return res.status(400).json({ error: 'Geçersiz aksiyon' });
+
+  const { error } = await supabase
+    .from('friends')
+    .update({ status: action })
+    .eq('id', friendId)
+    .eq('receiver_id', userId);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// Arkadaş listesi
+app.get('/api/friends/:userId', async (req, res) => {
+  const { userId } = req.params;
+  if (!userId) return res.status(400).json({ error: 'userId gerekli' });
+
+  const { data, error } = await supabase
+    .from('friends')
+    .select(`id, status, requester_id, receiver_id,
+      requester:users!friends_requester_id_fkey(id, username, display_name),
+      receiver:users!friends_receiver_id_fkey(id, username, display_name)`)
+    .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`)
+    .eq('status', 'accepted');
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, friends: data || [] });
+});
+
+// Bekleyen istekler
+app.get('/api/friends/pending/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { data, error } = await supabase
+    .from('friends')
+    .select(`id, status, created_at,
+      requester:users!friends_requester_id_fkey(id, username, display_name)`)
+    .eq('receiver_id', userId)
+    .eq('status', 'pending');
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, requests: data || [] });
+});
+
+// ── Hediye sistemi API'ları ──────────────────────────────────────────
+
+const GIFT_COSTS = { rose: 1, heart: 2, star: 3, crown: 5, diamond: 10 };
+
+app.post('/api/gifts/send', async (req, res) => {
+  const { senderId, receiverId, giftType } = req.body;
+  if (!senderId || !receiverId || !giftType) return res.status(400).json({ error: 'Eksik parametre' });
+  if (!GIFT_COSTS[giftType]) return res.status(400).json({ error: 'Geçersiz hediye tipi' });
+
+  const cost = GIFT_COSTS[giftType];
+
+  // Gönderici bakiyesini çek
+  const { data: sender, error: senderErr } = await supabase
+    .from('users')
+    .select('gift_balance')
+    .eq('id', senderId)
+    .single();
+
+  if (senderErr || !sender) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+  if ((sender.gift_balance || 0) < cost) return res.status(400).json({ error: 'Yetersiz bakiye' });
+
+  // Bakiyeyi düş
+  const { error: updateErr } = await supabase
+    .from('users')
+    .update({ gift_balance: sender.gift_balance - cost })
+    .eq('id', senderId);
+
+  if (updateErr) return res.status(500).json({ error: updateErr.message });
+
+  // Hediyeyi kaydet
+  const { error: giftErr } = await supabase
+    .from('gifts')
+    .insert({ sender_id: senderId, receiver_id: receiverId, gift_type: giftType, token_cost: cost });
+
+  if (giftErr) return res.status(500).json({ error: giftErr.message });
+
+  res.json({ ok: true, remaining: sender.gift_balance - cost });
+});
+
+// Kullanıcının aldığı hediyeler
+app.get('/api/gifts/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { data, error } = await supabase
+    .from('gifts')
+    .select(`id, gift_type, token_cost, created_at,
+      sender:users!gifts_sender_id_fkey(id, username, display_name)`)
+    .eq('receiver_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, gifts: data || [] });
+});
+
+// ── Premium üyelik API'ları ──────────────────────────────────────────
+
+const PREMIUM_PACKAGES = {
+  week:  { days: 7,  price: 4.99 },
+  month: { days: 30, price: 9.99 },
+  year:  { days: 365, price: 49.99 }
+};
+
+// Premium aktif et (ödeme entegrasyonu yapılana kadar manuel / test)
+app.post('/api/premium/activate', async (req, res) => {
+  const { userId, packageId } = req.body;
+  if (!userId || !packageId) return res.status(400).json({ error: 'Eksik parametre' });
+  if (!PREMIUM_PACKAGES[packageId]) return res.status(400).json({ error: 'Geçersiz paket' });
+
+  const { days } = PREMIUM_PACKAGES[packageId];
+  const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+
+  const { error } = await supabase
+    .from('users')
+    .update({ is_premium: true, premium_expires: expiresAt })
+    .eq('id', userId);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, expires_at: expiresAt, days });
+});
+
+// Premium durumu sorgula
+app.get('/api/premium/status/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { data, error } = await supabase
+    .from('users')
+    .select('is_premium, premium_expires')
+    .eq('id', userId)
+    .single();
+
+  if (error || !data) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+
+  // Süresi dolmuşsa otomatik kapat
+  if (data.is_premium && data.premium_expires && new Date(data.premium_expires) < new Date()) {
+    await supabase.from('users').update({ is_premium: false, premium_expires: null }).eq('id', userId);
+    return res.json({ ok: true, is_premium: false, expired: true });
+  }
+
+  res.json({ ok: true, is_premium: data.is_premium || false, premium_expires: data.premium_expires });
 });
 
 // ── Sağlık kontrolü ──────────────────────────────────────────────────
