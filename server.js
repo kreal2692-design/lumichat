@@ -423,7 +423,7 @@ io.on('connection', (socket) => {
       socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId, partnerUsername: match.username, partnerAge: match.age, partnerAvatar: match.avatar, partnerUserId: match.userId });
       matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age,       partnerAvatar: avatar,       partnerUserId: userId });
 
-      console.log(`Eşleşti: ${match.socketId}(${match.username}) <-> ${socket.id}(${username})`);
+      console.log(`Eşleşti: ${match.socketId}(${match.username})[userId:${match.userId}] <-> ${socket.id}(${username})[userId:${userId}]`);
     } else {
       waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar, userId });
       socket.emit('waiting');

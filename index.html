@@ -1552,7 +1552,8 @@
     socket.on("matched", async (data) => {
       isMatched = true;
       remoteSocketId = data.partnerSocketId || null;
-      partnerUserId = data.partnerUserId || null; // server tarafından gönderiliyorsa
+      partnerUserId = data.partnerUserId || null;
+      console.log("[MATCHED] partnerUserId:", partnerUserId, "remoteSocketId:", remoteSocketId, "data:", JSON.stringify(data));
       
       // Kullanıcı adı - baş harf büyük, yaş yok
       const rawName = data.partnerUsername || "Bilinmiyor";
@@ -1593,7 +1594,7 @@
       try {
         const { data: userData, error } = await supabase
           .from("users")
-          .select("has_member, username, gender, tokens, is_banned, avatar_url, birthdate")
+          .select("has_member, username, gender, tokens, gift_balance, is_banned, avatar_url, birthdate")
           .eq("id", user.id)
           .single();
 
@@ -1643,12 +1644,13 @@
         }
 
         currentProfile = {
-          username:  userData.username  || null,
-          gender:    userData.gender    || null,
-          tokens:    userData.tokens    || 0,
-          avatar:    userData.avatar_url || user.user_metadata?.avatar_url || null,
-          birthdate: userData.birthdate || null,
-          age:       userData.birthdate ? Math.floor((Date.now() - new Date(userData.birthdate)) / 31557600000) : null,
+          username:      userData.username   || null,
+          gender:        userData.gender     || null,
+          tokens:        userData.tokens     || 0,
+          gift_balance:  userData.gift_balance || 0,
+          avatar:        userData.avatar_url || user.user_metadata?.avatar_url || null,
+          birthdate:     userData.birthdate  || null,
+          age:           userData.birthdate ? Math.floor((Date.now() - new Date(userData.birthdate)) / 31557600000) : null,
         };
 
         if (userInfo) {
@@ -1720,23 +1722,33 @@
     document.querySelectorAll(".gift-item").forEach(item => {
       item.addEventListener("click", async () => {
         if (!currentUser || !isMatched) return;
+
+        const giftType  = item.dataset.gift;
+        const cost      = parseInt(item.dataset.cost);
+        const giftEmoji = item.querySelector("div").textContent;
+        const bal       = currentProfile?.gift_balance || 0;
+
+        // Bakiye kontrolü — her zaman yap
+        if (bal < cost) {
+          alert(`Yetersiz hediye bakiyesi! Gerekli: ${cost} 🎁, Mevcut: ${bal} 🎁`);
+          return;
+        }
+
         if (!partnerUserId) {
-          // partnerUserId yoksa sadece socket bildirimi gönder, DB'ye kaydetme
-          const giftEmoji = item.querySelector("div").textContent;
+          // partnerUserId yoksa DB'ye kaydetme, sadece socket ile bildir
+          // Ama bakiyeyi yine de düş (local)
+          if (currentProfile) currentProfile.gift_balance = bal - cost;
+          document.getElementById("giftBalanceDisplay").textContent = `🎁 ${bal - cost}`;
           addChatMessage(`${giftEmoji} hediyesini gönderdin!`, "system");
           socket.emit("giftSent", {
             toSocketId: remoteSocketId,
             giftEmoji,
-            giftType: item.dataset.gift,
+            giftType,
             fromName: currentProfile?.username || "Biri"
           });
           giftModal.classList.remove("open");
           return;
         }
-        const giftType = item.dataset.gift;
-        const cost     = parseInt(item.dataset.cost);
-        const bal      = currentProfile?.gift_balance || 0;
-        if (bal < cost) { alert("Yetersiz hediye bakiyesi!"); return; }
 
         try {
           const res  = await fetch("/api/gifts/send", {
@@ -1748,9 +1760,7 @@
           if (!json.ok) { alert(json.error || "Hediye gönderilemedi"); return; }
           if (currentProfile) currentProfile.gift_balance = json.remaining;
           document.getElementById("giftBalanceDisplay").textContent = `🎁 ${json.remaining}`;
-          const giftEmoji = item.querySelector("div").textContent;
           addChatMessage(`${giftEmoji} hediyesini gönderdin!`, "system");
-          // Karşı tarafa socket bildirimi gönder
           socket.emit("giftSent", {
             toSocketId: remoteSocketId,
             giftEmoji,
