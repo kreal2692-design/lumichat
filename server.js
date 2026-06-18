@@ -1,3 +1,4 @@
+const ws = require('ws');
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -6,8 +7,10 @@ const { createClient } = require('@supabase/supabase-js');
 
 // ── Supabase (server-side service role) ────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://aaszyppzidhazpbmcipv.supabase.co';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || ''; // .env veya ortam değişkeninden al
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhc3p5cHB6aWRoYXpwYm1jaXB2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTI1NTkzMiwiZXhwIjoyMDk2ODMxOTMyfQ.RWD3_nFdx6JUSn-rNSXpzEgYGxmyFV7BSlh3BiC2byU';
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  realtime: { transport: ws }
+});
 
 const io = require('socket.io')(http, {
   cors: { origin: "*" },
