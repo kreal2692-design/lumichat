@@ -2070,9 +2070,15 @@
         </div>`;
       document.body.appendChild(notif);
       notif.querySelector('#acceptInviteBtn').addEventListener('click', () => {
-        socket.emit('matchInviteAccept', { toSocketId: data.fromSocketId });
+        socket.emit('matchInviteAccept', {
+          toSocketId:  data.fromSocketId,
+          myUserId:    currentUser?.id || null,
+          myUsername:  currentProfile?.username || 'Arkadaş',
+          myAge:       currentProfile?.age || null,
+          myAvatar:    currentProfile?.avatar || null
+        });
         notif.remove();
-        addChatMessage('✅ Eşleşme daveti kabul edildi! Eşleş butonuna bas.', 'system');
+        addChatMessage('✅ Eşleşme daveti kabul edildi! Bağlanılıyor...', 'system');
       });
       setTimeout(() => notif.remove(), 30000);
     });

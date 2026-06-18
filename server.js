@@ -464,23 +464,48 @@ io.on('connection', (socket) => {
     if (targetSocketId) {
       const targetSocket = io.sockets.sockets.get(targetSocketId);
       if (targetSocket) {
+        // Davet eden bilgilerini socket'e kaydet (kabul edilince kullanılacak)
+        socket.inviteName   = fromName.slice(0, 30);
+        socket.inviteUserId = fromUserId || null;
         targetSocket.emit('matchInvite', {
-          fromName:   fromName.slice(0, 30),
-          fromUserId: fromUserId || null,
+          fromName:     fromName.slice(0, 30),
+          fromUserId:   fromUserId || null,
           fromSocketId: socket.id
         });
       }
     }
   });
 
-  // Eşleşme davetini kabul et
+  // Eşleşme davetini kabul et — iki kişiyi direkt eşleştir
   socket.on('matchInviteAccept', (data) => {
-    const { toSocketId } = data;
+    const { toSocketId, myUserId, myUsername, myAge, myAvatar } = data;
     if (!toSocketId) return;
     const targetSocket = io.sockets.sockets.get(toSocketId);
-    if (targetSocket) {
-      targetSocket.emit('matchInviteAccepted', { fromSocketId: socket.id });
-    }
+    if (!targetSocket) return;
+
+    const roomName = toSocketId + '#' + socket.id;
+    socket.join(roomName);
+    targetSocket.join(roomName);
+
+    // Her ikisine de matched event gönder
+    socket.emit('matched', {
+      roomName,
+      isInitiator: false,
+      partnerSocketId: toSocketId,
+      partnerUsername: targetSocket.inviteName   || 'Arkadaş',
+      partnerUserId:   targetSocket.inviteUserId || null,
+      partnerAge:      null,
+      partnerAvatar:   null
+    });
+    targetSocket.emit('matched', {
+      roomName,
+      isInitiator: true,
+      partnerSocketId: socket.id,
+      partnerUsername: myUsername || 'Arkadaş',
+      partnerUserId:   myUserId   || null,
+      partnerAge:      myAge      || null,
+      partnerAvatar:   myAvatar   || null
+    });
   });
 
   // Bağlantı kesilince IP sayacını azalt
