@@ -202,20 +202,20 @@ app.post('/api/gifts/send', async (req, res) => {
 
   const cost = GIFT_COSTS[giftType];
 
-  // Gönderici bakiyesini çek
+  // Gönderici jeton bakiyesini çek
   const { data: sender, error: senderErr } = await supabase
     .from('users')
-    .select('gift_balance')
+    .select('tokens')
     .eq('id', senderId)
     .single();
 
   if (senderErr || !sender) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
-  if ((sender.gift_balance || 0) < cost) return res.status(400).json({ error: 'Yetersiz bakiye' });
+  if ((sender.tokens || 0) < cost) return res.status(400).json({ error: 'Yetersiz jeton' });
 
-  // Bakiyeyi düş
+  // Jetonu düş
   const { error: updateErr } = await supabase
     .from('users')
-    .update({ gift_balance: sender.gift_balance - cost })
+    .update({ tokens: sender.tokens - cost })
     .eq('id', senderId);
 
   if (updateErr) return res.status(500).json({ error: updateErr.message });
@@ -227,7 +227,7 @@ app.post('/api/gifts/send', async (req, res) => {
 
   if (giftErr) return res.status(500).json({ error: giftErr.message });
 
-  res.json({ ok: true, remaining: sender.gift_balance - cost });
+  res.json({ ok: true, remaining: sender.tokens - cost });
 });
 
 // Kullanıcının aldığı hediyeler
@@ -451,11 +451,14 @@ io.on('connection', (socket) => {
 
   // Arkadaş isteği bildirimi — isteği alan socket'e ilet
   socket.on('friendRequest', (data) => {
-    const { toSocketId, fromName } = data;
+    const { toSocketId, fromName, fromUserId } = data;
     if (!toSocketId || typeof fromName !== 'string') return;
     const targetSocket = io.sockets.sockets.get(toSocketId);
     if (targetSocket) {
-      targetSocket.emit('friendRequest', { fromName: fromName.slice(0, 30) });
+      targetSocket.emit('friendRequest', {
+        fromName:   fromName.slice(0, 30),
+        fromUserId: typeof fromUserId === 'string' ? fromUserId : null
+      });
     }
   });
 

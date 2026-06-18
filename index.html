@@ -484,7 +484,6 @@
         <div class="topbar-right">
           <div id="userInfo"></div>
           <div id="tokenDisplay" class="token-pill" title="Jeton satın al">🪙 0 Jeton</div>
-          <div id="giftBalanceDisplay" class="token-pill" style="border-color:rgba(255,100,100,0.35);background:rgba(255,100,100,0.08);color:#ff9999;" title="Hediye bakiyesi">🎁 0</div>
           <div id="premiumBadge" style="display:none;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,200,0,0.5);background:rgba(255,200,0,0.12);color:#ffe566;font-size:14px;cursor:pointer;" title="Premium üye — tıkla">⭐ Premium</div>
           <div id="statusText" class="status-pill">Yükleniyor</div>
           <!-- Arkadaşlar butonu (badge'li - istekler dahil) -->
@@ -597,7 +596,7 @@
   <div class="modal-overlay" id="giftModal">
     <div class="modal">
       <div class="modal-title">🎁 Hediye Gönder</div>
-      <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Karşı tarafa bir hediye gönder. Bakiyenden düşülür.</p>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Karşı tarafa bir hediye gönder. Jetonundan düşülür.</p>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px;max-height:320px;overflow-y:auto;padding-right:4px;" id="giftGrid">
         <!-- Ucuz -->
         <div class="gift-item" data-gift="cherry"    data-cost="1"    style="text-align:center;padding:12px 6px;border-radius:14px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);cursor:pointer;transition:0.2s;"><div style="font-size:26px;">🍒</div><div style="font-size:11px;color:var(--muted);margin-top:3px;">Kiraz</div><div style="font-size:11px;color:#ffe566;">1🎁</div></div>
@@ -1708,9 +1707,9 @@
     document.getElementById("giftBtn").addEventListener("click", () => {
       if (!currentUser) return;
       if (!isMatched) { alert("Önce biriyle eşleşmelisiniz."); return; }
-      // Bakiyeyi göster
-      const bal = currentProfile?.gift_balance || 0;
-      document.getElementById("giftBalanceInfo").textContent = `Bakiyeniz: ${bal} 🎁`;
+      // Jeton bakiyesini göster
+      const bal = currentProfile?.tokens || 0;
+      document.getElementById("giftBalanceInfo").textContent = `Bakiyeniz: ${bal} 🪙`;
       // Seçili stili sıfırla
       document.querySelectorAll(".gift-item").forEach(el => el.style.background = "rgba(255,255,255,0.05)");
       giftModal.classList.add("open");
@@ -1726,19 +1725,18 @@
         const giftType  = item.dataset.gift;
         const cost      = parseInt(item.dataset.cost);
         const giftEmoji = item.querySelector("div").textContent;
-        const bal       = currentProfile?.gift_balance || 0;
+        const bal       = currentProfile?.tokens || 0;
 
-        // Bakiye kontrolü — her zaman yap
+        // Jeton kontrolü — her zaman yap
         if (bal < cost) {
-          alert(`Yetersiz hediye bakiyesi! Gerekli: ${cost} 🎁, Mevcut: ${bal} 🎁`);
+          alert(`Yetersiz jeton! Gerekli: ${cost} 🪙, Mevcut: ${bal} 🪙`);
           return;
         }
 
         if (!partnerUserId) {
           // partnerUserId yoksa DB'ye kaydetme, sadece socket ile bildir
-          // Ama bakiyeyi yine de düş (local)
-          if (currentProfile) currentProfile.gift_balance = bal - cost;
-          document.getElementById("giftBalanceDisplay").textContent = `🎁 ${bal - cost}`;
+          if (currentProfile) currentProfile.tokens = bal - cost;
+          updateTokenDisplay(bal - cost);
           addChatMessage(`${giftEmoji} hediyesini gönderdin!`, "system");
           socket.emit("giftSent", {
             toSocketId: remoteSocketId,
@@ -1758,8 +1756,8 @@
           });
           const json = await res.json();
           if (!json.ok) { alert(json.error || "Hediye gönderilemedi"); return; }
-          if (currentProfile) currentProfile.gift_balance = json.remaining;
-          document.getElementById("giftBalanceDisplay").textContent = `🎁 ${json.remaining}`;
+          if (currentProfile) currentProfile.tokens = json.remaining;
+          updateTokenDisplay(json.remaining);
           addChatMessage(`${giftEmoji} hediyesini gönderdin!`, "system");
           socket.emit("giftSent", {
             toSocketId: remoteSocketId,
@@ -1819,12 +1817,20 @@
     // Arkadaş ekle butonu (video üzerinde)
     document.getElementById("addFriendBtn").addEventListener("click", async () => {
       if (!currentUser || !isMatched) return;
+
+      // Her zaman socket bildirimi gönder (karşı taraf görsün)
+      socket.emit("friendRequest", {
+        toSocketId: remoteSocketId,
+        fromName:   currentProfile?.username || "Biri",
+        fromUserId: currentUser.id  // kendi ID'mizi gönder
+      });
+
       if (!partnerUserId) {
-        // partnerUserId yoksa sadece socket bildirimi gönder
-        socket.emit("friendRequest", { toSocketId: remoteSocketId, fromName: currentProfile?.username || "Biri" });
+        // partnerUserId yoksa DB'ye kaydedemeyiz, sadece bildirim
         addChatMessage(`➕ ${partnerName} adlı kullanıcıya arkadaşlık isteği gönderildi!`, "system");
         return;
       }
+
       try {
         const res  = await fetch("/api/friends/request", {
           method: "POST",
@@ -1832,20 +1838,28 @@
           body: JSON.stringify({ requesterId: currentUser.id, receiverId: partnerUserId })
         });
         const json = await res.json();
-        if (json.ok) {
-          addChatMessage(`➕ ${partnerName} adlı kullanıcıya arkadaşlık isteği gönderildi!`, "system");
-          socket.emit("friendRequest", { toSocketId: remoteSocketId, fromName: currentProfile?.username || "Biri" });
-        } else {
-          addChatMessage(json.message || "İstek gönderilemedi.", "system");
-        }
+        addChatMessage(json.ok
+          ? `➕ ${partnerName} adlı kullanıcıya arkadaşlık isteği gönderildi!`
+          : (json.message || "İstek gönderilemedi."), "system");
       } catch (err) {
         console.error("Arkadaş isteği hatası:", err);
+        addChatMessage("Arkadaşlık isteği gönderilemedi.", "system");
       }
     });
 
     // Karşı taraftan arkadaş isteği geldiğinde
-    socket.on("friendRequest", (data) => {
+    socket.on("friendRequest", async (data) => {
       addChatMessage(`👥 ${escHtml(data.fromName)} sana arkadaşlık isteği gönderdi!`, "system");
+      // fromUserId varsa ve biz giriş yaptıysak DB'ye kaydet
+      if (data.fromUserId && currentUser?.id && data.fromUserId !== currentUser.id) {
+        try {
+          await fetch("/api/friends/request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ requesterId: data.fromUserId, receiverId: currentUser.id })
+          });
+        } catch(e) { console.error("friendRequest DB kayıt hatası:", e); }
+      }
       refreshFriendRequestBadge();
     });
 
