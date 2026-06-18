@@ -174,10 +174,25 @@ app.get('/api/friends/pending/:userId', async (req, res) => {
 // ── Hediye sistemi API'ları ──────────────────────────────────────────
 
 const GIFT_COSTS = {
-  rose: 1, heart: 2, star: 3, crown: 5, diamond: 10,
-  cake: 3, balloon: 2, teddy: 8, ring: 15, rocket: 12,
-  unicorn: 20, trophy: 25, cherry: 1, fire: 4, snowflake: 6,
-  ghost: 7, angel: 18, dragon: 30, galaxy: 50
+  cherry:    1,
+  rose:      5,
+  balloon:   10,
+  heart:     25,
+  cake:      50,
+  star:      75,
+  fire:      100,
+  crown:     150,
+  snowflake: 200,
+  ghost:     250,
+  teddy:     300,
+  diamond:   400,
+  rocket:    500,
+  ring:      600,
+  angel:     750,
+  unicorn:   1000,
+  trophy:    1200,
+  dragon:    1500,
+  galaxy:    1500
 };
 
 app.post('/api/gifts/send', async (req, res) => {
@@ -441,6 +456,20 @@ io.on('connection', (socket) => {
     const targetSocket = io.sockets.sockets.get(toSocketId);
     if (targetSocket) {
       targetSocket.emit('friendRequest', { fromName: fromName.slice(0, 30) });
+    }
+  });
+
+  // Hediye bildirimi — hediyeyi alan socket'e ilet
+  socket.on('giftSent', (data) => {
+    const { toSocketId, giftEmoji, giftType, fromName } = data;
+    if (!toSocketId || typeof fromName !== 'string') return;
+    const targetSocket = io.sockets.sockets.get(toSocketId);
+    if (targetSocket) {
+      targetSocket.emit('giftReceived', {
+        giftEmoji: typeof giftEmoji === 'string' ? giftEmoji.slice(0, 10) : '🎁',
+        giftType:  typeof giftType  === 'string' ? giftType.slice(0, 20)  : '',
+        fromName:  fromName.slice(0, 30)
+      });
     }
   });
 

@@ -721,7 +721,7 @@
       document.getElementById("tokensTable").innerHTML = '<div class="loading">Yükleniyor...</div>';
       const { data, error } = await supabase
         .from("users")
-        .select("id, username, display_name, email, tokens")
+        .select("id, username, display_name, email, tokens, gift_balance")
         .order("tokens", { ascending: false });
 
       if (error) { showNotif("Jeton verileri yüklenemedi: " + error.message, true); return; }
@@ -737,16 +737,19 @@
       }
       box.innerHTML = `
         <table>
-          <thead><tr><th>Kullanıcı</th><th>E-posta</th><th>Jeton</th><th>İşlem</th></tr></thead>
+          <thead><tr><th>Kullanıcı</th><th>E-posta</th><th>🪙 Jeton</th><th>🎁 Hediye Bakiyesi</th><th>İşlem</th></tr></thead>
           <tbody>
             ${users.map(u => `
               <tr>
                 <td><strong>${escHtml(u.username || u.display_name || "—")}</strong></td>
                 <td style="color:var(--muted);font-size:13px">${escHtml(u.email || "—")}</td>
                 <td><span style="color:#ffe566;font-size:16px;font-weight:bold">🪙 ${u.tokens || 0}</span></td>
-                <td style="display:flex;gap:8px;align-items:center">
-                  <button class="btn btn-success" onclick="addTokens('${u.id}', ${u.tokens || 0})">+ Jeton Ekle</button>
-                  <button class="btn btn-danger"  onclick="removeTokens('${u.id}', ${u.tokens || 0})">- Çıkar</button>
+                <td><span style="color:#ff9999;font-size:16px;font-weight:bold">🎁 ${u.gift_balance || 0}</span></td>
+                <td style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                  <button class="btn btn-success" onclick="addTokens('${u.id}', ${u.tokens || 0})">+ Jeton</button>
+                  <button class="btn btn-danger"  onclick="removeTokens('${u.id}', ${u.tokens || 0})">- Jeton</button>
+                  <button class="btn btn-accent"  onclick="addGiftBalance('${u.id}', ${u.gift_balance || 0})">+ Hediye</button>
+                  <button class="btn btn-muted"   onclick="removeGiftBalance('${u.id}', ${u.gift_balance || 0})">- Hediye</button>
                 </td>
               </tr>
             `).join("")}
@@ -781,6 +784,25 @@
       const { error } = await supabase.from("users").update({ tokens: newVal }).eq("id", id);
       if (error) { showNotif("Jeton çıkarılamadı: " + error.message, true); return; }
       showNotif(`${n} jeton çıkarıldı.`);
+      loadTokens();
+    };
+
+    window.addGiftBalance = async (id, current) => {
+      const n = prompt("Kaç hediye bakiyesi eklensin?", "100");
+      if (!n || isNaN(n)) return;
+      const { error } = await supabase.from("users").update({ gift_balance: current + parseInt(n) }).eq("id", id);
+      if (error) { showNotif("Hediye bakiyesi eklenemedi: " + error.message, true); return; }
+      showNotif(`${n} hediye bakiyesi eklendi.`);
+      loadTokens();
+    };
+
+    window.removeGiftBalance = async (id, current) => {
+      const n = prompt("Kaç hediye bakiyesi çıkarılsın?", "100");
+      if (!n || isNaN(n)) return;
+      const newVal = Math.max(0, current - parseInt(n));
+      const { error } = await supabase.from("users").update({ gift_balance: newVal }).eq("id", id);
+      if (error) { showNotif("Hediye bakiyesi çıkarılamadı: " + error.message, true); return; }
+      showNotif(`${n} hediye bakiyesi çıkarıldı.`);
       loadTokens();
     };
 
