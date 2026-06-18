@@ -1707,6 +1707,8 @@
         console.log("[AUTH] Her şey tamam, ana ekrana geçiliyor");
         showScreen("main");
         await initChatSystem();
+        // Online durumu bildir
+        socket.emit('userOnline', currentUser.id);
         // Premium durum ve hediye bakiyesini yükle
         checkPremiumStatus();
         loadGiftBalance();
@@ -1996,26 +1998,84 @@
         return;
       }
 
-      // Şu an aktif socket ID'lerinden çevrimiçi belirleme yapılamaz (sunucu taraflı gerekir),
-      // Bu yüzden tümünü listele — çevrimiçi bilgisi gelecekte eklenebilir
+      // Online kontrolü
+      const friendIds = friends.map(f => f.requester_id === currentUser.id ? f.receiver?.id : f.requester?.id).filter(Boolean);
+      let onlineSet = new Set();
+      try {
+        const onlineRes = await fetch('/api/online-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userIds: friendIds })
+        }).then(r => r.json());
+        onlineSet = new Set(onlineRes.online || []);
+      } catch(e) {}
+
       onlineList.innerHTML  = '';
       offlineList.innerHTML = '';
+      let onlineCount = 0, offlineCount = 0;
 
       friends.forEach(f => {
-        const friend = f.requester_id === currentUser.id ? f.receiver : f.requester;
-        const name   = escHtml(friend?.username || friend?.display_name || 'Bilinmiyor');
-        const card   = `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.04);">
-          <span style="font-size:22px;">👤</span>
-          <span style="font-size:14px;font-weight:500;">${name}</span>
+        const friend   = f.requester_id === currentUser.id ? f.receiver : f.requester;
+        const friendId = friend?.id;
+        const name     = escHtml(friend?.username || friend?.display_name || 'Bilinmiyor');
+        const isOnline = onlineSet.has(friendId);
+
+        const card = `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.04);margin-bottom:4px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:10px;">${isOnline ? '🟢' : '⚫'}</span>
+            <span style="font-size:14px;font-weight:500;">${name}</span>
+          </div>
+          ${isOnline && friendId ? `<button onclick="sendMatchInvite('${friendId}','${name}')" style="background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.4);color:var(--accent);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px;">🎯 Eşleş</button>` : ''}
         </div>`;
-        offlineList.innerHTML += card;
+
+        if (isOnline) { onlineList.innerHTML += card; onlineCount++; }
+        else          { offlineList.innerHTML += card; offlineCount++; }
       });
 
-      document.getElementById("onlineFriendsSection").style.display  = "none";
-      document.getElementById("offlineFriendsSection").style.display = "block";
-      const offTitle = document.querySelector("#offlineFriendsSection > div:first-child");
-      if (offTitle) offTitle.textContent = `👥 Arkadaşlar (${friends.length})`;
+      if (!onlineCount)  onlineList.innerHTML  = '<div style="color:var(--muted);font-size:12px;padding:6px;">Çevrimiçi arkadaş yok</div>';
+      if (!offlineCount) offlineList.innerHTML = '';
+
+      document.getElementById("onlineFriendsSection").style.display  = "block";
+      document.getElementById("offlineFriendsSection").style.display = offlineCount > 0 ? "block" : "none";
+
+      const onlineTitle  = document.querySelector("#onlineFriendsSection > div:first-child");
+      const offlineTitle = document.querySelector("#offlineFriendsSection > div:first-child");
+      if (onlineTitle)  onlineTitle.textContent  = `🟢 Çevrimiçi (${onlineCount})`;
+      if (offlineTitle) offlineTitle.textContent = `⚫ Çevrimdışı (${offlineCount})`;
     }
+
+    // Arkadaşa eşleşme daveti gönder
+    window.sendMatchInvite = (friendId, friendName) => {
+      if (!currentUser || !socket) return;
+      socket.emit('matchInvite', {
+        toUserId:   friendId,
+        fromName:   currentProfile?.username || 'Biri',
+        fromUserId: currentUser.id
+      });
+      addChatMessage ? addChatMessage(`🎯 ${friendName} adlı arkadaşına eşleşme daveti gönderildi!`, 'system') : null;
+    };
+
+    // Eşleşme daveti gelince
+    socket.on('matchInvite', (data) => {
+      const msg = `🎯 ${escHtml(data.fromName)} sana eşleşme daveti gönderdi!`;
+      addChatMessage(msg, 'system');
+      // Kabul butonu göster
+      const notif = document.createElement('div');
+      notif.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;background:rgba(10,20,35,0.97);border:1px solid var(--accent);border-radius:14px;padding:16px 20px;box-shadow:0 8px 24px rgba(0,0,0,0.4);';
+      notif.innerHTML = `
+        <div style="font-size:14px;margin-bottom:10px;color:white;">🎯 <b>${escHtml(data.fromName)}</b> seninle eşleşmek istiyor!</div>
+        <div style="display:flex;gap:8px;">
+          <button id="acceptInviteBtn" style="background:rgba(0,229,255,0.2);border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px;font-weight:bold;">✅ Kabul</button>
+          <button onclick="this.closest('div[style]').remove()" style="background:rgba(255,100,100,0.15);border:1px solid #ff7675;color:#ff7675;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px;">❌ Reddet</button>
+        </div>`;
+      document.body.appendChild(notif);
+      notif.querySelector('#acceptInviteBtn').addEventListener('click', () => {
+        socket.emit('matchInviteAccept', { toSocketId: data.fromSocketId });
+        notif.remove();
+        addChatMessage('✅ Eşleşme daveti kabul edildi! Eşleş butonuna bas.', 'system');
+      });
+      setTimeout(() => notif.remove(), 30000);
+    });
 
     // ── Hediyelerim ──────────────────────────────────────────────────
     const GIFT_EMOJIS = {

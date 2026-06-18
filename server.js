@@ -73,6 +73,9 @@ app.use(rateLimiter);
 const socketConnections = new Map(); // IP → count
 const MAX_CONNECTIONS_PER_IP = 5;
 
+// ── Online kullanıcı takibi ──────────────────────────────────────────
+const onlineUsers = new Map(); // userId → socketId
+
 // ── Banlı IP listesi (dinamik) ───────────────────────────────────────
 const bannedIPs = new Set();
 
@@ -357,6 +360,14 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ── Online kullanıcıları sorgula ─────────────────────────────────────
+app.post('/api/online-check', (req, res) => {
+  const { userIds } = req.body;
+  if (!Array.isArray(userIds)) return res.status(400).json({ error: 'userIds array gerekli' });
+  const online = userIds.filter(id => onlineUsers.has(id));
+  res.json({ ok: true, online });
+});
+
 // ── Bekleyen kullanıcı havuzu ────────────────────────────────────────
 let waitingUsers = [];
 
@@ -437,6 +448,41 @@ io.on('connection', (socket) => {
   const ip = socket.clientIP || socket.handshake.address;
   console.log(`Yeni bağlantı: ${socket.id} (${ip})`);
 
+  // Kullanıcı kimliğini kaydet (auth event)
+  socket.on('userOnline', (userId) => {
+    if (typeof userId === 'string' && userId) {
+      onlineUsers.set(userId, socket.id);
+      socket.userId = userId;
+    }
+  });
+
+  // Eşleşme daveti gönder
+  socket.on('matchInvite', (data) => {
+    const { toUserId, fromName, fromUserId } = data;
+    if (!toUserId || typeof fromName !== 'string') return;
+    const targetSocketId = onlineUsers.get(toUserId);
+    if (targetSocketId) {
+      const targetSocket = io.sockets.sockets.get(targetSocketId);
+      if (targetSocket) {
+        targetSocket.emit('matchInvite', {
+          fromName:   fromName.slice(0, 30),
+          fromUserId: fromUserId || null,
+          fromSocketId: socket.id
+        });
+      }
+    }
+  });
+
+  // Eşleşme davetini kabul et
+  socket.on('matchInviteAccept', (data) => {
+    const { toSocketId } = data;
+    if (!toSocketId) return;
+    const targetSocket = io.sockets.sockets.get(toSocketId);
+    if (targetSocket) {
+      targetSocket.emit('matchInviteAccepted', { fromSocketId: socket.id });
+    }
+  });`);
+
   // Bağlantı kesilince IP sayacını azalt
   socket.on('disconnect', () => {
     const count = socketConnections.get(ip) || 1;
@@ -444,6 +490,8 @@ io.on('connection', (socket) => {
     else socketConnections.set(ip, count - 1);
 
     messageCounts.delete(socket.id);
+    // Online listesinden çıkar
+    if (socket.userId) onlineUsers.delete(socket.userId);
     waitingUsers = waitingUsers.filter(w => w.socketId !== socket.id);
 
     const rooms = Array.from(socket.rooms);
@@ -460,6 +508,12 @@ io.on('connection', (socket) => {
     const age          = typeof data.age === 'number' && data.age > 0 ? data.age : null;
     const avatar       = typeof data.avatar === 'string' ? data.avatar.slice(0, 500) : null;
     const userId       = typeof data.userId === 'string' ? data.userId : null; // DB id
+
+    // Online listesine ekle
+    if (userId) {
+      onlineUsers.set(userId, socket.id);
+      socket.userId = userId;
+    }
 
     const match = findMatch(socket, genderFilter, myGender);
 
