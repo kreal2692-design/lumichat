@@ -481,7 +481,7 @@ io.on('connection', (socket) => {
     if (targetSocket) {
       targetSocket.emit('matchInviteAccepted', { fromSocketId: socket.id });
     }
-  });`);
+  });
 
   // Bağlantı kesilince IP sayacını azalt
   socket.on('disconnect', () => {
