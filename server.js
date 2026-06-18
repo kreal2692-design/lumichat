@@ -235,7 +235,7 @@ app.get('/api/gifts/:userId', async (req, res) => {
   const { userId } = req.params;
   const { data, error } = await supabase
     .from('gifts')
-    .select(`id, gift_type, token_cost, created_at,
+    .select(`id, gift_type, token_cost, created_at, converted,
       sender:users!gifts_sender_id_fkey(id, username, display_name)`)
     .eq('receiver_id', userId)
     .order('created_at', { ascending: false })
@@ -243,6 +243,52 @@ app.get('/api/gifts/:userId', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true, gifts: data || [] });
+});
+
+// Hediyeyi jetona çevir (%70 kullanıcıya, %30 sisteme)
+const SYSTEM_USER_ID = process.env.SYSTEM_USER_ID || null; // .env'den al
+
+app.post('/api/gifts/convert', async (req, res) => {
+  const { giftId, userId } = req.body;
+  if (!giftId || !userId) return res.status(400).json({ error: 'Eksik parametre' });
+
+  // Hediyeyi çek
+  const { data: gift, error: giftErr } = await supabase
+    .from('gifts')
+    .select('id, token_cost, receiver_id, converted')
+    .eq('id', giftId)
+    .eq('receiver_id', userId)
+    .single();
+
+  if (giftErr || !gift) return res.status(404).json({ error: 'Hediye bulunamadı' });
+  if (gift.converted) return res.status(400).json({ error: 'Bu hediye zaten çevrildi' });
+
+  const userShare   = Math.floor(gift.token_cost * 0.7);
+  const systemShare = gift.token_cost - userShare; // %30
+
+  // Kullanıcının jetonunu artır
+  const { data: user, error: userErr } = await supabase
+    .from('users').select('tokens').eq('id', userId).single();
+  if (userErr || !user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+
+  const { error: updateErr } = await supabase
+    .from('users')
+    .update({ tokens: (user.tokens || 0) + userShare })
+    .eq('id', userId);
+  if (updateErr) return res.status(500).json({ error: updateErr.message });
+
+  // Sistem hesabına %30 ekle
+  if (SYSTEM_USER_ID) {
+    const { data: sys } = await supabase.from('users').select('tokens').eq('id', SYSTEM_USER_ID).single();
+    if (sys) {
+      await supabase.from('users').update({ tokens: (sys.tokens || 0) + systemShare }).eq('id', SYSTEM_USER_ID);
+    }
+  }
+
+  // Hediyeyi çevrildi olarak işaretle
+  await supabase.from('gifts').update({ converted: true }).eq('id', giftId);
+
+  res.json({ ok: true, earned: userShare, systemShare, newBalance: (user.tokens || 0) + userShare });
 });
 
 // ── Premium üyelik API'ları ──────────────────────────────────────────

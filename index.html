@@ -570,22 +570,39 @@
 
   <!-- Profil düzenleme Modal -->
   <div class="modal-overlay" id="profileModal">
-    <div class="modal">
-      <div class="modal-title">👤 Profilini Düzenle</div>
-      <div class="form-group">
-        <label>Kullanıcı Adı</label>
-        <input type="text" id="editUsernameInput" class="form-input" maxlength="24" />
+    <div class="modal" style="max-width:520px;">
+      <!-- Sekmeler -->
+      <div style="display:flex;gap:0;border-bottom:1px solid rgba(0,229,255,0.15);margin-bottom:16px;">
+        <button id="tabProfile" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);cursor:pointer;font-size:14px;font-weight:bold;">👤 Profil</button>
+        <button id="tabMyGifts" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-size:14px;">🎁 Hediyelerim</button>
       </div>
-      <div class="form-group">
-        <label>Cinsiyet</label>
-        <div class="gender-row" id="editGenderRow">
-          <button class="gender-btn" data-gender="erkek">👨 Erkek</button>
-          <button class="gender-btn" data-gender="kadin">👩 Kadın</button>
+      <!-- Profil sekmesi -->
+      <div id="panelProfile">
+        <div class="modal-title">👤 Profilini Düzenle</div>
+        <div class="form-group">
+          <label>Kullanıcı Adı</label>
+          <input type="text" id="editUsernameInput" class="form-input" maxlength="24" />
+        </div>
+        <div class="form-group">
+          <label>Cinsiyet</label>
+          <div class="gender-row" id="editGenderRow">
+            <button class="gender-btn" data-gender="erkek">👨 Erkek</button>
+            <button class="gender-btn" data-gender="kadin">👩 Kadın</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="cancelProfile">İptal</button>
+          <button class="btn btn-primary" id="saveProfileEdit">Kaydet</button>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="cancelProfile">İptal</button>
-        <button class="btn btn-primary" id="saveProfileEdit">Kaydet</button>
+      <!-- Hediyelerim sekmesi -->
+      <div id="panelMyGifts" style="display:none;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Aldığın hediyeler — çevirmek istediğine tıkla</div>
+        <div id="myGiftsList" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;"></div>
+        <div id="myGiftsTotal" style="margin-top:12px;font-size:13px;color:var(--accent);"></div>
+        <div class="modal-footer" style="margin-top:12px;">
+          <button class="btn btn-secondary" id="cancelProfileFromGifts">Kapat</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1265,8 +1282,31 @@
       editGenderRow.querySelectorAll(".gender-btn").forEach(b => {
         b.classList.toggle("active", b.dataset.gender === editSelectedGender);
       });
+      switchProfileTab("profile");
       profileModal.classList.add("open");
     });
+
+    // Profil modal sekme yönetimi
+    function switchProfileTab(tab) {
+      const tP = document.getElementById("tabProfile");
+      const tG = document.getElementById("tabMyGifts");
+      const pP = document.getElementById("panelProfile");
+      const pG = document.getElementById("panelMyGifts");
+      if (tab === "profile") {
+        tP.style.borderBottomColor = "var(--accent)"; tP.style.color = "var(--accent)";
+        tG.style.borderBottomColor = "transparent";   tG.style.color = "var(--muted)";
+        pP.style.display = "block"; pG.style.display = "none";
+      } else {
+        tG.style.borderBottomColor = "var(--accent)"; tG.style.color = "var(--accent)";
+        tP.style.borderBottomColor = "transparent";   tP.style.color = "var(--muted)";
+        pG.style.display = "block"; pP.style.display = "none";
+        loadMyGifts();
+      }
+    }
+
+    document.getElementById("tabProfile").addEventListener("click",  () => switchProfileTab("profile"));
+    document.getElementById("tabMyGifts").addEventListener("click",  () => switchProfileTab("gifts"));
+    document.getElementById("cancelProfileFromGifts").addEventListener("click", () => profileModal.classList.remove("open"));
 
     cancelProfile.addEventListener("click", () => profileModal.classList.remove("open"));
 
@@ -1976,6 +2016,82 @@
       const offTitle = document.querySelector("#offlineFriendsSection > div:first-child");
       if (offTitle) offTitle.textContent = `👥 Arkadaşlar (${friends.length})`;
     }
+
+    // ── Hediyelerim ──────────────────────────────────────────────────
+    const GIFT_EMOJIS = {
+      cherry:'🍒', rose:'🌹', balloon:'🎈', heart:'❤️', cake:'🎂',
+      star:'⭐', fire:'🔥', crown:'👑', snowflake:'❄️', ghost:'👻',
+      teddy:'🧸', diamond:'💎', rocket:'🚀', ring:'💍', angel:'😇',
+      unicorn:'🦄', trophy:'🏆', dragon:'🐉', galaxy:'🌌'
+    };
+    const GIFT_NAMES = {
+      cherry:'Kiraz', rose:'Gül', balloon:'Balon', heart:'Kalp', cake:'Pasta',
+      star:'Yıldız', fire:'Ateş', crown:'Taç', snowflake:'Kar', ghost:'Hayalet',
+      teddy:'Ayıcık', diamond:'Elmas', rocket:'Roket', ring:'Yüzük', angel:'Melek',
+      unicorn:'Unicorn', trophy:'Kupa', dragon:'Ejderha', galaxy:'Galaksi'
+    };
+
+    async function loadMyGifts() {
+      if (!currentUser) return;
+      const box = document.getElementById("myGiftsList");
+      const total = document.getElementById("myGiftsTotal");
+      box.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:10px;">Yükleniyor...</div>';
+      const res   = await fetch(`/api/gifts/${currentUser.id}`).then(r => r.json()).catch(() => ({ gifts: [] }));
+      const gifts = res.gifts || [];
+
+      if (!gifts.length) {
+        box.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">Henüz hediye almadın</div>';
+        total.textContent = '';
+        return;
+      }
+
+      const unconverted = gifts.filter(g => !g.converted);
+      const totalVal    = unconverted.reduce((s, g) => s + (g.token_cost || 0), 0);
+      const earn        = Math.floor(totalVal * 0.7);
+      total.textContent = unconverted.length > 0
+        ? `Çevrilmemiş ${unconverted.length} hediye — toplam değer: ${totalVal} 🪙 → Sen alırsın: ${earn} 🪙`
+        : 'Tüm hediyeler çevrildi';
+
+      box.innerHTML = gifts.map(g => {
+        const emoji   = GIFT_EMOJIS[g.gift_type] || '🎁';
+        const name    = GIFT_NAMES[g.gift_type]  || g.gift_type;
+        const from    = escHtml(g.sender?.username || g.sender?.display_name || 'Bilinmiyor');
+        const userGet = Math.floor((g.token_cost || 0) * 0.7);
+        const date    = new Date(g.created_at).toLocaleDateString('tr-TR');
+        return `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;background:${g.converted ? 'rgba(255,255,255,0.03)' : 'rgba(255,200,0,0.07)'};border:1px solid ${g.converted ? 'rgba(255,255,255,0.06)' : 'rgba(255,200,0,0.2)'};">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:28px;">${emoji}</span>
+              <div>
+                <div style="font-size:13px;font-weight:bold;color:${g.converted ? 'var(--muted)' : 'var(--text)'};">${name} <span style="color:#ffe566;font-size:12px;">${g.token_cost} 🪙</span></div>
+                <div style="font-size:11px;color:var(--muted);">Gönderen: ${from} · ${date}</div>
+              </div>
+            </div>
+            ${g.converted
+              ? '<span style="font-size:11px;color:var(--muted);padding:4px 8px;border-radius:6px;background:rgba(255,255,255,0.06);">✅ Çevrildi</span>'
+              : `<button onclick="convertGift('${g.id}')" style="background:rgba(255,200,0,0.2);border:1px solid rgba(255,200,0,0.5);color:#ffe566;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;font-weight:bold;white-space:nowrap;">🪙 ${userGet} al</button>`
+            }
+          </div>`;
+      }).join('');
+    }
+
+    window.convertGift = async (giftId) => {
+      if (!currentUser) return;
+      try {
+        const res  = await fetch('/api/gifts/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ giftId, userId: currentUser.id })
+        });
+        const json = await res.json();
+        if (!json.ok) { alert(json.error || 'Çevirme başarısız'); return; }
+        if (currentProfile) currentProfile.tokens = json.newBalance;
+        updateTokenDisplay(json.newBalance);
+        await loadMyGifts();
+      } catch (err) {
+        console.error('convertGift hatası:', err);
+      }
+    };
 
     function escHtml(str) {
       return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
