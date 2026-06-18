@@ -306,9 +306,12 @@
     /* Token screen scroll fix */
     #token-screen {
       align-items: flex-start !important;
-      padding-top: 20px !important;
-      overflow-y: auto !important;
+      justify-content: flex-start !important;
+      padding: 20px !important;
+      overflow-y: scroll !important;
+      display: block !important;
     }
+    #token-screen.open { display: block !important; }
 
     @media (max-width: 1024px) {
       .layout { grid-template-columns: 1fr 1fr; }
@@ -457,7 +460,7 @@
 
   <!-- Jeton satın alma ekranı -->
   <div id="token-screen" class="screen" style="overflow-y:auto;">
-    <div class="card" style="max-height:none;overflow:visible;margin:20px auto;">
+    <div class="card" style="max-height:none;overflow:visible;margin:20px auto;max-width:520px;width:95%;">
       <div class="title">💰 Jeton Satın Al</div>
       <div class="subtitle">Cinsiyet filtresi kullanmak için jeton gereklidir.<br>Kadınla eşleş = 5 jeton / bağlantı</div>
       <div class="token-packages">
@@ -1071,7 +1074,7 @@
         "auth":       { el: authScreen,       display: "flex"  },
         "membership": { el: membershipScreen, display: "grid"  },
         "profile":    { el: profileScreen,    display: "grid"  },
-        "token":      { el: tokenScreen,      display: "grid"  },
+        "token":      { el: tokenScreen,      display: "block" },
         "main":       { el: mainApp,          display: "block" },
       };
 
