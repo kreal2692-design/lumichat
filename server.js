@@ -173,7 +173,12 @@ app.get('/api/friends/pending/:userId', async (req, res) => {
 
 // ── Hediye sistemi API'ları ──────────────────────────────────────────
 
-const GIFT_COSTS = { rose: 1, heart: 2, star: 3, crown: 5, diamond: 10 };
+const GIFT_COSTS = {
+  rose: 1, heart: 2, star: 3, crown: 5, diamond: 10,
+  cake: 3, balloon: 2, teddy: 8, ring: 15, rocket: 12,
+  unicorn: 20, trophy: 25, cherry: 1, fire: 4, snowflake: 6,
+  ghost: 7, angel: 18, dragon: 30, galaxy: 50
+};
 
 app.post('/api/gifts/send', async (req, res) => {
   const { senderId, receiverId, giftType } = req.body;
@@ -383,6 +388,7 @@ io.on('connection', (socket) => {
     const username     = typeof data.username === 'string' && data.username.trim() ? data.username.trim().slice(0, 24) : "Anonim";
     const age          = typeof data.age === 'number' && data.age > 0 ? data.age : null;
     const avatar       = typeof data.avatar === 'string' ? data.avatar.slice(0, 500) : null;
+    const userId       = typeof data.userId === 'string' ? data.userId : null; // DB id
 
     const match = findMatch(socket, genderFilter, myGender);
 
@@ -391,7 +397,7 @@ io.on('connection', (socket) => {
       const matchSocket = io.sockets.sockets.get(match.socketId);
 
       if (!matchSocket) {
-        waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar });
+        waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar, userId });
         socket.emit('waiting');
         return;
       }
@@ -399,12 +405,12 @@ io.on('connection', (socket) => {
       socket.join(roomName);
       matchSocket.join(roomName);
 
-      socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId, partnerUsername: match.username, partnerAge: match.age, partnerAvatar: match.avatar });
-      matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age,       partnerAvatar: avatar });
+      socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId, partnerUsername: match.username, partnerAge: match.age, partnerAvatar: match.avatar, partnerUserId: match.userId });
+      matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age,       partnerAvatar: avatar,       partnerUserId: userId });
 
       console.log(`Eşleşti: ${match.socketId}(${match.username}) <-> ${socket.id}(${username})`);
     } else {
-      waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar });
+      waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar, userId });
       socket.emit('waiting');
     }
   });
@@ -426,6 +432,16 @@ io.on('connection', (socket) => {
     const rooms = Array.from(socket.rooms);
     const roomName = rooms.find(r => r.includes('#'));
     if (roomName) socket.to(roomName).emit('typing', !!isTyping);
+  });
+
+  // Arkadaş isteği bildirimi — isteği alan socket'e ilet
+  socket.on('friendRequest', (data) => {
+    const { toSocketId, fromName } = data;
+    if (!toSocketId || typeof fromName !== 'string') return;
+    const targetSocket = io.sockets.sockets.get(toSocketId);
+    if (targetSocket) {
+      targetSocket.emit('friendRequest', { fromName: fromName.slice(0, 30) });
+    }
   });
 
   socket.on('message', (data) => {    // Flood kontrolü
