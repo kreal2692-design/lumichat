@@ -226,7 +226,14 @@ app.post('/api/gifts/send', async (req, res) => {
   // Hediyeyi kaydet
   const { error: giftErr } = await supabase
     .from('gifts')
-    .insert({ sender_id: senderId, receiver_id: receiverId, gift_type: giftType, token_cost: cost });
+    .insert({
+      sender_id:  senderId,
+      receiver_id: receiverId,
+      gift_type:  giftType,
+      name:       giftType,
+      emoji:      '',
+      token_cost: cost
+    });
 
   if (giftErr) return res.status(500).json({ error: giftErr.message });
 
