@@ -303,6 +303,13 @@
       padding: 10px 12px; font-size: 12px; max-width: 420px; white-space: pre-wrap;
     }
 
+    /* Token screen scroll fix */
+    #token-screen {
+      align-items: flex-start !important;
+      padding-top: 20px !important;
+      overflow-y: auto !important;
+    }
+
     @media (max-width: 1024px) {
       .layout { grid-template-columns: 1fr 1fr; }
       .chat-container { grid-column: 1 / -1; min-height: 420px; }
