@@ -575,6 +575,7 @@
           <div id="userInfo"></div>
           <div id="tokenDisplay" class="token-pill" title="Jeton satın al">🪙 0 Jeton</div>
           <div id="premiumBadge" style="display:none;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,200,0,0.5);background:rgba(255,200,0,0.12);color:#ffe566;font-size:14px;cursor:pointer;" title="Premium üye — tıkla">⭐ Premium</div>
+          <div id="getPremiumBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(255,200,0,0.3);background:rgba(255,200,0,0.06);color:#ffe566;font-size:14px;cursor:pointer;" title="Premium satın al" onclick="document.getElementById('premiumModal').classList.add('open')">⭐ Premium Al</div>
           <div id="statusText" class="status-pill">Yükleniyor</div>
           <!-- Arkadaşlar butonu (badge'li - istekler dahil) -->
           <div style="position:relative;display:inline-block;">
@@ -2571,6 +2572,8 @@
         const badge = document.getElementById("premiumBadge");
         if (json.is_premium) {
           badge.style.display = "inline-block";
+          const getPremiumBtn = document.getElementById("getPremiumBtn");
+          if (getPremiumBtn) getPremiumBtn.style.display = "none";
           const exp = json.premium_expires ? new Date(json.premium_expires).toLocaleDateString("tr-TR") : "";
           badge.title = exp ? `Premium — ${exp} tarihine kadar` : "Premium üye";
           badge.textContent = "⭐ Premium";
