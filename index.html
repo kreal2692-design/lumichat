@@ -793,42 +793,113 @@
 
   <!-- Premium modal -->
   <div class="modal-overlay" id="premiumModal">
-    <div class="modal" style="max-width:460px;max-height:90vh;overflow-y:auto;">
+    <div class="modal" style="max-width:480px;max-height:90vh;overflow-y:auto;">
       <div class="modal-title">⭐ Premium Üyelik</div>
 
       <!-- Avantajlar listesi -->
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
-        <div style="font-size:12px;color:var(--accent);font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">✨ Premium Avantajları</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span style="color:#2ecc71;">✅</span> Reklam gösterilmez</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span style="color:#2ecc71;">✅</span> ⭐ Premium rozeti — profilinde görünür</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span style="color:#2ecc71;">✅</span> Her gün <span style="color:#ffe566;font-weight:bold;margin:0 3px;">+50 🪙</span> ücretsiz jeton</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span style="color:#2ecc71;">✅</span> Sınırsız hediye gönderme</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span style="color:#2ecc71;">✅</span> Öncelikli eşleşme</div>
-        <div style="font-size:12px;color:var(--muted);font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin:8px 0 4px;">❌ Ücretsiz Üyelik Kısıtları</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);"><span style="color:#ff7675;">❌</span> Eşleşme arası reklam</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);"><span style="color:#ff7675;">❌</span> Günde max 5 hediye gönderme</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;padding:14px;background:rgba(255,200,0,0.06);border-radius:12px;border:1px solid rgba(255,200,0,0.15);">
+        <div style="font-size:12px;color:#ffe566;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">✨ Premium Avantajları</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span>✅</span> Reklam gösterilmez</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span>✅</span> ⭐ Premium rozeti — profilinde görünür</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span>✅</span> Her gün <span style="color:#ffe566;font-weight:bold;margin:0 3px;">+50 🪙</span> ücretsiz jeton</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span>✅</span> Sınırsız hediye gönderme</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;"><span>✅</span> Öncelikli eşleşme</div>
       </div>
 
       <!-- Paketler -->
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
-        <div class="premium-pkg" data-pkg="week" style="padding:16px;border-radius:14px;border:1px solid rgba(255,200,0,0.25);background:rgba(255,200,0,0.06);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.2s;">
-          <div><div style="font-weight:bold;">7 Günlük</div><div style="font-size:12px;color:var(--muted);">Haftalık plan</div></div>
-          <div style="font-size:18px;font-weight:bold;color:#ffe566;">₺149</div>
+
+        <!-- 7 Günlük -->
+        <div class="premium-pkg" data-pkg="week" data-price="30" data-days="7" style="padding:16px;border-radius:14px;border:1px solid rgba(255,200,0,0.25);background:rgba(255,200,0,0.06);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.2s;">
+          <div>
+            <div style="font-weight:bold;font-size:15px;">7 Günlük</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">₺4.28/gün</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:20px;font-weight:bold;color:#ffe566;">₺30</div>
+          </div>
         </div>
-        <div class="premium-pkg" data-pkg="month" style="padding:16px;border-radius:14px;border:1px solid rgba(255,200,0,0.4);background:rgba(255,200,0,0.1);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.2s;position:relative;">
+
+        <!-- 30 Günlük -->
+        <div class="premium-pkg" data-pkg="month" data-price="150" data-days="30" style="padding:16px;border-radius:14px;border:1px solid rgba(255,200,0,0.4);background:rgba(255,200,0,0.1);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.2s;position:relative;">
           <div style="position:absolute;top:-8px;right:12px;background:#ffe566;color:#333;font-size:10px;font-weight:bold;padding:2px 8px;border-radius:999px;">Popüler</div>
-          <div><div style="font-weight:bold;">30 Günlük</div><div style="font-size:12px;color:var(--muted);">Aylık plan</div></div>
-          <div style="font-size:18px;font-weight:bold;color:#ffe566;">₺399</div>
+          <div>
+            <div style="font-weight:bold;font-size:15px;">30 Günlük</div>
+            <div style="font-size:11px;color:#2ecc71;margin-top:2px;">₺5.00/gün</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:20px;font-weight:bold;color:#ffe566;">₺150</div>
+          </div>
         </div>
-        <div class="premium-pkg" data-pkg="year" style="padding:16px;border-radius:14px;border:1px solid rgba(255,200,0,0.25);background:rgba(255,200,0,0.06);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.2s;">
-          <div><div style="font-weight:bold;">365 Günlük</div><div style="font-size:12px;color:var(--muted);">Yıllık plan — en avantajlı</div></div>
-          <div style="font-size:18px;font-weight:bold;color:#ffe566;">₺999</div>
+
+        <!-- 90 Günlük -->
+        <div class="premium-pkg" data-pkg="quarter" data-price="299" data-days="90" style="padding:16px;border-radius:14px;border:1px solid rgba(255,200,0,0.3);background:rgba(255,200,0,0.07);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.2s;">
+          <div>
+            <div style="font-weight:bold;font-size:15px;">90 Günlük</div>
+            <div style="font-size:11px;color:#2ecc71;margin-top:2px;">₺3.32/gün · %22 indirim</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:20px;font-weight:bold;color:#ffe566;">₺299</div>
+            <div style="font-size:11px;color:var(--muted);text-decoration:line-through;">₺384</div>
+          </div>
+        </div>
+
+        <!-- 365 Günlük -->
+        <div class="premium-pkg" data-pkg="year" data-price="699" data-days="365" style="padding:16px;border-radius:14px;border:1px solid rgba(255,160,0,0.5);background:rgba(255,160,0,0.1);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.2s;position:relative;">
+          <div style="position:absolute;top:-8px;left:12px;background:linear-gradient(135deg,#ff9944,#ffe566);color:#333;font-size:10px;font-weight:bold;padding:2px 8px;border-radius:999px;">🔥 En Avantajlı</div>
+          <div>
+            <div style="font-weight:bold;font-size:15px;">365 Günlük</div>
+            <div style="font-size:11px;color:#2ecc71;margin-top:2px;">₺1.91/gün · %55 indirim</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:20px;font-weight:bold;color:#ffe566;">₺699</div>
+            <div style="font-size:11px;color:var(--muted);text-decoration:line-through;">₺1560</div>
+          </div>
         </div>
       </div>
+
+      <!-- Ödeme yöntemi -->
+      <div id="premiumPaymentSection" style="display:none;margin-bottom:16px;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-align:center;">Ödeme yöntemi seç:</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="padding:14px 16px;border-radius:12px;border:1px solid rgba(128,0,255,0.3);background:rgba(128,0,255,0.08);cursor:pointer;" onclick="showPremiumPaymentDetail('papara')">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:22px;">💜</span>
+                <div><div style="font-weight:bold;font-size:14px;">Papara ile Öde</div><div style="font-size:12px;color:var(--muted);">Anında transfer</div></div>
+              </div>
+              <span style="color:#a855f7;">→</span>
+            </div>
+          </div>
+          <div style="padding:14px 16px;border-radius:12px;border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);cursor:pointer;" onclick="showPremiumPaymentDetail('iban')">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:22px;">🏦</span>
+                <div><div style="font-weight:bold;font-size:14px;">Havale / EFT</div><div style="font-size:12px;color:var(--muted);">Tüm bankalar</div></div>
+              </div>
+              <span style="color:var(--accent);">→</span>
+            </div>
+          </div>
+        </div>
+        <div id="premiumPaymentDetail" style="display:none;margin-top:12px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);">
+          <div id="premiumPaymentContent"></div>
+          <div style="margin-top:12px;padding:10px;background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.2);border-radius:8px;">
+            <div style="font-size:12px;color:#ffe566;font-weight:bold;">⚠️ Önemli:</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;" id="premiumPaymentNote"></div>
+          </div>
+        </div>
+      </div>
+
       <div id="premiumStatus" style="font-size:13px;color:var(--muted);margin-bottom:12px;"></div>
-      <div class="modal-footer">
+      <div style="margin-top:8px;padding:10px;background:rgba(255,255,255,0.04);border-radius:8px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">⏳ Gecikme yaşanırsa destek için:</div>
+        <a href="https://www.instagram.com/LumiMatch" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:white;text-decoration:none;font-size:12px;font-weight:bold;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          @LumiMatch
+        </a>
+      </div>
+      <div class="modal-footer" style="margin-top:12px;">
         <button class="btn btn-secondary" id="closePremiumModal">Kapat</button>
-        <button class="btn" id="buyPremiumBtn" style="background:#ffe566;color:#333;font-weight:bold;" disabled>Satın Al (Yakında)</button>
       </div>
     </div>
   </div>
@@ -2448,14 +2519,48 @@
     closePremiumModal.addEventListener("click", () => premiumModal.classList.remove("open"));
     premiumModal.addEventListener("click", (e) => { if (e.target === premiumModal) premiumModal.classList.remove("open"); });
 
+    let selectedPremiumPkg = null;
+
     document.querySelectorAll(".premium-pkg").forEach(pkg => {
       pkg.addEventListener("click", () => {
         document.querySelectorAll(".premium-pkg").forEach(p => p.style.borderColor = "rgba(255,200,0,0.25)");
         pkg.style.borderColor = "#ffe566";
-        document.getElementById("buyPremiumBtn").dataset.pkg = pkg.dataset.pkg;
-        document.getElementById("premiumStatus").textContent = `Seçilen: ${pkg.querySelector("div div").textContent} — ${pkg.querySelectorAll("div")[1].textContent}`;
+        selectedPremiumPkg = { pkg: pkg.dataset.pkg, price: pkg.dataset.price, days: pkg.dataset.days };
+        document.getElementById("premiumStatus").textContent = `Seçilen: ${pkg.querySelector("div div:first-child").textContent} — ₺${pkg.dataset.price}`;
+        document.getElementById("premiumPaymentSection").style.display = "block";
+        document.getElementById("premiumPaymentDetail").style.display = "none";
       });
     });
+
+    window.showPremiumPaymentDetail = (method) => {
+      if (!selectedPremiumPkg) return;
+      const detail  = document.getElementById("premiumPaymentDetail");
+      const content = document.getElementById("premiumPaymentContent");
+      const note    = document.getElementById("premiumPaymentNote");
+      const price   = selectedPremiumPkg.price;
+      const days    = selectedPremiumPkg.days;
+      detail.style.display = "block";
+
+      if (method === "papara") {
+        content.innerHTML = `
+          <div style="font-size:13px;font-weight:bold;margin-bottom:8px;color:#a855f7;">💜 Papara ile Ödeme</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Papara No:</span><span style="font-weight:bold;cursor:pointer;" onclick="navigator.clipboard.writeText('1620279711')">1620279711 📋</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Ad Soyad:</span><span style="font-weight:bold;">Eyüp Güneş</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Tutar:</span><span style="font-weight:bold;color:#ffe566;">₺${price}</span></div>
+          </div>`;
+      } else {
+        content.innerHTML = `
+          <div style="font-size:13px;font-weight:bold;margin-bottom:8px;color:var(--accent);">🏦 Havale / EFT</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">IBAN:</span><span style="font-weight:bold;font-size:12px;cursor:pointer;" onclick="navigator.clipboard.writeText('TR54008290000949162027 9711')">TR54 0082 9000 0949 1620 2797 11 📋</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Ad Soyad:</span><span style="font-weight:bold;">Eyüp Güneş</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Banka:</span><span style="font-weight:bold;">Garanti BBVA</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Tutar:</span><span style="font-weight:bold;color:#ffe566;">₺${price}</span></div>
+          </div>`;
+      }
+      note.textContent = `Açıklama kısmına adınızı ve soyadınızı yazarak ₺${price} gönderin. Ödeme onaylandıktan sonra ${days} günlük Premium üyeliğiniz aktif edilecektir (genellikle 1-2 saat içinde).`;
+    };
 
     // Premium durumunu kontrol et ve badge göster/gizle
     async function checkPremiumStatus() {
