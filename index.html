@@ -576,6 +576,7 @@
           <div id="tokenDisplay" class="token-pill" title="Jeton satın al">🪙 0 Jeton</div>
           <div id="premiumBadge" style="display:none;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,200,0,0.5);background:rgba(255,200,0,0.12);color:#ffe566;font-size:14px;cursor:pointer;" title="Premium üye — tıkla">⭐ Premium</div>
           <div id="getPremiumBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(255,200,0,0.3);background:rgba(255,200,0,0.06);color:#ffe566;font-size:14px;cursor:pointer;" title="Premium satın al" onclick="document.getElementById('premiumModal').classList.add('open')">⭐ Premium Al</div>
+          <div id="watchAdBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);color:var(--accent);font-size:14px;cursor:pointer;" title="Reklam izle, jeton kazan" onclick="startRewardedAd()">📺 +10 🪙</div>
           <div id="statusText" class="status-pill">Yükleniyor</div>
           <!-- Arkadaşlar butonu (badge'li - istekler dahil) -->
           <div style="position:relative;display:inline-block;">
@@ -2479,6 +2480,133 @@
           btn.style.opacity = "0.5";
         }
       } catch(e) { btn.disabled = false; }
+    };
+
+    // ── Ödüllü Reklam ────────────────────────────────────────────────
+    const AD_REWARD       = 10;    // Kazanılacak jeton
+    const AD_DURATION     = 15;    // Saniye
+    const AD_COOLDOWN_MIN = 30;    // Dakika cinsinden bekleme süresi
+    let adLastWatched     = null;
+    let adTimer           = null;
+
+    window.startRewardedAd = () => {
+      if (!currentUser) return;
+
+      // Cooldown kontrolü
+      if (adLastWatched) {
+        const diffMin = (Date.now() - adLastWatched) / 60000;
+        if (diffMin < AD_COOLDOWN_MIN) {
+          const remaining = Math.ceil(AD_COOLDOWN_MIN - diffMin);
+          alert(`Bir sonraki reklamı ${remaining} dakika sonra izleyebilirsin.`);
+          return;
+        }
+      }
+
+      // Modal oluştur
+      const modal = document.createElement('div');
+      modal.id = 'adModal';
+      modal.style.cssText = `
+        position:fixed;inset:0;z-index:99999;
+        background:rgba(0,0,0,0.92);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        padding:20px;
+      `;
+      modal.innerHTML = `
+        <div style="max-width:480px;width:100%;background:rgba(10,20,35,0.98);border:1px solid rgba(0,229,255,0.25);border-radius:20px;padding:28px;text-align:center;">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Reklamı izleyerek jeton kazan</div>
+
+          <!-- Simüle reklam alanı — gerçek reklam buraya gelecek -->
+          <div style="width:100%;height:220px;background:linear-gradient(135deg,#0a1a2e,#1a2a4e);border-radius:14px;border:1px solid rgba(0,229,255,0.15);display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:20px;position:relative;overflow:hidden;">
+            <div style="font-size:48px;margin-bottom:12px;animation:adIconBounce 1s ease infinite alternate;">📺</div>
+            <div style="font-size:15px;color:white;font-weight:bold;">Reklam Yükleniyor...</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px;">LumiMatch reklamı</div>
+            <!-- Animasyonlu çubuk -->
+            <div style="position:absolute;bottom:0;left:0;height:3px;background:var(--accent);animation:adLoadBar ${AD_DURATION}s linear forwards;" id="adProgressBar"></div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;">
+            <div style="font-size:32px;font-weight:bold;color:var(--accent);" id="adCountdown">${AD_DURATION}</div>
+            <div style="font-size:14px;color:var(--muted);">saniye sonra<br>jeton kazanacaksın</div>
+          </div>
+
+          <div style="font-size:15px;color:#ffe566;font-weight:bold;margin-bottom:16px;">+${AD_REWARD} 🪙 kazanacaksın</div>
+
+          <button id="adCloseBtn" disabled onclick="finishAd()" style="width:100%;padding:14px;border-radius:12px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:var(--muted);font-size:15px;cursor:not-allowed;font-weight:bold;">
+            Bekle... (${AD_DURATION}s)
+          </button>
+          <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.2);">Reklamı kapatırsan jeton kazanamazsın</div>
+        </div>
+      `;
+
+      // CSS
+      if (!document.getElementById('adAnimStyles')) {
+        const style = document.createElement('style');
+        style.id = 'adAnimStyles';
+        style.textContent = `
+          @keyframes adIconBounce { from { transform:translateY(0); } to { transform:translateY(-8px); } }
+          @keyframes adLoadBar { from { width:0%; } to { width:100%; } }
+        `;
+        document.head.appendChild(style);
+      }
+
+      document.body.appendChild(modal);
+
+      // Sayaç
+      let remaining = AD_DURATION;
+      adTimer = setInterval(() => {
+        remaining--;
+        const countdown = document.getElementById('adCountdown');
+        const closeBtn  = document.getElementById('adCloseBtn');
+        if (countdown) countdown.textContent = remaining;
+        if (remaining <= 0) {
+          clearInterval(adTimer);
+          if (closeBtn) {
+            closeBtn.disabled = false;
+            closeBtn.style.background = 'rgba(0,229,255,0.2)';
+            closeBtn.style.borderColor = 'var(--accent)';
+            closeBtn.style.color = 'var(--accent)';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.textContent = `🎉 ${AD_REWARD} Jetonu Al!`;
+          }
+        } else {
+          if (closeBtn) closeBtn.textContent = `Bekle... (${remaining}s)`;
+        }
+      }, 1000);
+    };
+
+    window.finishAd = async () => {
+      clearInterval(adTimer);
+      document.getElementById('adModal')?.remove();
+      adLastWatched = Date.now();
+
+      // Jetonu ekle
+      try {
+        const { data: u } = await supabase.from("users").select("tokens").eq("id", currentUser.id).single();
+        const newTokens = (u?.tokens || 0) + AD_REWARD;
+        await supabase.from("users").update({ tokens: newTokens }).eq("id", currentUser.id);
+        if (currentProfile) currentProfile.tokens = newTokens;
+        updateTokenDisplay(newTokens);
+
+        // Bildirim
+        const notif = document.createElement('div');
+        notif.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;background:rgba(10,20,35,0.97);border:1px solid #2ecc71;border-radius:12px;padding:14px 20px;font-size:14px;color:white;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:fadeInUp 0.3s ease;';
+        notif.innerHTML = `🎉 <b>+${AD_REWARD} 🪙</b> jeton hesabına eklendi!<br><span style="font-size:12px;color:var(--muted);">${AD_COOLDOWN_MIN} dakika sonra tekrar izleyebilirsin.</span>`;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 4000);
+
+        // Butonu güncelle
+        const btn = document.getElementById('watchAdBtn');
+        if (btn) {
+          btn.textContent = `⏳ ${AD_COOLDOWN_MIN}dk`;
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'not-allowed';
+          setTimeout(() => {
+            btn.textContent = '📺 +10 🪙';
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+          }, AD_COOLDOWN_MIN * 60 * 1000);
+        }
+      } catch(e) { console.error('Ad reward hatası:', e); }
     };
 
     function escHtml(str) {
