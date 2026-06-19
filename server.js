@@ -386,6 +386,78 @@ app.get('/api/premium/status/:userId', async (req, res) => {
   res.json({ ok: true, is_premium: data.is_premium || false, premium_expires: data.premium_expires });
 });
 
+// ── Referans sistemi ─────────────────────────────────────────────────
+
+// Ref kodu oluştur veya getir
+app.get('/api/ref/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { data: user } = await supabase.from('users').select('ref_code, username').eq('id', userId).single();
+  if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+
+  let refCode = user.ref_code;
+  if (!refCode) {
+    // Kullanıcı adından ref kodu oluştur
+    refCode = (user.username || userId.slice(0, 8)).toLowerCase().replace(/[^a-z0-9]/g, '') + Math.floor(Math.random() * 1000);
+    await supabase.from('users').update({ ref_code: refCode }).eq('id', userId);
+  }
+  res.json({ ok: true, ref_code: refCode, link: `https://lumimatch.net/?ref=${refCode}` });
+});
+
+// Referans kaydı — yeni kullanıcı kayıt olduğunda
+app.post('/api/ref/apply', async (req, res) => {
+  const { newUserId, refCode } = req.body;
+  if (!newUserId || !refCode) return res.status(400).json({ error: 'Eksik parametre' });
+
+  // Ref kodu sahibini bul
+  const { data: refOwner } = await supabase.from('users').select('id, tokens, ref_count, referred_by').eq('ref_code', refCode).single();
+  if (!refOwner) return res.json({ ok: false, message: 'Geçersiz ref kodu' });
+
+  // Kendine ref uygulayamasın
+  if (refOwner.id === newUserId) return res.json({ ok: false, message: 'Kendi referans kodunu kullanamazsın' });
+
+  // Yeni kullanıcı daha önce ref aldı mı?
+  const { data: newUser } = await supabase.from('users').select('referred_by, tokens').eq('id', newUserId).single();
+  if (!newUser || newUser.referred_by) return res.json({ ok: false, message: 'Ref kodu zaten kullanılmış' });
+
+  // Yeni kullanıcıya 50 jeton ver + ref_by kaydet
+  await supabase.from('users').update({
+    tokens: (newUser.tokens || 0) + 50,
+    referred_by: refOwner.id
+  }).eq('id', newUserId);
+
+  // Ref sahibine 100 jeton ver + sayacı artır
+  await supabase.from('users').update({
+    tokens: (refOwner.tokens || 0) + 100,
+    ref_count: (refOwner.ref_count || 0) + 1
+  }).eq('id', refOwner.id);
+
+  res.json({ ok: true, bonus: 50 });
+});
+
+// ── Premium günlük jeton bonusu ───────────────────────────────────────
+app.post('/api/premium/daily-bonus', async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId gerekli' });
+
+  const { data: user } = await supabase.from('users').select('is_premium, tokens, last_daily_bonus').eq('id', userId).single();
+  if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+  if (!user.is_premium) return res.status(400).json({ error: 'Premium üyelik gerekli' });
+
+  // Bugün bonus aldı mı?
+  const now = new Date();
+  const last = user.last_daily_bonus ? new Date(user.last_daily_bonus) : null;
+  if (last && last.toDateString() === now.toDateString()) {
+    return res.json({ ok: false, message: 'Bugünkü bonusu zaten aldın', already_claimed: true });
+  }
+
+  await supabase.from('users').update({
+    tokens: (user.tokens || 0) + 50,
+    last_daily_bonus: now.toISOString()
+  }).eq('id', userId);
+
+  res.json({ ok: true, earned: 50, newBalance: (user.tokens || 0) + 50 });
+});
+
 // ── Sağlık kontrolü ──────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({
