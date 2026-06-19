@@ -5,6 +5,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LumiMatch</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#00e5ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LumiMatch" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#00e5ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LumiMatch" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <script src="/socket.io/socket.io.js"></script>
   <!-- Tarayıcı cache'ini tamamen devre dışı bırak -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
@@ -1846,6 +1860,13 @@
     });
 
     debug("Script hazır");
+
+    // Service Worker kaydet (PWA)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('[PWA] Service Worker kayıtlı'))
+        .catch(err => console.warn('[PWA] Service Worker hatası:', err));
+    }
 
     // Dil sistemini başlat
     buildLangDropdown();

@@ -88,6 +88,42 @@ function banIP(ip, durationMs = 30 * 60 * 1000) {
   }, durationMs);
 }
 
+// ── PWA İkonları ────────────────────────────────────────────────────
+app.get('/icons/:size', (req, res) => {
+  const size = req.params.size === 'icon-512.png' ? 512 : 192;
+  const r = Math.round(size * 0.18); // border-radius
+  const boxSize = Math.round(size * 0.55);
+  const boxX = Math.round((size - boxSize) / 2);
+  const boxY = Math.round((size - boxSize) / 2) - Math.round(size * 0.05);
+  const fontSize = Math.round(boxSize * 0.58);
+  const textY = Math.round(boxY + boxSize * 0.62);
+  const labelY = Math.round(size * 0.88);
+  const labelSize = Math.round(size * 0.09);
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#07131a"/>
+        <stop offset="100%" style="stop-color:#0b0f17"/>
+      </linearGradient>
+      <linearGradient id="box" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:rgba(0,229,255,0.3)"/>
+        <stop offset="100%" style="stop-color:rgba(0,80,180,0.4)"/>
+      </linearGradient>
+    </defs>
+    <!-- Arka plan -->
+    <rect width="${size}" height="${size}" rx="${r}" fill="url(#bg)"/>
+    <!-- Mavi kutu -->
+    <rect x="${boxX}" y="${boxY}" width="${boxSize}" height="${boxSize}" rx="${Math.round(boxSize*0.22)}" fill="url(#box)" stroke="rgba(0,229,255,0.4)" stroke-width="${Math.round(size*0.015)}"/>
+    <!-- Emoji -->
+    <text x="${size/2}" y="${textY}" font-size="${fontSize}" text-anchor="middle">💬</text>
+    <!-- LumiMatch yazısı -->
+    <text x="${size/2}" y="${labelY}" font-size="${labelSize}" text-anchor="middle" fill="#00e5ff" font-family="Arial" font-weight="800" letter-spacing="1">LumiMatch</text>
+  </svg>`;
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.send(svg);
+});
+
 // ── Statik dosyalar ──────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.static(__dirname));
