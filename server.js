@@ -875,8 +875,15 @@ app.get('/api/admin/users', adminAuth, async (req, res) => {
 
 // Admin: kullanıcıyı ban/unban
 app.post('/api/admin/ban', adminAuth, async (req, res) => {
-  const { userId, ban, reason } = req.body;
+  let { userId, ban, reason } = req.body;
   if (!userId) return res.status(400).json({ error: 'userId gerekli' });
+
+  // E-posta ile arama desteği
+  if (userId.includes('@')) {
+    const { data: found } = await supabase.from('users').select('id').eq('email', userId).single();
+    if (!found) return res.status(404).json({ error: 'E-posta ile kullanıcı bulunamadı' });
+    userId = found.id;
+  }
 
   const { error } = await supabase.from('users').update({ is_banned: !!ban }).eq('id', userId);
   if (error) return res.status(500).json({ error: error.message });
@@ -897,8 +904,15 @@ app.post('/api/admin/ban', adminAuth, async (req, res) => {
 
 // Admin: kullanıcıya jeton ver
 app.post('/api/admin/give-tokens', adminAuth, async (req, res) => {
-  const { userId, amount, note } = req.body;
+  let { userId, amount, note } = req.body;
   if (!userId || !amount) return res.status(400).json({ error: 'userId ve amount gerekli' });
+
+  // E-posta ile arama desteği
+  if (userId.includes('@')) {
+    const { data: found } = await supabase.from('users').select('id').eq('email', userId).single();
+    if (!found) return res.status(404).json({ error: 'E-posta ile kullanıcı bulunamadı' });
+    userId = found.id;
+  }
 
   const { data: user } = await supabase.from('users').select('tokens').eq('id', userId).single();
   if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
@@ -946,8 +960,15 @@ app.get('/api/admin/stats', adminAuth, async (req, res) => {
 
 // Admin: premium ver/kaldır
 app.post('/api/admin/premium', adminAuth, async (req, res) => {
-  const { userId, grant, days } = req.body;
+  let { userId, grant, days } = req.body;
   if (!userId) return res.status(400).json({ error: 'userId gerekli' });
+
+  // E-posta ile arama desteği
+  if (userId.includes('@')) {
+    const { data: found } = await supabase.from('users').select('id').eq('email', userId).single();
+    if (!found) return res.status(404).json({ error: 'E-posta ile kullanıcı bulunamadı' });
+    userId = found.id;
+  }
 
   if (grant) {
     const d = parseInt(days || '30');
