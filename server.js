@@ -420,10 +420,10 @@ app.post('/api/nick-color/buy', async (req, res) => {
 
 // ── Jetonla Premium al ───────────────────────────────────────────────
 const TOKEN_PREMIUM_PACKAGES = {
-  week:    { tokens: 30,  days: 7   },
-  month:   { tokens: 140, days: 30  },
-  quarter: { tokens: 270, days: 90  },
-  year:    { tokens: 600, days: 365 }
+  week:    { tokens: 90,   days: 7   },
+  month:   { tokens: 330,  days: 30  },
+  quarter: { tokens: 870,  days: 90  },
+  year:    { tokens: 2810, days: 365 }
 };
 
 app.post('/api/premium/buy-with-tokens', async (req, res) => {
