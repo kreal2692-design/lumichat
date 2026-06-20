@@ -1888,7 +1888,14 @@
     socket.on("strangerLeft", () => {
       typingIndicator.classList.remove("visible");
       const remoteLabel = document.querySelector(".box:nth-child(2) .video-label");
-      if (remoteLabel) remoteLabel.textContent = t(currentLang, "remoteLabel");
+      if (remoteLabel) {
+        remoteLabel.textContent = t(currentLang, "remoteLabel");
+        remoteLabel.style.color = '';
+        remoteLabel.style.background = '';
+        remoteLabel.style.webkitBackgroundClip = '';
+        remoteLabel.style.backgroundClip = '';
+        remoteLabel.style.webkitTextFillColor = '';
+      }
       resetChatState(t(currentLang, "msgStrangerLeft"));
       setStatus(t(currentLang, "statusLeft"));
     });
@@ -1908,13 +1915,23 @@
       const remoteLabel = document.getElementById("remoteLabel") || document.querySelector(".box:nth-child(2) .video-label");
       if (remoteLabel) {
         remoteLabel.textContent = partnerName;
+        // Önce tüm renk stillerini sıfırla
+        remoteLabel.style.color = '';
+        remoteLabel.style.background = '';
+        remoteLabel.style.webkitBackgroundClip = '';
+        remoteLabel.style.backgroundClip = '';
+        remoteLabel.style.webkitTextFillColor = '';
+
         const pColor = data.partnerNickColor;
         if (pColor && pColor !== 'rainbow') {
           remoteLabel.style.color = pColor;
         } else if (pColor === 'rainbow') {
+          remoteLabel.style.display = 'inline-block';
           remoteLabel.style.background = 'linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7)';
           remoteLabel.style.webkitBackgroundClip = 'text';
+          remoteLabel.style.backgroundClip = 'text';
           remoteLabel.style.webkitTextFillColor = 'transparent';
+          remoteLabel.style.color = 'transparent';
         }
       }
 
