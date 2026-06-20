@@ -829,6 +829,283 @@ io.on('connection', (socket) => {
   socket.on('error', (err) => {
     console.error(`[SOCKET ERROR] ${socket.id}: ${err.message}`);
   });
+
+  // DM socket bildirimi (gerçek zamanlı — DB kaydı API üzerinden yapılıyor)
+  socket.on('dmTyping', (data) => {
+    const { toUserId, isTyping } = data;
+    if (!toUserId) return;
+    const targetSocketId = onlineUsers.get(toUserId);
+    if (targetSocketId) {
+      const sock = io.sockets.sockets.get(targetSocketId);
+      if (sock) sock.emit('dmTyping', { fromUserId: socket.userId, isTyping: !!isTyping });
+    }
+  });
+});
+
+// ── Admin API'ları ────────────────────────────────────────────────────
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'lumiadmin2025';
+
+function adminAuth(req, res, next) {
+  const token = req.headers['x-admin-token'] || req.query.token;
+  if (token !== ADMIN_SECRET) return res.status(401).json({ error: 'Yetkisiz' });
+  next();
+}
+
+// Admin: kullanıcı listesi
+app.get('/api/admin/users', adminAuth, async (req, res) => {
+  const page  = parseInt(req.query.page  || '1');
+  const limit = parseInt(req.query.limit || '50');
+  const search = req.query.search || '';
+  const from = (page - 1) * limit;
+
+  let query = supabase.from('users')
+    .select('id, username, email, gender, tokens, gift_balance, is_banned, is_premium, premium_expires, nick_color, created_at', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, from + limit - 1);
+
+  if (search) query = query.ilike('username', `%${search}%`);
+
+  const { data, error, count } = await query;
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, users: data || [], total: count || 0 });
+});
+
+// Admin: kullanıcıyı ban/unban
+app.post('/api/admin/ban', adminAuth, async (req, res) => {
+  const { userId, ban, reason } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId gerekli' });
+
+  const { error } = await supabase.from('users').update({ is_banned: !!ban }).eq('id', userId);
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Aktif socket varsa at
+  if (ban) {
+    const socketId = onlineUsers.get(userId);
+    if (socketId) {
+      const sock = io.sockets.sockets.get(socketId);
+      if (sock) { sock.emit('forceBanned'); sock.disconnect(true); }
+      onlineUsers.delete(userId);
+    }
+  }
+
+  console.log(`[ADMIN] ${ban ? 'Ban' : 'Unban'}: ${userId}${reason ? ' — ' + reason : ''}`);
+  res.json({ ok: true });
+});
+
+// Admin: kullanıcıya jeton ver
+app.post('/api/admin/give-tokens', adminAuth, async (req, res) => {
+  const { userId, amount, note } = req.body;
+  if (!userId || !amount) return res.status(400).json({ error: 'userId ve amount gerekli' });
+
+  const { data: user } = await supabase.from('users').select('tokens').eq('id', userId).single();
+  if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+
+  const newTokens = (user.tokens || 0) + parseInt(amount);
+  const { error } = await supabase.from('users').update({ tokens: newTokens }).eq('id', userId);
+  if (error) return res.status(500).json({ error: error.message });
+
+  console.log(`[ADMIN] Jeton verildi: ${userId} +${amount}${note ? ' — ' + note : ''}`);
+  res.json({ ok: true, newTokens });
+});
+
+// Admin: raporları listele
+app.get('/api/admin/reports', adminAuth, async (req, res) => {
+  const { data, error } = await supabase
+    .from('reports')
+    .select('id, reason, created_at, reporter_id, reported_socket_id')
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, reports: data || [] });
+});
+
+// Admin: istatistikler
+app.get('/api/admin/stats', adminAuth, async (req, res) => {
+  const [users, banned, premium, reports] = await Promise.all([
+    supabase.from('users').select('id', { count: 'exact', head: true }),
+    supabase.from('users').select('id', { count: 'exact', head: true }).eq('is_banned', true),
+    supabase.from('users').select('id', { count: 'exact', head: true }).eq('is_premium', true),
+    supabase.from('reports').select('id', { count: 'exact', head: true }),
+  ]);
+
+  res.json({
+    ok: true,
+    totalUsers:   users.count   || 0,
+    bannedUsers:  banned.count  || 0,
+    premiumUsers: premium.count || 0,
+    totalReports: reports.count || 0,
+    onlineNow:    onlineUsers.size,
+    waitingNow:   waitingUsers.length,
+    connections:  io.engine.clientsCount,
+  });
+});
+
+// Admin: premium ver/kaldır
+app.post('/api/admin/premium', adminAuth, async (req, res) => {
+  const { userId, grant, days } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId gerekli' });
+
+  if (grant) {
+    const d = parseInt(days || '30');
+    const expiresAt = new Date(Date.now() + d * 24 * 60 * 60 * 1000).toISOString();
+    const { error } = await supabase.from('users').update({ is_premium: true, premium_expires: expiresAt }).eq('id', userId);
+    if (error) return res.status(500).json({ error: error.message });
+  } else {
+    const { error } = await supabase.from('users').update({ is_premium: false, premium_expires: null }).eq('id', userId);
+    if (error) return res.status(500).json({ error: error.message });
+  }
+
+  res.json({ ok: true });
+});
+
+// Admin: kullanıcı detayı
+app.get('/api/admin/user/:userId', adminAuth, async (req, res) => {
+  const { userId } = req.params;
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, username, email, gender, tokens, gift_balance, is_banned, is_premium, premium_expires, nick_color, nick_color_expires, ref_code, ref_count, created_at')
+    .eq('id', userId)
+    .single();
+
+  if (error || !data) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+  res.json({ ok: true, user: data });
+});
+
+// ── DM (Direkt Mesaj) API'ları ────────────────────────────────────────
+
+// DM gönder (DB'ye kaydet)
+app.post('/api/dm/send', async (req, res) => {
+  const { senderId, receiverId, content } = req.body;
+  if (!senderId || !receiverId || !content?.trim()) return res.status(400).json({ error: 'Eksik parametre' });
+  if (content.length > 500) return res.status(400).json({ error: 'Mesaj çok uzun' });
+
+  // Arkadaş kontrolü
+  const { data: friendship } = await supabase
+    .from('friends')
+    .select('id')
+    .or(`and(requester_id.eq.${senderId},receiver_id.eq.${receiverId}),and(requester_id.eq.${receiverId},receiver_id.eq.${senderId})`)
+    .eq('status', 'accepted')
+    .maybeSingle();
+
+  if (!friendship) return res.status(403).json({ error: 'Sadece arkadaşlarla mesajlaşabilirsin' });
+
+  const { data, error } = await supabase.from('direct_messages').insert({
+    sender_id:   senderId,
+    receiver_id: receiverId,
+    content:     content.trim()
+  }).select('id, created_at').single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Gerçek zamanlı bildirim
+  const receiverSocketId = onlineUsers.get(receiverId);
+  if (receiverSocketId) {
+    const sock = io.sockets.sockets.get(receiverSocketId);
+    if (sock) {
+      const { data: sender } = await supabase.from('users').select('username').eq('id', senderId).single();
+      sock.emit('dmReceived', {
+        id:         data.id,
+        senderId,
+        senderName: sender?.username || 'Biri',
+        content:    content.trim(),
+        createdAt:  data.created_at
+      });
+    }
+  }
+
+  res.json({ ok: true, id: data.id, createdAt: data.created_at });
+});
+
+// DM geçmişi çek
+app.get('/api/dm/:userId/:friendId', async (req, res) => {
+  const { userId, friendId } = req.params;
+  const limit  = parseInt(req.query.limit  || '50');
+  const before = req.query.before;
+
+  let query = supabase
+    .from('direct_messages')
+    .select('id, sender_id, receiver_id, content, created_at, read_at')
+    .or(`and(sender_id.eq.${userId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${userId})`)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (before) query = query.lt('created_at', before);
+
+  const { data, error } = await query;
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Okunmamışları okundu olarak işaretle
+  await supabase.from('direct_messages')
+    .update({ read_at: new Date().toISOString() })
+    .eq('receiver_id', userId)
+    .eq('sender_id', friendId)
+    .is('read_at', null);
+
+  res.json({ ok: true, messages: (data || []).reverse() });
+});
+
+// Okunmamış DM sayısı
+app.get('/api/dm/unread/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { data, error } = await supabase
+    .from('direct_messages')
+    .select('sender_id')
+    .eq('receiver_id', userId)
+    .is('read_at', null);
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // sender_id'ye göre grupla
+  const counts = {};
+  (data || []).forEach(m => { counts[m.sender_id] = (counts[m.sender_id] || 0) + 1; });
+  res.json({ ok: true, total: (data || []).length, bySender: counts });
+});
+
+// Sohbet kaydını DB'ye kaydet
+app.post('/api/chat-log/save', async (req, res) => {
+  const { userId, partnerId, partnerName, messages } = req.body;
+  if (!userId || !messages?.length) return res.status(400).json({ error: 'Eksik parametre' });
+
+  const { error } = await supabase.from('chat_logs').insert({
+    user_id:      userId,
+    partner_id:   partnerId || null,
+    partner_name: partnerName || 'Bilinmiyor',
+    messages:     JSON.stringify(messages),
+    message_count: messages.length
+  });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// Kullanıcının kayıtlı sohbetleri
+app.get('/api/chat-log/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { data, error } = await supabase
+    .from('chat_logs')
+    .select('id, partner_name, message_count, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, logs: data || [] });
+});
+
+// Push notification subscription kaydet
+app.post('/api/push/subscribe', async (req, res) => {
+  const { userId, subscription } = req.body;
+  if (!userId || !subscription) return res.status(400).json({ error: 'Eksik parametre' });
+
+  const { error } = await supabase.from('push_subscriptions').upsert({
+    user_id:      userId,
+    subscription: JSON.stringify(subscription),
+    updated_at:   new Date().toISOString()
+  }, { onConflict: 'user_id' });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
 });
 
 // ── Sunucu başlat ────────────────────────────────────────────────────

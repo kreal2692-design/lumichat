@@ -630,6 +630,7 @@
         <button id="stopBtn" class="btn btn-secondary" style="display:none;">⏹ Dur</button>
         <button id="nextBtn" class="btn btn-secondary">Sıradaki</button>
         <button id="leaveBtn" class="btn btn-danger">Ayrıl</button>
+        <button id="saveChatBtn" class="btn btn-secondary" style="display:none;" title="Sohbeti kaydet">💾 Kaydet</button>
       </div>
     </div>
   </div>
@@ -673,6 +674,14 @@
       <!-- Profil sekmesi -->
       <div id="panelProfile">
         <div class="modal-title">👤 Profilini Düzenle</div>
+        <!-- Avatar -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:12px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
+          <div id="profileAvatarThumb" style="width:60px;height:60px;border-radius:50%;background:rgba(0,229,255,0.1);border:2px solid rgba(0,229,255,0.3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">👤</div>
+          <div>
+            <div style="font-size:14px;font-weight:bold;margin-bottom:4px;">Profil Fotoğrafı</div>
+            <button class="btn btn-secondary" onclick="document.getElementById('profileModal').classList.remove('open');document.getElementById('avatarModal').classList.add('open');loadAvatarPreview();" style="padding:6px 12px;font-size:12px;">📷 Değiştir</button>
+          </div>
+        </div>
         <div class="form-group">
           <label>Kullanıcı Adı</label>
           <input type="text" id="editUsernameInput" class="form-input" maxlength="24" />
@@ -824,7 +833,48 @@
     </div>
   </div>
 
-  <!-- Premium modal -->
+  <!-- DM Modal -->
+  <div class="modal-overlay" id="dmModal">
+    <div class="modal" style="max-width:520px;display:flex;flex-direction:column;height:80vh;max-height:600px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0;">
+        <div class="modal-title" id="dmModalTitle" style="margin-bottom:0;">💬 Mesajlar</div>
+        <button class="btn btn-secondary" id="closeDmModal" style="padding:6px 12px;font-size:13px;">✕</button>
+      </div>
+      <div id="dmMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(0,0,0,0.15);margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <input type="text" id="dmInput" placeholder="Mesaj yaz..." style="flex:1;" maxlength="500" />
+        <button class="btn btn-primary" id="dmSendBtn" style="padding:10px 16px;">Gönder</button>
+      </div>
+      <div id="dmTypingIndicator" style="font-size:12px;color:var(--muted);margin-top:6px;height:16px;"></div>
+    </div>
+  </div>
+
+  <!-- Sohbet Kaydet Modal -->
+  <div class="modal-overlay" id="saveChatModal">
+    <div class="modal" style="max-width:400px;">
+      <div class="modal-title">💾 Sohbeti Kaydet</div>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Bu sohbet kaydedilecek. İstediğin zaman profilinden erişebilirsin.</p>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelSaveChat">İptal</button>
+        <button class="btn btn-primary" id="confirmSaveChat">💾 Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Avatar Yükleme Modal -->
+  <div class="modal-overlay" id="avatarModal">
+    <div class="modal" style="max-width:400px;text-align:center;">
+      <div class="modal-title">📷 Profil Fotoğrafı</div>
+      <div id="avatarPreview" style="width:100px;height:100px;border-radius:50%;background:rgba(0,229,255,0.1);border:2px solid rgba(0,229,255,0.3);margin:0 auto 16px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:40px;">👤</div>
+      <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" />
+      <button class="btn btn-secondary" onclick="document.getElementById('avatarFileInput').click()" style="width:100%;margin-bottom:10px;">📁 Fotoğraf Seç</button>
+      <button class="btn btn-primary" id="uploadAvatarBtn" style="width:100%;display:none;">⬆️ Yükle</button>
+      <div id="avatarUploadStatus" style="margin-top:10px;font-size:13px;"></div>
+      <div class="modal-footer" style="margin-top:14px;">
+        <button class="btn btn-secondary" onclick="document.getElementById('avatarModal').classList.remove('open')">Kapat</button>
+      </div>
+    </div>
+  </div>
   <div class="modal-overlay" id="premiumModal">
     <div class="modal" style="max-width:480px;max-height:90vh;overflow-y:auto;">
       <div class="modal-title">⭐ Premium Üyelik</div>
@@ -1421,6 +1471,9 @@
       const addFriendBtn = document.getElementById("addFriendBtn");
       if (giftBtn)     giftBtn.style.display     = "none";
       if (addFriendBtn) addFriendBtn.style.display = "none";
+      // Sohbet kaydet butonunu gizle
+      const saveChatBtn = document.getElementById("saveChatBtn");
+      if (saveChatBtn) saveChatBtn.style.display = "none";
     }
 
     function sendMessage() {
@@ -1946,6 +1999,7 @@
       // Partner butonlarını göster
       document.getElementById("giftBtn").style.display      = "inline-block";
       document.getElementById("addFriendBtn").style.display = "inline-block";
+      document.getElementById("saveChatBtn").style.display  = "inline-flex";
       
       msgInput.focus();
       createPeerConnection();
@@ -2044,6 +2098,12 @@
 
         // Nick rengini uygula
         if (currentProfile.nick_color) applyNickColor(currentProfile.nick_color);
+
+        // Avatar thumbnail güncelle
+        if (currentProfile.avatar) {
+          const thumb = document.getElementById('profileAvatarThumb');
+          if (thumb) thumb.innerHTML = `<img src="${currentProfile.avatar}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='👤'"/>`;
+        }
 
         if (userInfo) {
           const uname = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
@@ -2386,6 +2446,7 @@
             <span style="font-size:14px;font-weight:500;">${name}</span>
           </div>
           ${isOnline && friendId ? `<button onclick="sendMatchInvite('${friendId}','${name}')" style="background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.4);color:var(--accent);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px;">🎯 Eşleş</button>` : ''}
+          ${friendId ? `<button onclick="openDM('${friendId}','${name}')" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#a855f7;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px;">💬 DM</button>` : ''}
         </div>`;
 
         if (isOnline) { onlineList.innerHTML += card; onlineCount++; }
@@ -2982,6 +3043,242 @@
     const _origHandleUserDone = () => { refreshFriendRequestBadge(); };
     // Badge periyodik yenile (30 saniyede bir)
     setInterval(() => { if (currentUser) refreshFriendRequestBadge(); }, 30000);
+
+    // ── DM Sistemi ────────────────────────────────────────────────────
+    let dmCurrentFriendId   = null;
+    let dmCurrentFriendName = '';
+    let dmTypingTimer       = null;
+    let dmUnreadBySender    = {};
+
+    window.openDM = async (friendId, friendName) => {
+      dmCurrentFriendId   = friendId;
+      dmCurrentFriendName = friendName;
+      document.getElementById('dmModalTitle').textContent = `💬 ${friendName}`;
+      document.getElementById('dmMessages').innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;">Yükleniyor...</div>';
+      document.getElementById('dmModal').classList.add('open');
+      // Arkadaşlar modalını kapat
+      document.getElementById('friendsModal').classList.remove('open');
+      await loadDMHistory();
+    };
+
+    async function loadDMHistory() {
+      if (!currentUser || !dmCurrentFriendId) return;
+      const res = await fetch(`/api/dm/${currentUser.id}/${dmCurrentFriendId}`).then(r => r.json()).catch(() => ({ messages: [] }));
+      const box = document.getElementById('dmMessages');
+      const msgs = res.messages || [];
+      if (!msgs.length) {
+        box.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;">Henüz mesaj yok. İlk mesajı sen gönder! 👋</div>';
+        return;
+      }
+      box.innerHTML = msgs.map(m => {
+        const isMe = m.sender_id === currentUser.id;
+        const time = new Date(m.created_at).toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+        return `<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};">
+          <div style="max-width:80%;padding:8px 12px;border-radius:${isMe?'14px 14px 4px 14px':'14px 14px 14px 4px'};background:${isMe?'rgba(0,229,255,0.18)':'rgba(255,255,255,0.1)'};word-break:break-word;font-size:14px;">${escHtml(m.content)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${time}</div>
+        </div>`;
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+      // Okunmamış badge'ini güncelle
+      if (dmUnreadBySender[dmCurrentFriendId]) {
+        delete dmUnreadBySender[dmCurrentFriendId];
+        updateDMBadge();
+      }
+    }
+
+    async function sendDM() {
+      const input = document.getElementById('dmInput');
+      const content = input.value.trim();
+      if (!content || !currentUser || !dmCurrentFriendId) return;
+      input.value = '';
+      const res = await fetch('/api/dm/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderId: currentUser.id, receiverId: dmCurrentFriendId, content })
+      }).then(r => r.json()).catch(() => null);
+      if (res?.ok) await loadDMHistory();
+      else if (res?.error) console.error('DM hata:', res.error);
+    }
+
+    document.getElementById('dmSendBtn').addEventListener('click', sendDM);
+    document.getElementById('dmInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendDM(); } });
+    document.getElementById('dmInput').addEventListener('input', () => {
+      if (!dmCurrentFriendId || !socket) return;
+      socket.emit('dmTyping', { toUserId: dmCurrentFriendId, isTyping: true });
+      clearTimeout(dmTypingTimer);
+      dmTypingTimer = setTimeout(() => socket.emit('dmTyping', { toUserId: dmCurrentFriendId, isTyping: false }), 1500);
+    });
+    document.getElementById('closeDmModal').addEventListener('click', () => {
+      document.getElementById('dmModal').classList.remove('open');
+      dmCurrentFriendId = null;
+    });
+    document.getElementById('dmModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('dmModal')) document.getElementById('dmModal').classList.remove('open');
+    });
+
+    // Gelen DM socket eventi
+    socket.on('dmReceived', (data) => {
+      // DM modal açıksa ve aynı göndericiyse yenile
+      if (dmCurrentFriendId === data.senderId && document.getElementById('dmModal').classList.contains('open')) {
+        loadDMHistory();
+      } else {
+        // Bildirim göster
+        dmUnreadBySender[data.senderId] = (dmUnreadBySender[data.senderId] || 0) + 1;
+        updateDMBadge();
+        showToast(`💬 ${escHtml(data.senderName)}: ${escHtml(data.content.slice(0,50))}`, () => {
+          openDM(data.senderId, data.senderName);
+        });
+      }
+    });
+
+    socket.on('dmTyping', (data) => {
+      if (data.fromUserId !== dmCurrentFriendId) return;
+      const el = document.getElementById('dmTypingIndicator');
+      if (data.isTyping) { el.textContent = `${dmCurrentFriendName} yazıyor...`; }
+      else { el.textContent = ''; }
+    });
+
+    function updateDMBadge() {
+      const total = Object.values(dmUnreadBySender).reduce((a, b) => a + b, 0);
+      // Friends butonuna badge ekle
+      const badge = document.getElementById('friendRequestsBadge');
+      if (badge && total > 0) { badge.style.display = 'block'; badge.textContent = total; }
+    }
+
+    // ── Push Notification ─────────────────────────────────────────────
+    async function requestPushPermission() {
+      if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+      if (Notification.permission === 'granted') return;
+      if (Notification.permission === 'denied') return;
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted' && currentUser) {
+        console.log('[PUSH] Bildirim izni verildi');
+      }
+    }
+
+    function showPushNotification(title, body, onClick) {
+      if (Notification.permission !== 'granted') return;
+      if (document.visibilityState === 'visible') return; // Sayfa açıkken gösterme
+      const n = new Notification(title, { body, icon: '/icons/icon-192.png' });
+      if (onClick) n.onclick = onClick;
+    }
+
+    function showToast(msg, onClick) {
+      const t = document.createElement('div');
+      t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(10,20,35,0.97);border:1px solid rgba(0,229,255,0.3);border-radius:12px;padding:12px 20px;font-size:14px;color:white;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.4);max-width:90vw;text-align:center;';
+      t.innerHTML = msg;
+      if (onClick) t.addEventListener('click', () => { t.remove(); onClick(); });
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 5000);
+    }
+
+    // Push bildirimlerini mevcut event'lere bağla
+    const _origFriendRequest = socket.listeners('friendRequest')[0];
+    socket.on('friendRequest', () => {
+      showPushNotification('LumiMatch', 'Yeni arkadaşlık isteği var!');
+    });
+    socket.on('matchInvite', () => {
+      showPushNotification('LumiMatch', 'Bir arkadaşın seninle eşleşmek istiyor!');
+    });
+
+    // ── Avatar Yükleme ────────────────────────────────────────────────
+    let selectedAvatarBlob = null;
+
+    function loadAvatarPreview() {
+      const thumb = document.getElementById('profileAvatarThumb');
+      const prev  = document.getElementById('avatarPreview');
+      const src   = currentProfile?.avatar;
+      if (src) {
+        thumb.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='👤'"/>`;
+        prev.innerHTML  = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='👤'"/>`;
+      } else {
+        thumb.textContent = '👤';
+        prev.textContent  = '👤';
+      }
+    }
+
+    document.getElementById('avatarFileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { alert('Dosya 2MB\'dan küçük olmalı.'); return; }
+      selectedAvatarBlob = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('avatarPreview').innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;"/>`;
+        document.getElementById('uploadAvatarBtn').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('uploadAvatarBtn').addEventListener('click', async () => {
+      if (!selectedAvatarBlob || !currentUser) return;
+      const status = document.getElementById('avatarUploadStatus');
+      status.textContent = 'Yükleniyor...';
+      status.style.color = 'var(--muted)';
+      try {
+        const ext      = selectedAvatarBlob.type.split('/')[1] || 'jpg';
+        const filePath = `avatars/${currentUser.id}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('avatars').upload(filePath, selectedAvatarBlob, { upsert: true, contentType: selectedAvatarBlob.type });
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        const avatarUrl = urlData.publicUrl;
+        await supabase.from('users').update({ avatar_url: avatarUrl }).eq('id', currentUser.id);
+        if (currentProfile) currentProfile.avatar = avatarUrl;
+        // Video label'ı güncelle (opsiyonel)
+        const ml = document.getElementById('myLabel');
+        if (ml) ml.textContent = currentProfile.username || 'Sen';
+        status.textContent = '✅ Fotoğraf güncellendi!';
+        status.style.color = 'var(--success)';
+        loadAvatarPreview();
+        document.getElementById('uploadAvatarBtn').style.display = 'none';
+        selectedAvatarBlob = null;
+      } catch (err) {
+        console.error('Avatar upload hatası:', err);
+        status.textContent = '❌ Yükleme başarısız: ' + (err.message || err);
+        status.style.color = 'var(--danger)';
+      }
+    });
+
+    // ── Sohbet Kayıt ─────────────────────────────────────────────────
+    let chatMessagesToSave = [];
+
+    // Eşleşilince kaydet butonu göster
+    const _origSetChatEnabled = setChatEnabled;
+
+    document.getElementById('saveChatBtn').addEventListener('click', () => {
+      document.getElementById('saveChatModal').classList.add('open');
+    });
+    document.getElementById('cancelSaveChat').addEventListener('click', () => {
+      document.getElementById('saveChatModal').classList.remove('open');
+    });
+    document.getElementById('confirmSaveChat').addEventListener('click', async () => {
+      document.getElementById('saveChatModal').classList.remove('open');
+      // Mevcut chatbox mesajlarını topla
+      const msgs = [];
+      document.querySelectorAll('#chatBox .message:not(.system)').forEach(el => {
+        msgs.push({ text: el.textContent, type: el.classList.contains('me') ? 'me' : 'other' });
+      });
+      if (!msgs.length) { addChatMessage('Kaydedilecek mesaj yok.', 'system'); return; }
+      try {
+        const res = await fetch('/api/chat-log/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentUser.id, partnerId: partnerUserId, partnerName, messages: msgs })
+        }).then(r => r.json());
+        if (res.ok) addChatMessage(`✅ Sohbet kaydedildi! (${msgs.length} mesaj)`, 'system');
+        else addChatMessage('❌ Kayıt başarısız: ' + res.error, 'system');
+      } catch (e) { addChatMessage('❌ Kayıt başarısız.', 'system'); }
+    });
+
+    // Eşleşince kaydet butonunu göster
+    socket.on('matched', () => {
+      document.getElementById('saveChatBtn').style.display = 'inline-flex';
+    });
+    // Reset'te gizle
+    const _origReset = resetChatState;
+
+    // Push izni iste (giriş sonrası)
+    setTimeout(() => { if (currentUser) requestPushPermission(); }, 3000);
 
   </script>
 </body>
