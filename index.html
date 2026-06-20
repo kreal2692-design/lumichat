@@ -1261,21 +1261,18 @@
       const msg = document.createElement("div");
       msg.className = `message ${type}`;
 
-      // "me" tipindeki mesajlarda nick rengini uygula
       if (type === "me" && currentProfile?.nick_color) {
-        const color = currentProfile.nick_color;
-        const colonIdx = text.indexOf(': ');
-        if (colonIdx > -1) {
-          const name    = text.slice(0, colonIdx);
-          const content = text.slice(colonIdx);
-          if (color === 'rainbow') {
-            msg.innerHTML = `<span style="background:linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;">${escHtml(name)}</span>${escHtml(content)}`;
-          } else {
-            msg.innerHTML = `<span style="color:${color};font-weight:bold;">${escHtml(name)}</span>${escHtml(content)}`;
-          }
+        const color     = currentProfile.nick_color;
+        const colonIdx  = text.indexOf(': ');
+        const name      = colonIdx > -1 ? text.slice(0, colonIdx) : '';
+        const content   = colonIdx > -1 ? text.slice(colonIdx + 2) : text;
+        let nameHtml;
+        if (color === 'rainbow') {
+          nameHtml = `<span style="background:linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;">${escHtml(name)}</span>`;
         } else {
-          msg.textContent = text;
+          nameHtml = `<span style="color:${color};font-weight:bold;">${escHtml(name)}</span>`;
         }
+        msg.innerHTML = name ? `${nameHtml}: ${escHtml(content)}` : escHtml(text);
       } else {
         msg.textContent = text;
       }
@@ -1432,7 +1429,8 @@
       const text = filterBadWords(raw);
       const hasBadWord = text !== raw;
 
-      addChatMessage("Sen: " + text, "me");
+      const myName = currentProfile?.username || 'Sen';
+      addChatMessage(myName + ": " + text, "me");
       socket.emit("message", text);
       msgInput.value = "";
 
@@ -1919,20 +1917,13 @@
           remoteLabel.style.webkitTextFillColor = 'transparent';
         }
       }
-      
-      // Kullanıcı adı - baş harf büyük, yaş yok
-      const rawName = data.partnerUsername || "Bilinmiyor";
-      partnerName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-      
+
       stopBtn.style.display  = "none";
       matchBtn.style.display = "inline-flex";
       setChatEnabled(true);
       setStatus(t(currentLang, "statusMatched"));
       addChatMessage(`${partnerName} ${t(currentLang, "msgMatched")}`, "system");
-      
-      // Video label ve typing indicator güncelle
-      const remoteLabel = document.getElementById("remoteLabel") || document.querySelector(".box:nth-child(2) .video-label");
-      if (remoteLabel) remoteLabel.textContent = partnerName;
+
       typingName.textContent = partnerName;
 
       // Partner butonlarını göster
