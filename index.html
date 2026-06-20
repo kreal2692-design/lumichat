@@ -2954,7 +2954,7 @@
       const { data } = await supabase.from("users").select("gift_balance").eq("id", currentUser.id).single();
       const bal = data?.gift_balance || 0;
       if (currentProfile) currentProfile.gift_balance = bal;
-      document.getElementById("giftBalanceDisplay").textContent = `🎁 ${bal}`;
+      // giftBalanceDisplay kaldırıldı, sadece profile'a kaydet
     }
 
     // Giriş yapınca badge'leri de kontrol et
