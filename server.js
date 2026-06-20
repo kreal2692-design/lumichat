@@ -632,15 +632,16 @@ io.on('connection', (socket) => {
 
   // Eşleşme daveti gönder
   socket.on('matchInvite', (data) => {
-    const { toUserId, fromName, fromUserId } = data;
+    const { toUserId, fromName, fromUserId, fromNickColor } = data;
     if (!toUserId || typeof fromName !== 'string') return;
     const targetSocketId = onlineUsers.get(toUserId);
     if (targetSocketId) {
       const targetSocket = io.sockets.sockets.get(targetSocketId);
       if (targetSocket) {
         // Davet eden bilgilerini socket'e kaydet (kabul edilince kullanılacak)
-        socket.inviteName   = fromName.slice(0, 30);
-        socket.inviteUserId = fromUserId || null;
+        socket.inviteName      = fromName.slice(0, 30);
+        socket.inviteUserId    = fromUserId || null;
+        socket.inviteNickColor = typeof fromNickColor === 'string' ? fromNickColor.slice(0, 30) : null;
         targetSocket.emit('matchInvite', {
           fromName:     fromName.slice(0, 30),
           fromUserId:   fromUserId || null,
@@ -652,7 +653,7 @@ io.on('connection', (socket) => {
 
   // Eşleşme davetini kabul et — iki kişiyi direkt eşleştir
   socket.on('matchInviteAccept', (data) => {
-    const { toSocketId, myUserId, myUsername, myAge, myAvatar } = data;
+    const { toSocketId, myUserId, myUsername, myAge, myAvatar, myNickColor } = data;
     if (!toSocketId) return;
     const targetSocket = io.sockets.sockets.get(toSocketId);
     if (!targetSocket) return;
@@ -665,20 +666,22 @@ io.on('connection', (socket) => {
     socket.emit('matched', {
       roomName,
       isInitiator: false,
-      partnerSocketId: toSocketId,
-      partnerUsername: targetSocket.inviteName   || 'Arkadaş',
-      partnerUserId:   targetSocket.inviteUserId || null,
-      partnerAge:      null,
-      partnerAvatar:   null
+      partnerSocketId:  toSocketId,
+      partnerUsername:  targetSocket.inviteName    || 'Arkadaş',
+      partnerUserId:    targetSocket.inviteUserId  || null,
+      partnerAge:       null,
+      partnerAvatar:    null,
+      partnerNickColor: targetSocket.inviteNickColor || null
     });
     targetSocket.emit('matched', {
       roomName,
       isInitiator: true,
-      partnerSocketId: socket.id,
-      partnerUsername: myUsername || 'Arkadaş',
-      partnerUserId:   myUserId   || null,
-      partnerAge:      myAge      || null,
-      partnerAvatar:   myAvatar   || null
+      partnerSocketId:  socket.id,
+      partnerUsername:  myUsername  || 'Arkadaş',
+      partnerUserId:    myUserId    || null,
+      partnerAge:       myAge       || null,
+      partnerAvatar:    myAvatar    || null,
+      partnerNickColor: myNickColor || null
     });
   });
 

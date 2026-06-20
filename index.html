@@ -2391,9 +2391,10 @@
     window.sendMatchInvite = (friendId, friendName) => {
       if (!currentUser || !socket) return;
       socket.emit('matchInvite', {
-        toUserId:   friendId,
-        fromName:   currentProfile?.username || 'Biri',
-        fromUserId: currentUser.id
+        toUserId:      friendId,
+        fromName:      currentProfile?.username || 'Biri',
+        fromUserId:    currentUser.id,
+        fromNickColor: currentProfile?.nick_color || null
       });
       addChatMessage ? addChatMessage(`🎯 ${friendName} adlı arkadaşına eşleşme daveti gönderildi!`, 'system') : null;
     };
@@ -2414,11 +2415,12 @@
       document.body.appendChild(notif);
       notif.querySelector('#acceptInviteBtn').addEventListener('click', () => {
         socket.emit('matchInviteAccept', {
-          toSocketId:  data.fromSocketId,
-          myUserId:    currentUser?.id || null,
-          myUsername:  currentProfile?.username || 'Arkadaş',
-          myAge:       currentProfile?.age || null,
-          myAvatar:    currentProfile?.avatar || null
+          toSocketId:   data.fromSocketId,
+          myUserId:     currentUser?.id || null,
+          myUsername:   currentProfile?.username || 'Arkadaş',
+          myAge:        currentProfile?.age || null,
+          myAvatar:     currentProfile?.avatar || null,
+          myNickColor:  currentProfile?.nick_color || null
         });
         notif.remove();
         addChatMessage('✅ Eşleşme daveti kabul edildi! Bağlanılıyor...', 'system');
