@@ -386,6 +386,72 @@ app.get('/api/premium/status/:userId', async (req, res) => {
   res.json({ ok: true, is_premium: data.is_premium || false, premium_expires: data.premium_expires });
 });
 
+// ── Nick rengi satın al (jetonla) ───────────────────────────────────
+const NICK_COLORS = {
+  blue:    { label: '🔵 Mavi',   color: '#00e5ff', cost: 200,  days: 30 },
+  green:   { label: '🟢 Yeşil',  color: '#2ecc71', cost: 200,  days: 30 },
+  purple:  { label: '🟣 Mor',    color: '#a855f7', cost: 300,  days: 30 },
+  orange:  { label: '🟠 Turuncu',color: '#ff9944', cost: 300,  days: 30 },
+  gold:    { label: '🌟 Altın',  color: '#ffe566', cost: 500,  days: 30 },
+  red:     { label: '🔴 Kırmızı',color: '#ff4757', cost: 500,  days: 30 },
+  rainbow: { label: '🌈 Gökkuşağı', color: 'rainbow', cost: 1000, days: 30 }
+};
+
+app.post('/api/nick-color/buy', async (req, res) => {
+  const { userId, colorId } = req.body;
+  if (!userId || !colorId) return res.status(400).json({ error: 'Eksik parametre' });
+  const colorDef = NICK_COLORS[colorId];
+  if (!colorDef) return res.status(400).json({ error: 'Geçersiz renk' });
+
+  const { data: user } = await supabase.from('users').select('tokens').eq('id', userId).single();
+  if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+  if ((user.tokens || 0) < colorDef.cost) return res.status(400).json({ error: 'Yetersiz jeton' });
+
+  const expiresAt = new Date(Date.now() + colorDef.days * 24 * 60 * 60 * 1000).toISOString();
+  const { error } = await supabase.from('users').update({
+    tokens: user.tokens - colorDef.cost,
+    nick_color: colorDef.color,
+    nick_color_expires: expiresAt
+  }).eq('id', userId);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, remaining: user.tokens - colorDef.cost, color: colorDef.color, expires: expiresAt });
+});
+
+// ── Jetonla Premium al ───────────────────────────────────────────────
+const TOKEN_PREMIUM_PACKAGES = {
+  week:    { tokens: 2000,  days: 7   },
+  month:   { tokens: 6000,  days: 30  },
+  quarter: { tokens: 15000, days: 90  },
+  year:    { tokens: 50000, days: 365 }
+};
+
+app.post('/api/premium/buy-with-tokens', async (req, res) => {
+  const { userId, packageId } = req.body;
+  if (!userId || !packageId) return res.status(400).json({ error: 'Eksik parametre' });
+  const pkg = TOKEN_PREMIUM_PACKAGES[packageId];
+  if (!pkg) return res.status(400).json({ error: 'Geçersiz paket' });
+
+  const { data: user } = await supabase.from('users').select('tokens, is_premium, premium_expires').eq('id', userId).single();
+  if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+  if ((user.tokens || 0) < pkg.tokens) return res.status(400).json({ error: `Yetersiz jeton. Gerekli: ${pkg.tokens} 🪙` });
+
+  // Mevcut premium süresi varsa uzat
+  const base = (user.is_premium && user.premium_expires && new Date(user.premium_expires) > new Date())
+    ? new Date(user.premium_expires)
+    : new Date();
+  const expiresAt = new Date(base.getTime() + pkg.days * 24 * 60 * 60 * 1000).toISOString();
+
+  const { error } = await supabase.from('users').update({
+    tokens: user.tokens - pkg.tokens,
+    is_premium: true,
+    premium_expires: expiresAt
+  }).eq('id', userId);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, remaining: user.tokens - pkg.tokens, expires: expiresAt, days: pkg.days });
+});
+
 // ── Referans sistemi ─────────────────────────────────────────────────
 
 // Ref kodu oluştur veya getir

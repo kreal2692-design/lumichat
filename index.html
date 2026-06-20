@@ -665,9 +665,10 @@
     <div class="modal" style="max-width:520px;">
       <!-- Sekmeler -->
       <div style="display:flex;gap:0;border-bottom:1px solid rgba(0,229,255,0.15);margin-bottom:16px;">
-        <button id="tabProfile" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);cursor:pointer;font-size:13px;font-weight:bold;">👤 Profil</button>
-        <button id="tabMyGifts" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-size:13px;">🎁 Hediyelerim</button>
-        <button id="tabRef" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-size:13px;">🔗 Davet</button>
+        <button id="tabProfile" style="flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);cursor:pointer;font-size:12px;font-weight:bold;">👤 Profil</button>
+        <button id="tabMyGifts" style="flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-size:12px;">🎁 Hediye</button>
+        <button id="tabRef" style="flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-size:12px;">🔗 Davet</button>
+        <button id="tabShop" style="flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-size:12px;">🛒 Mağaza</button>
       </div>
       <!-- Profil sekmesi -->
       <div id="panelProfile">
@@ -715,6 +716,36 @@
           <button id="claimBonusBtn" onclick="claimDailyBonus()" style="background:rgba(255,200,0,0.2);border:1px solid #ffe566;color:#ffe566;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:bold;font-size:13px;">🪙 50 Jetonu Al</button>
         </div>
         <div class="modal-footer" style="margin-top:12px;">
+          <button class="btn btn-secondary" onclick="document.getElementById('profileModal').classList.remove('open')">Kapat</button>
+        </div>
+      </div>
+
+      <!-- Mağaza sekmesi -->
+      <div id="panelShop" style="display:none;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px;text-align:center;">Jetonlarınla özel özellikler satın al</div>
+
+        <!-- Nick Rengi -->
+        <div style="font-size:12px;color:var(--accent);font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">🎨 Nick Rengi (30 Gün)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;">
+          <div onclick="buyNickColor('blue')"   style="padding:10px;border-radius:10px;border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);cursor:pointer;text-align:center;"><div style="color:#00e5ff;font-weight:bold;font-size:14px;">🔵 Mavi</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">200 🪙</div></div>
+          <div onclick="buyNickColor('green')"  style="padding:10px;border-radius:10px;border:1px solid rgba(46,204,113,0.3);background:rgba(46,204,113,0.06);cursor:pointer;text-align:center;"><div style="color:#2ecc71;font-weight:bold;font-size:14px;">🟢 Yeşil</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">200 🪙</div></div>
+          <div onclick="buyNickColor('purple')" style="padding:10px;border-radius:10px;border:1px solid rgba(168,85,247,0.3);background:rgba(168,85,247,0.06);cursor:pointer;text-align:center;"><div style="color:#a855f7;font-weight:bold;font-size:14px;">🟣 Mor</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">300 🪙</div></div>
+          <div onclick="buyNickColor('orange')" style="padding:10px;border-radius:10px;border:1px solid rgba(255,153,68,0.3);background:rgba(255,153,68,0.06);cursor:pointer;text-align:center;"><div style="color:#ff9944;font-weight:bold;font-size:14px;">🟠 Turuncu</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">300 🪙</div></div>
+          <div onclick="buyNickColor('gold')"   style="padding:10px;border-radius:10px;border:1px solid rgba(255,229,102,0.4);background:rgba(255,229,102,0.08);cursor:pointer;text-align:center;"><div style="color:#ffe566;font-weight:bold;font-size:14px;">🌟 Altın</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">500 🪙</div></div>
+          <div onclick="buyNickColor('red')"    style="padding:10px;border-radius:10px;border:1px solid rgba(255,71,87,0.3);background:rgba(255,71,87,0.06);cursor:pointer;text-align:center;"><div style="color:#ff4757;font-weight:bold;font-size:14px;">🔴 Kırmızı</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">500 🪙</div></div>
+          <div onclick="buyNickColor('rainbow')" style="padding:10px;border-radius:10px;border:1px solid rgba(255,100,200,0.4);background:rgba(255,100,200,0.06);cursor:pointer;text-align:center;grid-column:span 2;"><div style="background:linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;font-size:14px;">🌈 Gökkuşağı</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">1000 🪙</div></div>
+        </div>
+
+        <!-- Jetonla Premium -->
+        <div style="font-size:12px;color:#ffe566;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">⭐ Jetonla Premium Al</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+          <div onclick="buyPremiumWithTokens('week')"    style="padding:12px;border-radius:10px;border:1px solid rgba(255,200,0,0.25);background:rgba(255,200,0,0.06);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">7 Gün Premium</span><span style="color:#ffe566;font-weight:bold;">2.000 🪙</span></div>
+          <div onclick="buyPremiumWithTokens('month')"   style="padding:12px;border-radius:10px;border:1px solid rgba(255,200,0,0.35);background:rgba(255,200,0,0.08);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">30 Gün Premium</span><span style="color:#ffe566;font-weight:bold;">6.000 🪙</span></div>
+          <div onclick="buyPremiumWithTokens('quarter')" style="padding:12px;border-radius:10px;border:1px solid rgba(255,200,0,0.35);background:rgba(255,200,0,0.08);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">90 Gün Premium</span><span style="color:#ffe566;font-weight:bold;">15.000 🪙</span></div>
+          <div onclick="buyPremiumWithTokens('year')"    style="padding:12px;border-radius:10px;border:1px solid rgba(255,160,0,0.5);background:rgba(255,160,0,0.1);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">365 Gün Premium 🔥</span><span style="color:#ffe566;font-weight:bold;">50.000 🪙</span></div>
+        </div>
+
+        <div class="modal-footer" style="margin-top:4px;">
           <button class="btn btn-secondary" onclick="document.getElementById('profileModal').classList.remove('open')">Kapat</button>
         </div>
       </div>
@@ -1489,12 +1520,14 @@
       const tP = document.getElementById("tabProfile");
       const tG = document.getElementById("tabMyGifts");
       const tR = document.getElementById("tabRef");
+      const tS = document.getElementById("tabShop");
       const pP = document.getElementById("panelProfile");
       const pG = document.getElementById("panelMyGifts");
       const pR = document.getElementById("panelRef");
+      const pS = document.getElementById("panelShop");
       // Hepsini sıfırla
-      [tP,tG,tR].forEach(t => { t.style.borderBottomColor = "transparent"; t.style.color = "var(--muted)"; });
-      [pP,pG,pR].forEach(p => { if(p) p.style.display = "none"; });
+      [tP,tG,tR,tS].forEach(t => { if(t){ t.style.borderBottomColor = "transparent"; t.style.color = "var(--muted)"; }});
+      [pP,pG,pR,pS].forEach(p => { if(p) p.style.display = "none"; });
 
       if (tab === "profile") {
         tP.style.borderBottomColor = "var(--accent)"; tP.style.color = "var(--accent)";
@@ -1507,12 +1540,16 @@
         tR.style.borderBottomColor = "var(--accent)"; tR.style.color = "var(--accent)";
         pR.style.display = "block";
         loadRefPanel();
+      } else if (tab === "shop") {
+        tS.style.borderBottomColor = "var(--accent)"; tS.style.color = "var(--accent)";
+        pS.style.display = "block";
       }
     }
 
     document.getElementById("tabProfile").addEventListener("click",  () => switchProfileTab("profile"));
     document.getElementById("tabMyGifts").addEventListener("click",  () => switchProfileTab("gifts"));
     document.getElementById("tabRef").addEventListener("click",      () => switchProfileTab("ref"));
+    document.getElementById("tabShop").addEventListener("click",     () => switchProfileTab("shop"));
     document.getElementById("cancelProfileFromGifts").addEventListener("click", () => profileModal.classList.remove("open"));
 
     cancelProfile.addEventListener("click", () => profileModal.classList.remove("open"));
@@ -1872,7 +1909,7 @@
       try {
         const { data: userData, error } = await supabase
           .from("users")
-          .select("has_member, username, gender, tokens, gift_balance, is_banned, avatar_url, birthdate")
+          .select("has_member, username, gender, tokens, gift_balance, is_banned, avatar_url, birthdate, nick_color, nick_color_expires")
           .eq("id", user.id)
           .single();
 
@@ -1944,7 +1981,11 @@
           avatar:        userData.avatar_url || user.user_metadata?.avatar_url || null,
           birthdate:     userData.birthdate  || null,
           age:           userData.birthdate ? Math.floor((Date.now() - new Date(userData.birthdate)) / 31557600000) : null,
+          nick_color:    userData.nick_color && userData.nick_color_expires && new Date(userData.nick_color_expires) > new Date() ? userData.nick_color : null,
         };
+
+        // Nick rengini uygula
+        if (currentProfile.nick_color) applyNickColor(currentProfile.nick_color);
 
         if (userInfo) {
           const uname = currentProfile.username || user.user_metadata?.full_name || "Kullanıcı";
@@ -2419,6 +2460,74 @@
         console.error('convertGift hatası:', err);
       }
     };
+
+    // ── Mağaza fonksiyonları ─────────────────────────────────────────
+    window.buyNickColor = async (colorId) => {
+      if (!currentUser) return;
+      const costMap = { blue:200, green:200, purple:300, orange:300, gold:500, red:500, rainbow:1000 };
+      const cost = costMap[colorId];
+      if (!cost) return;
+      if ((currentProfile?.tokens || 0) < cost) {
+        alert(`Yetersiz jeton! Gerekli: ${cost} 🪙, Mevcut: ${currentProfile?.tokens || 0} 🪙`);
+        return;
+      }
+      if (!confirm(`${cost} 🪙 karşılığında 30 günlük nick rengi satın almak istiyor musun?`)) return;
+      try {
+        const res = await fetch('/api/nick-color/buy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentUser.id, colorId })
+        }).then(r => r.json());
+        if (!res.ok) { alert(res.error || 'Satın alma başarısız'); return; }
+        if (currentProfile) { currentProfile.tokens = res.remaining; currentProfile.nick_color = res.color; }
+        updateTokenDisplay(res.remaining);
+        // Userinfo rengini güncelle
+        applyNickColor(res.color);
+        alert(`✅ Nick rengin güncellendi! ${res.remaining} 🪙 kaldı.`);
+      } catch(e) { console.error(e); }
+    };
+
+    window.buyPremiumWithTokens = async (packageId) => {
+      if (!currentUser) return;
+      const costMap = { week:2000, month:6000, quarter:15000, year:50000 };
+      const cost = costMap[packageId];
+      if (!cost) return;
+      if ((currentProfile?.tokens || 0) < cost) {
+        alert(`Yetersiz jeton! Gerekli: ${cost.toLocaleString()} 🪙, Mevcut: ${(currentProfile?.tokens || 0).toLocaleString()} 🪙`);
+        return;
+      }
+      const dayMap = { week:'7 gün', month:'30 gün', quarter:'90 gün', year:'365 gün' };
+      if (!confirm(`${cost.toLocaleString()} 🪙 karşılığında ${dayMap[packageId]} Premium satın almak istiyor musun?`)) return;
+      try {
+        const res = await fetch('/api/premium/buy-with-tokens', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentUser.id, packageId })
+        }).then(r => r.json());
+        if (!res.ok) { alert(res.error || 'Satın alma başarısız'); return; }
+        if (currentProfile) { currentProfile.tokens = res.remaining; currentProfile.is_premium = true; }
+        updateTokenDisplay(res.remaining);
+        // Premium badge güncelle
+        const badge = document.getElementById("premiumBadge");
+        if (badge) { badge.style.display = "inline-block"; badge.textContent = "⭐ Premium"; }
+        const getPremiumBtn = document.getElementById("getPremiumBtn");
+        if (getPremiumBtn) getPremiumBtn.style.display = "none";
+        alert(`✅ ${dayMap[packageId]} Premium aktif edildi! ${res.remaining.toLocaleString()} 🪙 kaldı.`);
+      } catch(e) { console.error(e); }
+    };
+
+    function applyNickColor(color) {
+      const userInfoEl = document.getElementById("userInfo");
+      if (!userInfoEl) return;
+      if (!color) { userInfoEl.style.color = 'var(--muted)'; return; }
+      if (color === 'rainbow') {
+        userInfoEl.style.background = 'linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7)';
+        userInfoEl.style.webkitBackgroundClip = 'text';
+        userInfoEl.style.webkitTextFillColor = 'transparent';
+      } else {
+        userInfoEl.style.color = color;
+      }
+    }
 
     // ── Referans paneli ──────────────────────────────────────────────
     async function loadRefPanel() {
