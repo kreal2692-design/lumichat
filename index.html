@@ -1823,7 +1823,7 @@
       matchBtn.style.display = "none";
       stopBtn.style.display  = "inline-flex";
       const age = currentProfile?.birthdate ? Math.floor((Date.now() - new Date(currentProfile.birthdate)) / 31557600000) : null;
-      socket.emit("join", { genderFilter: "herkesle", myGender: (currentProfile?.gender === "kadin" || currentProfile?.gender === "erkek") ? currentProfile.gender : "herkesle", username: currentProfile?.username || currentUser?.user_metadata?.full_name?.split(" ")[0] || "Anonim", age, userId: currentUser?.id });
+      socket.emit("join", { genderFilter: "herkesle", myGender: (currentProfile?.gender === "kadin" || currentProfile?.gender === "erkek") ? currentProfile.gender : "herkesle", username: currentProfile?.username || currentUser?.user_metadata?.full_name?.split(" ")[0] || "Anonim", age, userId: currentUser?.id, nickColor: currentProfile?.nick_color || null });
     });
 
     stopBtn.addEventListener("click", () => {
@@ -1842,7 +1842,7 @@
       matchBtn.style.display = "none";
       stopBtn.style.display  = "inline-flex";
       const age = currentProfile?.birthdate ? Math.floor((Date.now() - new Date(currentProfile.birthdate)) / 31557600000) : null;
-      socket.emit("join", { genderFilter: "herkesle", myGender: (currentProfile?.gender === "kadin" || currentProfile?.gender === "erkek") ? currentProfile.gender : "herkesle", username: currentProfile?.username || currentUser?.user_metadata?.full_name?.split(" ")[0] || "Anonim", age, userId: currentUser?.id });
+      socket.emit("join", { genderFilter: "herkesle", myGender: (currentProfile?.gender === "kadin" || currentProfile?.gender === "erkek") ? currentProfile.gender : "herkesle", username: currentProfile?.username || currentUser?.user_metadata?.full_name?.split(" ")[0] || "Anonim", age, userId: currentUser?.id, nickColor: currentProfile?.nick_color || null });
     });
 
     leaveBtn.addEventListener("click", () => {
@@ -1902,6 +1902,23 @@
       remoteSocketId = data.partnerSocketId || null;
       partnerUserId = data.partnerUserId || null;
       console.log("[MATCHED] partnerUserId:", partnerUserId, "remoteSocketId:", remoteSocketId, "data:", JSON.stringify(data));
+
+      const rawName = data.partnerUsername || "Bilinmiyor";
+      partnerName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+
+      // Partner nick rengini video etiketine uygula
+      const remoteLabel = document.getElementById("remoteLabel") || document.querySelector(".box:nth-child(2) .video-label");
+      if (remoteLabel) {
+        remoteLabel.textContent = partnerName;
+        const pColor = data.partnerNickColor;
+        if (pColor && pColor !== 'rainbow') {
+          remoteLabel.style.color = pColor;
+        } else if (pColor === 'rainbow') {
+          remoteLabel.style.background = 'linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7)';
+          remoteLabel.style.webkitBackgroundClip = 'text';
+          remoteLabel.style.webkitTextFillColor = 'transparent';
+        }
+      }
       
       // Kullanıcı adı - baş harf büyük, yaş yok
       const rawName = data.partnerUsername || "Bilinmiyor";

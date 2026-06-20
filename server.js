@@ -706,7 +706,8 @@ io.on('connection', (socket) => {
     const username     = typeof data.username === 'string' && data.username.trim() ? data.username.trim().slice(0, 24) : "Anonim";
     const age          = typeof data.age === 'number' && data.age > 0 ? data.age : null;
     const avatar       = typeof data.avatar === 'string' ? data.avatar.slice(0, 500) : null;
-    const userId       = typeof data.userId === 'string' ? data.userId : null; // DB id
+    const userId       = typeof data.userId === 'string' ? data.userId : null;
+    const nickColor    = typeof data.nickColor === 'string' ? data.nickColor.slice(0, 30) : null;
 
     // Online listesine ekle
     if (userId) {
@@ -721,7 +722,7 @@ io.on('connection', (socket) => {
       const matchSocket = io.sockets.sockets.get(match.socketId);
 
       if (!matchSocket) {
-        waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar, userId });
+        waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar, userId, nickColor });
         socket.emit('waiting');
         return;
       }
@@ -729,12 +730,12 @@ io.on('connection', (socket) => {
       socket.join(roomName);
       matchSocket.join(roomName);
 
-      socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId, partnerUsername: match.username, partnerAge: match.age, partnerAvatar: match.avatar, partnerUserId: match.userId });
-      matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age,       partnerAvatar: avatar,       partnerUserId: userId });
+      socket.emit('matched',      { roomName, isInitiator: true,  partnerSocketId: match.socketId, partnerUsername: match.username, partnerAge: match.age, partnerAvatar: match.avatar, partnerUserId: match.userId, partnerNickColor: match.nickColor || null });
+      matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age,       partnerAvatar: avatar,       partnerUserId: userId,       partnerNickColor: nickColor || null });
 
       console.log(`Eşleşti: ${match.socketId}(${match.username})[userId:${match.userId}] <-> ${socket.id}(${username})[userId:${userId}]`);
     } else {
-      waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar, userId });
+      waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar, userId, nickColor });
       socket.emit('waiting');
     }
   });
