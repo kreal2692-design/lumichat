@@ -739,10 +739,10 @@
         <!-- Jetonla Premium -->
         <div style="font-size:12px;color:#ffe566;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">⭐ Jetonla Premium Al</div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-          <div onclick="buyPremiumWithTokens('week')"    style="padding:12px;border-radius:10px;border:1px solid rgba(255,200,0,0.25);background:rgba(255,200,0,0.06);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">7 Gün Premium</span><span style="color:#ffe566;font-weight:bold;">2.000 🪙</span></div>
-          <div onclick="buyPremiumWithTokens('month')"   style="padding:12px;border-radius:10px;border:1px solid rgba(255,200,0,0.35);background:rgba(255,200,0,0.08);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">30 Gün Premium</span><span style="color:#ffe566;font-weight:bold;">6.000 🪙</span></div>
-          <div onclick="buyPremiumWithTokens('quarter')" style="padding:12px;border-radius:10px;border:1px solid rgba(255,200,0,0.35);background:rgba(255,200,0,0.08);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">90 Gün Premium</span><span style="color:#ffe566;font-weight:bold;">15.000 🪙</span></div>
-          <div onclick="buyPremiumWithTokens('year')"    style="padding:12px;border-radius:10px;border:1px solid rgba(255,160,0,0.5);background:rgba(255,160,0,0.1);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">365 Gün Premium 🔥</span><span style="color:#ffe566;font-weight:bold;">50.000 🪙</span></div>
+          <div onclick="buyPremiumWithTokens('week')"    style="padding:12px;border-radius:10px;border:1px solid rgba(255,200,0,0.25);background:rgba(255,200,0,0.06);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">7 Gün Premium</span><span style="color:#ffe566;font-weight:bold;">30 🪙</span></div>
+          <div onclick="buyPremiumWithTokens('month')"   style="padding:12px;border-radius:10px;border:1px solid rgba(255,200,0,0.35);background:rgba(255,200,0,0.08);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">30 Gün Premium</span><span style="color:#ffe566;font-weight:bold;">140 🪙</span></div>
+          <div onclick="buyPremiumWithTokens('quarter')" style="padding:12px;border-radius:10px;border:1px solid rgba(255,200,0,0.35);background:rgba(255,200,0,0.08);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">90 Gün Premium</span><span style="color:#ffe566;font-weight:bold;">270 🪙</span></div>
+          <div onclick="buyPremiumWithTokens('year')"    style="padding:12px;border-radius:10px;border:1px solid rgba(255,160,0,0.5);background:rgba(255,160,0,0.1);cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:bold;">365 Gün Premium 🔥</span><span style="color:#ffe566;font-weight:bold;">600 🪙</span></div>
         </div>
 
         <div class="modal-footer" style="margin-top:4px;">
@@ -1260,7 +1260,25 @@
     function addChatMessage(text, type = "system") {
       const msg = document.createElement("div");
       msg.className = `message ${type}`;
-      msg.textContent = text;
+
+      // "me" tipindeki mesajlarda nick rengini uygula
+      if (type === "me" && currentProfile?.nick_color) {
+        const color = currentProfile.nick_color;
+        const colonIdx = text.indexOf(': ');
+        if (colonIdx > -1) {
+          const name    = text.slice(0, colonIdx);
+          const content = text.slice(colonIdx);
+          if (color === 'rainbow') {
+            msg.innerHTML = `<span style="background:linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;">${escHtml(name)}</span>${escHtml(content)}`;
+          } else {
+            msg.innerHTML = `<span style="color:${color};font-weight:bold;">${escHtml(name)}</span>${escHtml(content)}`;
+          }
+        } else {
+          msg.textContent = text;
+        }
+      } else {
+        msg.textContent = text;
+      }
       chatBox.appendChild(msg);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
@@ -1376,7 +1394,22 @@
       setChatEnabled(false);
       setStatus(t(currentLang, "statusReady"));
       addChatMessage(t(currentLang, "msgLoginSuccess"), "system");
-      if (currentProfile?.username) myLabel.textContent = currentProfile.username.charAt(0).toUpperCase() + currentProfile.username.slice(1);
+      if (currentProfile?.username) {
+        const uname = currentProfile.username.charAt(0).toUpperCase() + currentProfile.username.slice(1);
+        myLabel.textContent = uname;
+        // Nick rengi varsa video label'a uygula
+        if (currentProfile.nick_color) {
+          const c = currentProfile.nick_color;
+          if (c === 'rainbow') {
+            myLabel.style.background = 'linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7)';
+            myLabel.style.webkitBackgroundClip = 'text';
+            myLabel.style.webkitTextFillColor = 'transparent';
+            myLabel.style.backgroundColor = 'transparent';
+          } else {
+            myLabel.style.color = c;
+          }
+        }
+      }
     }
 
     function resetChatState(msg = "") {
@@ -2489,7 +2522,7 @@
 
     window.buyPremiumWithTokens = async (packageId) => {
       if (!currentUser) return;
-      const costMap = { week:2000, month:6000, quarter:15000, year:50000 };
+      const costMap = { week:30, month:140, quarter:270, year:600 };
       const cost = costMap[packageId];
       if (!cost) return;
       if ((currentProfile?.tokens || 0) < cost) {
@@ -2517,16 +2550,33 @@
     };
 
     function applyNickColor(color) {
-      const userInfoEl = document.getElementById("userInfo");
-      if (!userInfoEl) return;
-      if (!color) { userInfoEl.style.color = 'var(--muted)'; return; }
-      if (color === 'rainbow') {
-        userInfoEl.style.background = 'linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7)';
-        userInfoEl.style.webkitBackgroundClip = 'text';
-        userInfoEl.style.webkitTextFillColor = 'transparent';
-      } else {
-        userInfoEl.style.color = color;
+      if (!color) {
+        // Rengi sıfırla
+        const userInfoEl = document.getElementById("userInfo");
+        if (userInfoEl) { userInfoEl.style.color = 'var(--muted)'; userInfoEl.style.background = ''; userInfoEl.style.webkitTextFillColor = ''; }
+        const myLabelEl = document.getElementById("myLabel");
+        if (myLabelEl) { myLabelEl.style.color = 'white'; myLabelEl.style.background = ''; myLabelEl.style.webkitTextFillColor = ''; }
+        return;
       }
+
+      const applyToEl = (el) => {
+        if (!el) return;
+        if (color === 'rainbow') {
+          el.style.background = 'linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7)';
+          el.style.webkitBackgroundClip = 'text';
+          el.style.webkitTextFillColor = 'transparent';
+          el.style.color = '';
+        } else {
+          el.style.color = color;
+          el.style.background = '';
+          el.style.webkitTextFillColor = '';
+        }
+      };
+
+      // Topbar ismi
+      applyToEl(document.getElementById("userInfo"));
+      // Video etiketi
+      applyToEl(document.getElementById("myLabel"));
     }
 
     // ── Referans paneli ──────────────────────────────────────────────
