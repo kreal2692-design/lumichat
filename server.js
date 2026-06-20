@@ -853,17 +853,20 @@ function adminAuth(req, res, next) {
 
 // Admin: kullanıcı listesi
 app.get('/api/admin/users', adminAuth, async (req, res) => {
-  const page  = parseInt(req.query.page  || '1');
-  const limit = parseInt(req.query.limit || '50');
+  const page   = parseInt(req.query.page   || '1');
+  const limit  = parseInt(req.query.limit  || '20');
   const search = req.query.search || '';
-  const from = (page - 1) * limit;
+  const filter = req.query.filter || ''; // 'banned' | 'premium'
+  const from   = (page - 1) * limit;
 
   let query = supabase.from('users')
     .select('id, username, email, gender, tokens, gift_balance, is_banned, is_premium, premium_expires, nick_color, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, from + limit - 1);
 
-  if (search) query = query.ilike('username', `%${search}%`);
+  if (search) query = query.or(`username.ilike.%${search}%,email.ilike.%${search}%`);
+  if (filter === 'banned')  query = query.eq('is_banned', true);
+  if (filter === 'premium') query = query.eq('is_premium', true);
 
   const { data, error, count } = await query;
   if (error) return res.status(500).json({ error: error.message });
