@@ -2522,7 +2522,7 @@
 
     window.buyPremiumWithTokens = async (packageId) => {
       if (!currentUser) return;
-      const costMap = { week:30, month:140, quarter:270, year:600 };
+      const costMap = { week:90, month:330, quarter:870, year:2810 };
       const cost = costMap[packageId];
       if (!cost) return;
       if ((currentProfile?.tokens || 0) < cost) {
