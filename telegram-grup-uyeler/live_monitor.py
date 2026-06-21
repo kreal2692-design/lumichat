@@ -180,7 +180,7 @@ class LiveTelegramMonitor:
                     
                     # İlk tarama yap
                     if initial_scan:
-                        await self.get_initial_users(entity, limit=1000)
+                        await self.get_initial_users(entity, limit=10000)
                     
                 await asyncio.sleep(2)
                 
@@ -288,7 +288,7 @@ async def main():
     ]
     
     print(f"\n📋 İzlenecek grup sayısı: {len(group_links)}")
-    print(f"📊 İlk tarama: Son 1000 mesaj")
+    print(f"📊 İlk tarama: Son 10.000 mesaj")
     print(f"🔴 Canlı izleme: AÇIK (Sürekli)")
     print(f"💾 Otomatik kaydet: Her yeni kullanıcıda")
     

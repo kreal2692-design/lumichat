@@ -1,9 +1,10 @@
 {
-  "last_update": "2026-06-21T20:11:58.953892",
+  "last_update": "2026-06-21T20:13:11.396596",
   "total_users": 25,
   "monitored_groups": [
     "ÖĞRENCİ | SOHBET GRUBU",
-    "YKS SOHBET YARDIMLAŞMA 2027"
+    "YKS SOHBET YARDIMLAŞMA 2027",
+    "yks sohbet"
   ],
   "users": [
     {
@@ -37,10 +38,11 @@
       "last_name": null,
       "full_name": "Can None",
       "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
+        "ÖĞRENCİ | SOHBET GRUBU",
+        "Bilinmeyen"
       ],
       "first_seen": "2026-06-21T20:10:26.067047",
-      "message_count": 1
+      "message_count": 2
     },
     {
       "id": 7613186802,
