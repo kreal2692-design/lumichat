@@ -32,15 +32,18 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
 
-  // Şunları cache'leme: socket.io, API, dış domain'ler, data: URL'ler
+  // Şunları cache'leme: socket.io, API, dış domain'ler, data: URL'ler, blob URL'ler
   if (
     url.includes('/socket.io') ||
     url.includes('/api/') ||
     url.startsWith('data:') ||
+    url.startsWith('blob:') ||
     url.includes('supabase.co') ||
     url.includes('effectivecpmnetwork') ||
     url.includes('adsterra') ||
     url.includes('cdn.jsdelivr') ||
+    url.includes('%7B') ||  // encoded { — template literal render edilmemiş
+    url.includes('%7D') ||  // encoded }
     !url.startsWith(self.location.origin) ||
     event.request.method !== 'GET'
   ) {
