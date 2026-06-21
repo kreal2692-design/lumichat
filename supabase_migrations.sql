@@ -4,6 +4,9 @@
 -- 0. ban_until kolonu ekle (geçici ban)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_until TIMESTAMPTZ;
 
+-- 0b. ad_last_watched kolonu ekle (reklam cooldown)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS ad_last_watched TIMESTAMPTZ;
+
 -- 1. Direkt Mesajlar tablosu
 CREATE TABLE IF NOT EXISTS direct_messages (
   id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -58,3 +61,21 @@ ALTER TABLE gifts ADD COLUMN IF NOT EXISTS emoji     TEXT;
 -- Gerekirse şu komutla kapat:
 -- ALTER TABLE direct_messages DISABLE ROW LEVEL SECURITY;
 -- ALTER TABLE chat_logs DISABLE ROW LEVEL SECURITY;
+
+-- 7. Günlük görev takibi
+CREATE TABLE IF NOT EXISTS daily_tasks (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id     UUID REFERENCES users(id) ON DELETE CASCADE,
+  task_date   DATE NOT NULL DEFAULT CURRENT_DATE,
+  matches     INT DEFAULT 0,
+  messages    INT DEFAULT 0,
+  friends     INT DEFAULT 0,
+  task1_done  BOOLEAN DEFAULT FALSE, -- 3 eşleşme
+  task2_done  BOOLEAN DEFAULT FALSE, -- 10 mesaj
+  task3_done  BOOLEAN DEFAULT FALSE, -- 1 arkadaş ekle
+  UNIQUE(user_id, task_date)
+);
+CREATE INDEX IF NOT EXISTS idx_daily_tasks_user ON daily_tasks(user_id, task_date);
+
+-- users tablosuna tema kolonu ekle
+ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT DEFAULT 'dark';

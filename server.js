@@ -187,9 +187,12 @@ app.post('/api/friends/request', async (req, res) => {
 
 // İsteği kabul / reddet
 app.post('/api/friends/respond', async (req, res) => {
-  const { friendId, userId, action } = req.body; // action: 'accepted' | 'rejected'
+  const { friendId, userId, action } = req.body;
   if (!friendId || !userId || !action) return res.status(400).json({ error: 'Eksik parametre' });
   if (!['accepted', 'rejected'].includes(action)) return res.status(400).json({ error: 'Geçersiz aksiyon' });
+
+  // Requester'ı bul (kabul edilince her iki tarafa görev sayacı ekle)
+  const { data: friendship } = await supabase.from('friends').select('requester_id').eq('id', friendId).single();
 
   const { error } = await supabase
     .from('friends')
@@ -198,6 +201,13 @@ app.post('/api/friends/respond', async (req, res) => {
     .eq('receiver_id', userId);
 
   if (error) return res.status(500).json({ error: error.message });
+
+  // Arkadaşlık kabul edilince her iki tarafa görev ilerlemesi
+  if (action === 'accepted') {
+    updateDailyTask(userId, 'friends');
+    if (friendship?.requester_id) updateDailyTask(friendship.requester_id, 'friends');
+  }
+
   res.json({ ok: true });
 });
 
@@ -593,6 +603,45 @@ function findMatch(socket, genderFilter, myGender) {
   return null;
 }
 
+// ── Günlük görev yardımcı fonksiyon ──────────────────────────────────
+async function updateDailyTask(userId, field) {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const task = [
+      { field: 'matches',  target: 3,  done: 'task1_done', reward: 30 },
+      { field: 'messages', target: 10, done: 'task2_done', reward: 20 },
+      { field: 'friends',  target: 1,  done: 'task3_done', reward: 50 },
+    ].find(t => t.field === field);
+    if (!task) return;
+
+    let { data } = await supabase.from('daily_tasks').select('*').eq('user_id', userId).eq('task_date', today).single();
+    if (!data) {
+      const { data: newRow } = await supabase.from('daily_tasks').insert({ user_id: userId, task_date: today }).select().single();
+      data = newRow;
+    }
+    if (!data || data[task.done]) return;
+
+    const newVal = (data[field] || 0) + 1;
+    const updateData = { [field]: newVal };
+
+    if (newVal >= task.target) {
+      updateData[task.done] = true;
+      const { data: user } = await supabase.from('users').select('tokens').eq('id', userId).single();
+      if (user) {
+        await supabase.from('users').update({ tokens: (user.tokens || 0) + task.reward }).eq('id', userId);
+        // Socket'e bildirim gönder
+        const sid = onlineUsers.get(userId);
+        if (sid) {
+          const sock = io.sockets.sockets.get(sid);
+          if (sock) sock.emit('taskCompleted', { field, reward: task.reward });
+        }
+      }
+    }
+
+    await supabase.from('daily_tasks').update(updateData).eq('user_id', userId).eq('task_date', today);
+  } catch(e) { console.error('[TASK]', e.message); }
+}
+
 // ── Socket.IO bağlantı yönetimi ──────────────────────────────────────
 io.use((socket, next) => {
   const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0]
@@ -756,6 +805,10 @@ io.on('connection', (socket) => {
       matchSocket.emit('matched', { roomName, isInitiator: false, partnerSocketId: socket.id,      partnerUsername: username,       partnerAge: age,       partnerAvatar: avatar,       partnerUserId: userId,       partnerNickColor: nickColor || null });
 
       console.log(`Eşleşti: ${match.socketId}(${match.username})[userId:${match.userId}] <-> ${socket.id}(${username})[userId:${userId}]`);
+
+      // Günlük görev: eşleşme sayacı
+      if (userId)       updateDailyTask(userId,       'matches');
+      if (match.userId) updateDailyTask(match.userId, 'matches');
     } else {
       waitingUsers.push({ socketId: socket.id, genderFilter, myGender, username, age, avatar, userId, nickColor });
       socket.emit('waiting');
@@ -821,7 +874,11 @@ io.on('connection', (socket) => {
 
     const rooms = Array.from(socket.rooms);
     const roomName = rooms.find(r => r.includes('#'));
-    if (roomName) socket.to(roomName).emit('message', data);
+    if (roomName) {
+      socket.to(roomName).emit('message', data);
+      // Günlük görev: mesaj sayacı
+      if (socket.userId) updateDailyTask(socket.userId, 'messages');
+    }
   });
 
   socket.on('leave', () => {
@@ -1158,6 +1215,79 @@ app.post('/api/push/subscribe', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
+});
+
+// ── Günlük Görev API'ları ─────────────────────────────────────────────
+
+const DAILY_TASKS = [
+  { id: 'task1', label: '3 kişiyle eşleş',    reward: 30,  field: 'matches',  target: 3,  done: 'task1_done' },
+  { id: 'task2', label: '10 mesaj gönder',     reward: 20,  field: 'messages', target: 10, done: 'task2_done' },
+  { id: 'task3', label: '1 arkadaş ekle',      reward: 50,  field: 'friends',  target: 1,  done: 'task3_done' },
+];
+
+// Günlük görevleri getir/oluştur
+app.get('/api/tasks/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const today = new Date().toISOString().slice(0, 10);
+
+  let { data, error } = await supabase
+    .from('daily_tasks')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('task_date', today)
+    .single();
+
+  if (!data) {
+    const { data: newRow, error: insertErr } = await supabase
+      .from('daily_tasks')
+      .insert({ user_id: userId, task_date: today })
+      .select()
+      .single();
+    if (insertErr) return res.status(500).json({ error: insertErr.message });
+    data = newRow;
+  }
+
+  res.json({ ok: true, tasks: data, definitions: DAILY_TASKS });
+});
+
+// Görev ilerlemesini güncelle
+app.post('/api/tasks/progress', async (req, res) => {
+  const { userId, field, increment = 1 } = req.body;
+  if (!userId || !field) return res.status(400).json({ error: 'Eksik parametre' });
+
+  const today = new Date().toISOString().slice(0, 10);
+  const task = DAILY_TASKS.find(t => t.field === field);
+  if (!task) return res.status(400).json({ error: 'Geçersiz field' });
+
+  // Mevcut ilerlemeyi çek
+  let { data } = await supabase.from('daily_tasks').select('*').eq('user_id', userId).eq('task_date', today).single();
+
+  if (!data) {
+    const { data: newRow } = await supabase.from('daily_tasks').insert({ user_id: userId, task_date: today }).select().single();
+    data = newRow;
+  }
+
+  if (!data) return res.status(500).json({ error: 'Görev oluşturulamadı' });
+  if (data[task.done]) return res.json({ ok: true, alreadyDone: true }); // Zaten tamamlandı
+
+  const newVal = (data[field] || 0) + increment;
+  const updateData = { [field]: newVal };
+  let rewarded = false;
+
+  if (newVal >= task.target && !data[task.done]) {
+    updateData[task.done] = true;
+    rewarded = true;
+
+    // Jetonu ver
+    const { data: user } = await supabase.from('users').select('tokens').eq('id', userId).single();
+    if (user) {
+      await supabase.from('users').update({ tokens: (user.tokens || 0) + task.reward }).eq('id', userId);
+    }
+  }
+
+  await supabase.from('daily_tasks').update(updateData).eq('user_id', userId).eq('task_date', today);
+
+  res.json({ ok: true, newVal, rewarded, reward: task.reward, taskLabel: task.label });
 });
 
 // ── Sunucu başlat ────────────────────────────────────────────────────

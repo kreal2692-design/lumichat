@@ -34,6 +34,26 @@
       --shadow: 0 10px 25px rgba(0,0,0,0.35);
       --success: #2ecc71;
       --danger: #ff7675;
+      --card-bg: rgba(10,20,30,0.92);
+      --topbar-bg: rgba(20,32,48,0.92);
+      --input-bg: rgba(15,23,42,0.9);
+      --border: rgba(0,229,255,0.25);
+    }
+    body.light-theme {
+      --bg: #f0f4f8;
+      --accent: #0077cc;
+      --text: #1a2233;
+      --muted: #5a6a7e;
+      --shadow: 0 10px 25px rgba(0,0,0,0.12);
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --card-bg: rgba(255,255,255,0.95);
+      --topbar-bg: rgba(240,244,248,0.97);
+      --input-bg: rgba(255,255,255,0.9);
+      --border: rgba(0,119,204,0.25);
+    }
+    body.light-theme {
+      background: linear-gradient(135deg, #e8f0f8 0%, #f0f4f8 100%) !important;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -577,6 +597,8 @@
           <div id="premiumBadge" style="display:none;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,200,0,0.5);background:rgba(255,200,0,0.12);color:#ffe566;font-size:14px;cursor:pointer;" title="Premium üye — tıkla">⭐ Premium</div>
           <div id="getPremiumBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(255,200,0,0.3);background:rgba(255,200,0,0.06);color:#ffe566;font-size:14px;cursor:pointer;" title="Premium satın al" onclick="document.getElementById('premiumModal').classList.add('open')">⭐ Premium Al</div>
           <div id="watchAdBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);color:var(--accent);font-size:14px;cursor:pointer;" title="Reklam izle, jeton kazan" onclick="startRewardedAd()">📺 +10 🪙</div>
+          <div id="dailyTaskBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(46,204,113,0.3);background:rgba(46,204,113,0.06);color:#2ecc71;font-size:14px;cursor:pointer;" title="Günlük görevler" onclick="openTaskModal()">📋 Görevler</div>
+          <div id="themeBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:var(--text);font-size:14px;cursor:pointer;" title="Tema değiştir" onclick="toggleTheme()">🌙</div>
           <div id="statusText" class="status-pill">Yükleniyor</div>
           <!-- Arkadaşlar butonu (badge'li - istekler dahil) -->
           <div style="position:relative;display:inline-block;">
@@ -987,7 +1009,20 @@
     </div>
   </div>
 
-  <script type="module">
+  <!-- Günlük Görevler Modal -->
+  <div class="modal-overlay" id="taskModal">
+    <div class="modal" style="max-width:460px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="modal-title" style="margin-bottom:0;">📋 Günlük Görevler</div>
+        <div id="taskResetTimer" style="font-size:12px;color:var(--muted);"></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Her gün gece 00:00'da sıfırlanır. Görevleri tamamla, jeton kazan!</div>
+      <div id="taskList" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <div class="modal-footer" style="margin-top:16px;">
+        <button class="btn btn-secondary" onclick="document.getElementById('taskModal').classList.remove('open')">Kapat</button>
+      </div>
+    </div>
+  </div>
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
     import { langs, detectLang, t } from "/i18n.js";
 
@@ -2021,7 +2056,7 @@
       try {
         const { data: userData, error } = await supabase
           .from("users")
-          .select("has_member, username, gender, tokens, gift_balance, is_banned, avatar_url, birthdate, nick_color, nick_color_expires")
+          .select("has_member, username, gender, tokens, gift_balance, is_banned, avatar_url, birthdate, nick_color, nick_color_expires, theme")
           .eq("id", user.id)
           .single();
 
@@ -2099,6 +2134,9 @@
         // Nick rengini uygula
         if (currentProfile.nick_color) applyNickColor(currentProfile.nick_color);
 
+        // Temayı uygula
+        initTheme(userData.theme);
+
         // Avatar thumbnail güncelle
         if (currentProfile.avatar) {
           const thumb = document.getElementById('profileAvatarThumb');
@@ -2126,6 +2164,7 @@
         checkPremiumStatus();
         loadGiftBalance();
         refreshFriendRequestBadge();
+        checkAdCooldown();
 
       } catch (err) {
         console.error("[AUTH] Beklenmeyen hata:", err.message);
@@ -2736,6 +2775,33 @@
     let adLastWatched     = null;
     let adTimer           = null;
 
+    // Sayfa yüklenince DB'den cooldown kontrolü yap
+    async function checkAdCooldown() {
+      if (!currentUser) return;
+      try {
+        const { data } = await supabase.from('users').select('ad_last_watched').eq('id', currentUser.id).single();
+        if (data?.ad_last_watched) {
+          adLastWatched = new Date(data.ad_last_watched).getTime();
+          const diffMin = (Date.now() - adLastWatched) / 60000;
+          if (diffMin < AD_COOLDOWN_MIN) {
+            const remaining = Math.ceil(AD_COOLDOWN_MIN - diffMin);
+            const btn = document.getElementById('watchAdBtn');
+            if (btn) {
+              btn.textContent = `⏳ ${remaining}dk`;
+              btn.style.opacity = '0.5';
+              btn.style.cursor = 'not-allowed';
+              setTimeout(() => {
+                btn.textContent = '📺 +10 🪙';
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                adLastWatched = null;
+              }, remaining * 60 * 1000);
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
     const SMARTLINK_URL = 'https://www.effectivecpmnetwork.com/wa9tc5bzt?key=dbcbd373a422ae3c21edb5cd0d008670';
 
     window.startRewardedAd = () => {
@@ -2819,7 +2885,7 @@
       try {
         const { data: u } = await supabase.from("users").select("tokens").eq("id", currentUser.id).single();
         const newTokens = (u?.tokens || 0) + AD_REWARD;
-        await supabase.from("users").update({ tokens: newTokens }).eq("id", currentUser.id);
+        await supabase.from("users").update({ tokens: newTokens, ad_last_watched: new Date().toISOString() }).eq("id", currentUser.id);
         if (currentProfile) currentProfile.tokens = newTokens;
         updateTokenDisplay(newTokens);
 
@@ -2847,7 +2913,124 @@
       return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
 
-    // Hediye alındığında ekranda göster
+    // ── Tema sistemi ─────────────────────────────────────────────────
+    function applyTheme(theme) {
+      if (theme === 'light') {
+        document.body.classList.add('light-theme');
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.textContent = '☀️';
+      } else {
+        document.body.classList.remove('light-theme');
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.textContent = '🌙';
+      }
+    }
+
+    async function toggleTheme() {
+      const isLight = document.body.classList.contains('light-theme');
+      const newTheme = isLight ? 'dark' : 'light';
+      applyTheme(newTheme);
+      try { localStorage.setItem('lumi_theme', newTheme); } catch(e) {}
+      if (currentUser) {
+        await supabase.from('users').update({ theme: newTheme }).eq('id', currentUser.id);
+      }
+    }
+    window.toggleTheme = toggleTheme;
+
+    // Sayfa yüklenince temayı uygula
+    function initTheme(userTheme) {
+      let theme = userTheme;
+      if (!theme) { try { theme = localStorage.getItem('lumi_theme'); } catch(e) {} }
+      applyTheme(theme || 'dark');
+    }
+
+    // ── Günlük Görev sistemi ──────────────────────────────────────────
+    let taskData = null;
+
+    window.openTaskModal = async function() {
+      document.getElementById('taskModal').classList.add('open');
+      await loadTasks();
+      startTaskResetTimer();
+    };
+
+    async function loadTasks() {
+      if (!currentUser) return;
+      try {
+        const res = await fetch(`/api/tasks/${currentUser.id}`).then(r => r.json());
+        if (!res.ok) return;
+        taskData = res;
+        renderTasks(res.tasks, res.definitions);
+      } catch(e) {}
+    }
+
+    function renderTasks(tasks, defs) {
+      const box = document.getElementById('taskList');
+      if (!box || !tasks || !defs) return;
+
+      const taskDefs = [
+        { id: 'task1', label: '3 kişiyle eşleş',  field: 'matches',  target: 3,  done: 'task1_done', reward: 30,  emoji: '🤝' },
+        { id: 'task2', label: '10 mesaj gönder',   field: 'messages', target: 10, done: 'task2_done', reward: 20,  emoji: '💬' },
+        { id: 'task3', label: '1 arkadaş ekle',    field: 'friends',  target: 1,  done: 'task3_done', reward: 50,  emoji: '👥' },
+      ];
+
+      box.innerHTML = taskDefs.map(def => {
+        const current = Math.min(tasks[def.field] || 0, def.target);
+        const done = tasks[def.done];
+        const pct = Math.round((current / def.target) * 100);
+
+        return `<div style="background:rgba(255,255,255,0.04);border:1px solid ${done ? 'rgba(46,204,113,0.3)' : 'rgba(255,255,255,0.08)'};border-radius:12px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:20px;">${def.emoji}</span>
+              <div>
+                <div style="font-size:14px;font-weight:bold;color:${done ? '#2ecc71' : 'var(--text)'};">${def.label}</div>
+                <div style="font-size:12px;color:var(--muted);">${current}/${def.target}</div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:14px;font-weight:bold;color:#ffe566;">+${def.reward} 🪙</div>
+              ${done ? '<div style="font-size:11px;color:#2ecc71;margin-top:2px;">✅ Tamamlandı</div>' : ''}
+            </div>
+          </div>
+          <div style="height:6px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${done ? '#2ecc71' : 'var(--accent)'};border-radius:999px;transition:width 0.5s ease;"></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function startTaskResetTimer() {
+      const el = document.getElementById('taskResetTimer');
+      if (!el) return;
+      function update() {
+        const now = new Date();
+        const midnight = new Date(now);
+        midnight.setHours(24, 0, 0, 0);
+        const diff = midnight - now;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = `Sıfırlanma: ${h}s ${m}d ${s}s`;
+      }
+      update();
+      setInterval(update, 1000);
+    }
+
+    // Görev tamamlandı bildirimi
+    socket.on('taskCompleted', (data) => {
+      const labels = { matches: '3 eşleşme', messages: '10 mesaj', friends: '1 arkadaş' };
+      const notif = document.createElement('div');
+      notif.style.cssText = 'position:fixed;top:80px;right:20px;z-index:9999;background:rgba(10,20,35,0.97);border:1px solid #2ecc71;border-radius:12px;padding:14px 20px;font-size:14px;color:white;box-shadow:0 8px 24px rgba(0,0,0,0.4);max-width:280px;';
+      notif.innerHTML = `🎉 <b>Görev Tamamlandı!</b><br><span style="font-size:12px;color:var(--muted);">${labels[data.field] || data.field} → +${data.reward} 🪙</span>`;
+      document.body.appendChild(notif);
+      // Görev listesini güncelle
+      if (taskData) loadTasks();
+      // Jeton sayacını güncelle
+      if (currentProfile) { currentProfile.tokens = (currentProfile.tokens||0) + data.reward; updateTokenDisplay(currentProfile.tokens); }
+      setTimeout(() => notif.remove(), 5000);
+    });
+
+    // ── Hediye alındığında ekranda göster ───────────────────────────
     function showGiftNotification(emoji, fromName) {
       // Konfeti parçacıkları
       const colors = ['#ffe566','#00e5ff','#ff7675','#2ecc71','#a855f7','#ff9944'];
