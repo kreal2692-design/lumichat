@@ -67,6 +67,25 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
+// Her 10 dakikada süresi dolan banları otomatik kaldır
+setInterval(async () => {
+  try {
+    const now = new Date().toISOString();
+    const { data: expired } = await supabase
+      .from('users')
+      .select('id')
+      .eq('is_banned', true)
+      .not('ban_until', 'is', null)
+      .lt('ban_until', now);
+    if (expired?.length) {
+      await supabase.from('users')
+        .update({ is_banned: false, ban_until: null })
+        .in('id', expired.map(u => u.id));
+      console.log(`[BAN] ${expired.length} geçici ban süresi doldu, kaldırıldı.`);
+    }
+  } catch(e) { console.error('[BAN] Auto-unban hatası:', e.message); }
+}, 10 * 60 * 1000);
+
 app.use(rateLimiter);
 
 // ── Socket.IO bağlantı limiti (IP başına) ───────────────────────────
@@ -860,7 +879,7 @@ app.get('/api/admin/users', adminAuth, async (req, res) => {
   const from   = (page - 1) * limit;
 
   let query = supabase.from('users')
-    .select('id, username, email, gender, tokens, gift_balance, is_banned, is_premium, premium_expires, nick_color, created_at', { count: 'exact' })
+    .select('id, username, email, gender, tokens, gift_balance, is_banned, ban_until, is_premium, premium_expires, nick_color, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, from + limit - 1);
 
@@ -875,17 +894,25 @@ app.get('/api/admin/users', adminAuth, async (req, res) => {
 
 // Admin: kullanıcıyı ban/unban
 app.post('/api/admin/ban', adminAuth, async (req, res) => {
-  let { userId, ban, reason } = req.body;
+  let { userId, ban, reason, hours } = req.body;
   if (!userId) return res.status(400).json({ error: 'userId gerekli' });
 
   // E-posta ile arama desteği
-  if (userId.includes('@')) {
+  if (String(userId).includes('@')) {
     const { data: found } = await supabase.from('users').select('id').eq('email', userId).single();
     if (!found) return res.status(404).json({ error: 'E-posta ile kullanıcı bulunamadı' });
     userId = found.id;
   }
 
-  const { error } = await supabase.from('users').update({ is_banned: !!ban }).eq('id', userId);
+  // Geçici ban: hours verilmişse ban_until set et
+  const updateData = { is_banned: !!ban };
+  if (ban && hours) {
+    updateData.ban_until = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+  } else if (!ban) {
+    updateData.ban_until = null;
+  }
+
+  const { error } = await supabase.from('users').update(updateData).eq('id', userId);
   if (error) return res.status(500).json({ error: error.message });
 
   // Aktif socket varsa at
@@ -929,7 +956,8 @@ app.post('/api/admin/give-tokens', adminAuth, async (req, res) => {
 app.get('/api/admin/reports', adminAuth, async (req, res) => {
   const { data, error } = await supabase
     .from('reports')
-    .select('id, reason, created_at, reporter_id, reported_socket_id')
+    .select(`id, reason, created_at, reporter_id, reported_socket_id,
+      reporter:users!reports_reporter_id_fkey(id, username, email)`)
     .order('created_at', { ascending: false })
     .limit(100);
 

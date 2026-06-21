@@ -308,7 +308,9 @@
       <td>${u.gender==='kadin'?'👩 Kadın':u.gender==='erkek'?'👨 Erkek':'—'}</td>
       <td>🪙 ${u.tokens||0}</td>
       <td>${u.is_premium?'<span class="badge badge-yellow">⭐</span>':'—'}</td>
-      <td>${u.is_banned?'<span class="badge badge-red">🚫 Banlı</span>':'<span class="badge badge-green">✅</span>'}</td>
+      <td>${u.is_banned
+        ? `<span class="badge badge-red">🚫 Banlı${u.ban_until ? '<br><span style="font-size:10px;font-weight:normal;">'+new Date(u.ban_until).toLocaleString('tr-TR')+'\'e kadar</span>' : ' (kalıcı)'}</span>`
+        : '<span class="badge badge-green">✅ Aktif</span>'}</td>
       <td style="font-size:11px;color:var(--muted)">${new Date(u.created_at).toLocaleDateString('tr-TR')}</td>
       <td style="display:flex;gap:5px;flex-wrap:wrap;">
         <button class="btn-secondary" style="padding:4px 9px;font-size:11px" onclick="openUserModal('${u.id}')">Detay</button>
@@ -327,10 +329,22 @@
   window.loadUsers = loadUsers;
 
   window.toggleBan = async function(userId, ban, username) {
-    if (!confirm(`${username} kullanıcısını ${ban?'banlamak':'banı kaldırmak'} istediğine emin misin?`)) return;
-    const r = await api('/api/admin/ban', { method:'POST', body: JSON.stringify({ userId, ban }) });
-    if (r.ok) { toast(`✅ ${username} ${ban?'banlandi':'ban kaldırıldı'}`); loadUsers(usersPage); }
-    else toast(`❌ Hata: ${r.error}`, 'err');
+    if (ban) {
+      const hours = prompt(`${username} kaç saat banlanacak?\n(Boş bırak = kalıcı ban)`, '24');
+      if (hours === null) return; // iptal
+      const hoursNum = hours.trim() ? parseInt(hours) : null;
+      const r = await api('/api/admin/ban', { method:'POST', body: JSON.stringify({ userId, ban: true, hours: hoursNum }) });
+      if (r.ok) {
+        const msg = hoursNum ? `✅ ${username} → ${hoursNum} saat banlandi` : `✅ ${username} kalıcı olarak banlandi`;
+        toast(msg);
+        loadUsers(usersPage);
+      } else toast(`❌ Hata: ${r.error}`, 'err');
+    } else {
+      if (!confirm(`${username} kullanıcısının banını kaldırmak istiyor musun?`)) return;
+      const r = await api('/api/admin/ban', { method:'POST', body: JSON.stringify({ userId, ban: false }) });
+      if (r.ok) { toast(`✅ ${username} banı kaldırıldı`); loadUsers(usersPage); }
+      else toast(`❌ Hata: ${r.error}`, 'err');
+    }
   };
 
   window.quickToken = function(userId, username) {
@@ -374,15 +388,51 @@
     if (!r.ok) return;
     const box = document.getElementById('reportsTable');
     if (!r.reports.length) { box.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center;">Rapor bulunamadı</div>'; return; }
-    box.innerHTML = `<table><thead><tr><th>Tarih</th><th>Raporlayan</th><th>Raporlanan</th><th>Sebep</th></tr></thead><tbody>
-    ${r.reports.map(rp=>`<tr>
-      <td style="font-size:11px;color:var(--muted)">${new Date(rp.created_at).toLocaleString('tr-TR')}</td>
-      <td style="font-size:11px">${esc((rp.reporter_id||'').slice(0,12))}...</td>
-      <td style="font-size:11px">${esc(rp.reported_socket_id||'—')}</td>
-      <td>${esc(rp.reason||'—')}</td>
-    </tr>`).join('')}</tbody></table>`;
+    box.innerHTML = `<table><thead><tr>
+      <th>Tarih</th><th>Raporlayan</th><th>Raporlanan Socket</th><th>Sebep</th><th>İşlem</th>
+    </tr></thead><tbody>
+    ${r.reports.map(rp => {
+      const reporterName = esc(rp.reporter?.username || rp.reporter_id?.slice(0,8) || '—');
+      const reporterEmail = esc(rp.reporter?.email || '');
+      return `<tr>
+        <td style="font-size:11px;color:var(--muted)">${new Date(rp.created_at).toLocaleString('tr-TR')}</td>
+        <td>
+          <div style="font-weight:bold;font-size:13px;">${reporterName}</div>
+          <div style="font-size:11px;color:var(--muted)">${reporterEmail}</div>
+        </td>
+        <td style="font-size:11px;font-family:monospace">${esc(rp.reported_socket_id||'—')}</td>
+        <td><span style="color:var(--danger)">${esc(rp.reason||'—')}</span></td>
+        <td>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="banHours-${rp.id}" style="padding:4px 8px;font-size:11px;width:110px;margin:0;">
+              <option value="">Kalıcı ban</option>
+              <option value="1">1 saat</option>
+              <option value="6">6 saat</option>
+              <option value="24" selected>24 saat</option>
+              <option value="72">3 gün</option>
+              <option value="168">7 gün</option>
+              <option value="720">30 gün</option>
+            </select>
+            <button class="btn-danger" style="padding:4px 10px;font-size:11px;" onclick="banFromReport('${rp.reporter_id}','${rp.id}')">🚫 Banla</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
   }
   window.loadReports = loadReports;
+
+  window.banFromReport = async function(reporterId, reportId) {
+    if (!reporterId || reporterId === 'undefined') {
+      toast('❌ Reporter ID bulunamadı', 'err'); return;
+    }
+    const sel = document.getElementById(`banHours-${reportId}`);
+    const hours = sel?.value ? parseInt(sel.value) : null;
+    const label = hours ? `${hours} saat` : 'kalıcı';
+    if (!confirm(`Bu kullanıcıyı ${label} banlamak istiyor musun?`)) return;
+    const r = await api('/api/admin/ban', { method:'POST', body: JSON.stringify({ userId: reporterId, ban: true, hours }) });
+    if (r.ok) { toast(`✅ Kullanıcı ${label} banlandi`); loadReports(); }
+    else toast(`❌ ${r.error}`, 'err');
+  };
 
   window.giveTokens = async function() {
     const userId = document.getElementById('tokenUserId').value.trim();

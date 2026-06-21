@@ -2736,6 +2736,8 @@
     let adLastWatched     = null;
     let adTimer           = null;
 
+    const SMARTLINK_URL = 'https://www.effectivecpmnetwork.com/wa9tc5bzt?key=dbcbd373a422ae3c21edb5cd0d008670';
+
     window.startRewardedAd = () => {
       if (!currentUser) return;
 
@@ -2749,7 +2751,10 @@
         }
       }
 
-      // Modal oluştur
+      // Smartlink'i yeni sekmede aç
+      window.open(SMARTLINK_URL, '_blank');
+
+      // Modal göster — kullanıcı geri gelince jeton al
       const modal = document.createElement('div');
       modal.id = 'adModal';
       modal.style.cssText = `
@@ -2760,43 +2765,28 @@
       `;
       modal.innerHTML = `
         <div style="max-width:480px;width:100%;background:rgba(10,20,35,0.98);border:1px solid rgba(0,229,255,0.25);border-radius:20px;padding:28px;text-align:center;">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Reklamı izleyerek jeton kazan</div>
-
-          <!-- Simüle reklam alanı — gerçek reklam buraya gelecek -->
-          <div style="width:100%;height:220px;background:linear-gradient(135deg,#0a1a2e,#1a2a4e);border-radius:14px;border:1px solid rgba(0,229,255,0.15);display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:20px;position:relative;overflow:hidden;">
-            <div style="font-size:48px;margin-bottom:12px;animation:adIconBounce 1s ease infinite alternate;">📺</div>
-            <div style="font-size:15px;color:white;font-weight:bold;">Reklam Yükleniyor...</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:6px;">LumiMatch reklamı</div>
-            <!-- Animasyonlu çubuk -->
-            <div style="position:absolute;bottom:0;left:0;height:3px;background:var(--accent);animation:adLoadBar ${AD_DURATION}s linear forwards;" id="adProgressBar"></div>
+          <div style="font-size:48px;margin-bottom:16px;">📺</div>
+          <div style="font-size:18px;font-weight:bold;color:white;margin-bottom:8px;">Reklam açıldı!</div>
+          <div style="font-size:14px;color:var(--muted);margin-bottom:20px;">Yeni sekmede reklam açıldı. ${AD_DURATION} saniye bekle, sonra jetonu al.</div>
+          <div style="position:relative;width:100%;height:8px;background:rgba(255,255,255,0.1);border-radius:999px;overflow:hidden;margin-bottom:20px;">
+            <div id="adProgressBar" style="height:100%;background:var(--accent);border-radius:999px;width:0%;transition:width linear;"></div>
           </div>
-
-          <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;">
-            <div style="font-size:32px;font-weight:bold;color:var(--accent);" id="adCountdown">${AD_DURATION}</div>
-            <div style="font-size:14px;color:var(--muted);">saniye sonra<br>jeton kazanacaksın</div>
-          </div>
-
-          <div style="font-size:15px;color:#ffe566;font-weight:bold;margin-bottom:16px;">+${AD_REWARD} 🪙 kazanacaksın</div>
-
+          <div style="font-size:32px;font-weight:bold;color:var(--accent);margin-bottom:8px;" id="adCountdown">${AD_DURATION}</div>
+          <div style="font-size:15px;color:#ffe566;font-weight:bold;margin-bottom:20px;">+${AD_REWARD} 🪙 kazanacaksın</div>
           <button id="adCloseBtn" disabled onclick="finishAd()" style="width:100%;padding:14px;border-radius:12px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:var(--muted);font-size:15px;cursor:not-allowed;font-weight:bold;">
             Bekle... (${AD_DURATION}s)
           </button>
-          <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.2);">Reklamı kapatırsan jeton kazanamazsın</div>
+          <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.3);">Reklam sekmesini kapatmadan önce bekle</div>
         </div>
       `;
 
-      // CSS
-      if (!document.getElementById('adAnimStyles')) {
-        const style = document.createElement('style');
-        style.id = 'adAnimStyles';
-        style.textContent = `
-          @keyframes adIconBounce { from { transform:translateY(0); } to { transform:translateY(-8px); } }
-          @keyframes adLoadBar { from { width:0%; } to { width:100%; } }
-        `;
-        document.head.appendChild(style);
-      }
-
       document.body.appendChild(modal);
+
+      // Progress bar animasyonu
+      requestAnimationFrame(() => {
+        const bar = document.getElementById('adProgressBar');
+        if (bar) { bar.style.transition = `width ${AD_DURATION}s linear`; bar.style.width = '100%'; }
+      });
 
       // Sayaç
       let remaining = AD_DURATION;
@@ -2826,7 +2816,6 @@
       document.getElementById('adModal')?.remove();
       adLastWatched = Date.now();
 
-      // Jetonu ekle
       try {
         const { data: u } = await supabase.from("users").select("tokens").eq("id", currentUser.id).single();
         const newTokens = (u?.tokens || 0) + AD_REWARD;
@@ -2834,14 +2823,12 @@
         if (currentProfile) currentProfile.tokens = newTokens;
         updateTokenDisplay(newTokens);
 
-        // Bildirim
         const notif = document.createElement('div');
-        notif.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;background:rgba(10,20,35,0.97);border:1px solid #2ecc71;border-radius:12px;padding:14px 20px;font-size:14px;color:white;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:fadeInUp 0.3s ease;';
+        notif.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;background:rgba(10,20,35,0.97);border:1px solid #2ecc71;border-radius:12px;padding:14px 20px;font-size:14px;color:white;box-shadow:0 8px 24px rgba(0,0,0,0.4);';
         notif.innerHTML = `🎉 <b>+${AD_REWARD} 🪙</b> jeton hesabına eklendi!<br><span style="font-size:12px;color:var(--muted);">${AD_COOLDOWN_MIN} dakika sonra tekrar izleyebilirsin.</span>`;
         document.body.appendChild(notif);
         setTimeout(() => notif.remove(), 4000);
 
-        // Butonu güncelle
         const btn = document.getElementById('watchAdBtn');
         if (btn) {
           btn.textContent = `⏳ ${AD_COOLDOWN_MIN}dk`;
@@ -3281,5 +3268,7 @@
     setTimeout(() => { if (currentUser) requestPushPermission(); }, 3000);
 
   </script>
+  <!-- Adsterra Popunder -->
+  <script src="https://pl29825218.effectivecpmnetwork.com/e3/bb/ae/e3bbaecf37b0f0fc638b51e64362dc02.js"></script>
 </body>
 </html>

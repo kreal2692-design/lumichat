@@ -1,6 +1,9 @@
 -- LumiMatch yeni özellikler için gerekli tablolar
 -- Supabase SQL Editor'da çalıştır
 
+-- 0. ban_until kolonu ekle (geçici ban)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_until TIMESTAMPTZ;
+
 -- 1. Direkt Mesajlar tablosu
 CREATE TABLE IF NOT EXISTS direct_messages (
   id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
