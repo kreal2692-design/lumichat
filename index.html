@@ -180,12 +180,8 @@
     .lang-option.active { color: var(--accent); }
 
     .layout {
-      display: grid; grid-template-columns: 180px 1fr 180px;
+      display: grid; grid-template-columns: 1fr 1fr 280px;
       gap: 14px; flex: 1; min-height: 0; overflow: hidden;
-    }
-    .video-area {
-      display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 400px;
-      gap: 14px; min-height: 0;
     }
     .box {
       position: relative; border-radius: 16px; overflow: hidden;
@@ -300,11 +296,13 @@
     .chat-input-wrap { position: relative; display: flex; gap: 8px; align-items: center; flex: 1; }
 
     .controls {
-      display: flex; flex-direction: column; gap: 10px;
-      padding: 14px; border-radius: 12px;
+      display: flex; gap: 12px; align-items: center; justify-content: space-between;
+      padding: 10px 16px; border-radius: 12px;
       background: rgba(8,12,24,0.9); border: 1px solid rgba(0,229,255,0.25);
-      box-shadow: var(--shadow); flex-shrink: 0;
+      box-shadow: var(--shadow); flex-wrap: wrap; flex-shrink: 0;
     }
+    .controls-left { display: flex; gap: 10px; align-items: center; }
+    .controls-right { display: flex; gap: 10px; align-items: center; }
     .filter-label { color: var(--muted); font-size: 13px; margin-top: 8px; }
     .filter-select {
       padding: 9px 12px; border-radius: 10px; width: 100%;
@@ -653,11 +651,21 @@
       </div>
 
       <div class="controls">
-        <button id="matchBtn" class="btn btn-primary">Eşleş</button>
-        <button id="stopBtn" class="btn btn-secondary" style="display:none;">⏹ Dur</button>
-        <button id="nextBtn" class="btn btn-secondary">Sıradaki</button>
-        <button id="leaveBtn" class="btn btn-danger">Ayrıl</button>
-        <button id="saveChatBtn" class="btn btn-secondary" style="display:none;" title="Sohbeti kaydet">💾 Kaydet</button>
+        <div class="controls-left">
+          <button id="matchBtn" class="btn btn-primary">Eşleş</button>
+          <button id="stopBtn" class="btn btn-secondary" style="display:none;">⏹ Dur</button>
+          <span class="filter-label">Filtre:</span>
+          <select id="genderFilter" class="filter-select">
+            <option value="all">Hepsi</option>
+            <option value="erkek">👨 Erkek</option>
+            <option value="kadin">👩 Kadın</option>
+          </select>
+        </div>
+        <div class="controls-right">
+          <button id="saveChatBtn" class="btn btn-secondary" style="display:none;" title="Sohbeti kaydet">💾 Kaydet</button>
+          <button id="nextBtn" class="btn btn-secondary">Sıradaki</button>
+          <button id="leaveBtn" class="btn btn-danger">Ayrıl</button>
+        </div>
       </div>
     </div>
   </div>
