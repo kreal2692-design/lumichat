@@ -9,16 +9,28 @@ import asyncio
 import json
 import os
 from datetime import datetime
-from telethon import TelegramClient, events
+from telethon.sync import TelegramClient, events
 from telethon.tl.functions.channels import JoinChannelRequest
-from telethon.errors import FloodWaitError
+from telethon.errors import FloodWaitError, SessionPasswordNeededError
 import signal
 import sys
 
+# .env dosyasını yükle
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("✅ .env dosyası yüklendi")
+except Exception as e:
+    print(f"⚠️ .env yüklenemedi: {e}")
+
 # API bilgileri
-API_ID = int(os.getenv('TELEGRAM_API_ID', '0'))
-API_HASH = os.getenv('TELEGRAM_API_HASH', '')
-PHONE_NUMBER = os.getenv('TELEGRAM_PHONE', '')
+API_ID = int(os.getenv('TELEGRAM_API_ID', '31532670'))
+API_HASH = os.getenv('TELEGRAM_API_HASH', '639863426cc29526d8ca5570d61d10b6')
+PHONE_NUMBER = os.getenv('TELEGRAM_PHONE', '+905491227528')
+
+print(f"📋 API ID: {API_ID}")
+print(f"📋 API Hash: {API_HASH[:10]}...")
+print(f"📋 Phone: {PHONE_NUMBER}")
 
 class LiveTelegramMonitor:
     def __init__(self, api_id, api_hash, phone):
@@ -32,8 +44,29 @@ class LiveTelegramMonitor:
         
     async def connect(self):
         """Telegram'a bağlan"""
-        await self.client.start(phone=self.phone)
-        print(f"✅ Telegram'a bağlanıldı: {self.phone}")
+        print("\n🔄 Telegram'a bağlanılıyor...")
+        
+        try:
+            await self.client.start(
+                phone=lambda: self.phone,
+                password=lambda: input('İki faktörlü doğrulama şifresi (varsa): ') or None
+            )
+            print(f"✅ Telegram'a bağlanıldı: {self.phone}")
+            
+            # Kullanıcı bilgilerini göster
+            me = await self.client.get_me()
+            print(f"👤 Giriş yapılan hesap: {me.first_name} (@{me.username or 'username yok'})")
+            
+        except SessionPasswordNeededError:
+            print("🔐 İki faktörlü doğrulama gerekli")
+            password = input("Şifrenizi girin: ")
+            await self.client.start(phone=self.phone, password=password)
+            print(f"✅ Telegram'a bağlanıldı: {self.phone}")
+            
+        except Exception as e:
+            print(f"❌ Bağlantı hatası: {type(e).__name__}")
+            print(f"   Detay: {str(e)}")
+            raise
         
     async def join_group_if_needed(self, group_link):
         """Gruba katılmamışsak otomatik katıl"""
@@ -239,14 +272,23 @@ async def main():
     print("=" * 80)
     
     # Konfigürasyon kontrolü
-    if not API_ID or not API_HASH or not PHONE_NUMBER:
-        print("\n❌ HATA: API bilgileri eksik!")
-        print("\n.env dosyasını oluşturun ve şu bilgileri ekleyin:")
-        print("TELEGRAM_API_ID=your_api_id")
-        print("TELEGRAM_API_HASH=your_api_hash")
-        print("TELEGRAM_PHONE=+905551234567")
-        print("\nDetaylı kurulum: BASLA.md dosyasını okuyun")
+    if not API_ID or API_ID == 0:
+        print("\n❌ HATA: API_ID eksik veya geçersiz!")
+        print(f"Mevcut değer: {API_ID}")
         return
+        
+    if not API_HASH or len(API_HASH) < 10:
+        print("\n❌ HATA: API_HASH eksik veya geçersiz!")
+        print(f"Mevcut değer: {API_HASH[:10] if API_HASH else 'Yok'}...")
+        return
+        
+    if not PHONE_NUMBER or not PHONE_NUMBER.startswith('+'):
+        print("\n❌ HATA: Telefon numarası eksik veya hatalı!")
+        print(f"Mevcut değer: {PHONE_NUMBER}")
+        print("Doğru format: +905551234567")
+        return
+    
+    print("\n✅ Konfigürasyon doğru!")
     
     # İzlenecek gruplar
     group_links = [
