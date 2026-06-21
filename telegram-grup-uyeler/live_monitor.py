@@ -38,29 +38,24 @@ class LiveTelegramMonitor:
         self.api_hash = api_hash
         self.phone = phone
         self.client = TelegramClient('live_session_' + phone, api_id, api_hash)
-        self.all_users = {}
+        self.all_users = self.load_existing_users()  # Mevcut üyeleri yükle
         self.monitored_groups = {}
         self.running = True
-        self.scanned_groups = self.load_scanned_groups()
-        
-    def load_scanned_groups(self):
-        """Önceden taranan grupları yükle"""
-        try:
-            if os.path.exists('scanned_groups.json'):
-                with open('scanned_groups.json', 'r', encoding='utf-8') as f:
-                    return set(json.load(f))
-        except:
-            pass
-        return set()
     
-    def save_scanned_group(self, group_id):
-        """Taranan grubu kaydet"""
-        self.scanned_groups.add(group_id)
+    def load_existing_users(self):
+        """Mevcut üyeler.json dosyasından kullanıcıları yükle"""
         try:
-            with open('scanned_groups.json', 'w', encoding='utf-8') as f:
-                json.dump(list(self.scanned_groups), f)
+            if os.path.exists('üyeler.json'):
+                with open('üyeler.json', 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    users = {}
+                    for user in data.get('users', []):
+                        users[user['id']] = user
+                    print(f"✅ {len(users)} mevcut kullanıcı yüklendi")
+                    return users
         except Exception as e:
-            print(f"⚠️  Scanned groups kaydedilemedi: {e}")
+            print(f"⚠️  Mevcut kullanıcılar yüklenemedi: {e}")
+        return {}
         
     async def connect(self):
         """Telegram'a bağlan"""
@@ -113,65 +108,9 @@ class LiveTelegramMonitor:
             print(f"   ❌ Katılma hatası: {str(e)}")
             return None
     
-    async def get_initial_users(self, entity, limit=10000):
-        """İlk taramada son mesaj atanları al - SÜPER HIZLI versiyon"""
-        
-        # Daha önce taranmış mı kontrol et
-        if entity.id in self.scanned_groups:
-            print(f"\n⏭️  ATLANDI: {entity.title} (Daha önce tarandı)")
-            return
-        
-        print(f"\n📊 İlk tarama başlıyor: {entity.title}")
-        print(f"   ⏳ {limit} mesaj çekiliyor...")
-        
-        try:
-            # Tüm mesajları toplu al
-            messages = await self.client.get_messages(entity, limit=limit)
-            print(f"   ✅ {len(messages)} mesaj çekildi, kullanıcılar işleniyor...\n")
-            
-            processed = 0
-            for message in messages:
-                # Mesajdan direkt sender bilgisini al (API çağrısı gerektirmez!)
-                sender = message.sender
-                
-                if sender and not sender.bot:  # Bot değilse
-                    username = sender.username if hasattr(sender, 'username') else None
-                    
-                    if username:  # Kullanıcı adı varsa
-                        user_id = sender.id
-                        
-                        if user_id not in self.all_users:
-                            user_data = {
-                                'id': user_id,
-                                'username': username,
-                                'groups': [entity.title],
-                                'first_seen': datetime.now().isoformat(),
-                                'message_count': 1
-                            }
-                            
-                            self.all_users[user_id] = user_data
-                            processed += 1
-                            
-                            # Anında bildir
-                            print(f"   🆕 {processed}- @{username} | {entity.title}")
-                        else:
-                            # Zaten var ama farklı grupta mesaj attıysa grup ekle
-                            if entity.title not in self.all_users[user_id]['groups']:
-                                self.all_users[user_id]['groups'].append(entity.title)
-            
-            # Tek seferde kaydet
-            self.save_to_file()
-            
-            # Bu grubu taranan gruplar listesine ekle
-            self.save_scanned_group(entity.id)
-            
-            print(f"\n   ✅ Tarama tamamlandı: {processed} yeni kullanıcı bulundu (Toplam: {len(self.all_users)})")
-            
-        except Exception as e:
-            print(f"   ❌ Tarama hatası: {str(e)}")
-    
+
     def add_user(self, user, group_name, silent=False):
-        """Kullanıcıyı listeye ekle (sadece username, isim yok)"""
+        """Kullanıcıyı listeye ekle - SADECE YENİ KULLANICILAR BİLDİRİLİR"""
         # Kullanıcı kontrolü
         if not user:
             return
@@ -185,6 +124,7 @@ class LiveTelegramMonitor:
             return
         
         if user_id not in self.all_users:
+            # YENİ KULLANICI - Ekle, bildir, kaydet
             user_data = {
                 'id': user_id,
                 'username': username,
@@ -195,27 +135,26 @@ class LiveTelegramMonitor:
             
             self.all_users[user_id] = user_data
             
-            # Terminal'de göster (sadece canlı izlemede)
-            if not silent:
-                print(f"   🆕 YENİ KULLANICI: @{username} | {group_name}")
-                # Anında dosyaya kaydet
-                self.save_to_file()
+            # Terminal'de göster
+            print(f"   🆕 YENİ KULLANICI: @{username} | {group_name}")
+            
+            # Anında dosyaya kaydet
+            self.save_to_file()
             
         else:
-            # Zaten var ama farklı grupta mesaj attıysa grup ekle
+            # MEVCUT KULLANICI - Sadece grup ekle, BİLDİRME
             if group_name not in self.all_users[user_id]['groups']:
                 self.all_users[user_id]['groups'].append(group_name)
                 self.all_users[user_id]['message_count'] += 1
-                if not silent:
-                    print(f"   🔄 GÜNCELLEME: @{self.all_users[user_id]['username']} → {group_name}")
-                    self.save_to_file()
+                # Sessizce güncelle, bildirim yok
+                self.save_to_file()
             else:
                 self.all_users[user_id]['message_count'] += 1
     
-    async def setup_monitoring(self, group_links, initial_scan=True):
-        """Grupları izlemeye başla"""
+    async def setup_monitoring(self, group_links):
+        """Grupları izlemeye başla - İLK TARAMA YOK, SADECE CANLI İZLEME"""
         print("\n" + "="*80)
-        print("📡 GRUPLARA KATILIYOR VE İZLEME BAŞLIYOR")
+        print("📡 GRUPLARA KATILIYOR VE CANLI İZLEME BAŞLIYOR")
         print("="*80)
         
         for link in group_links:
@@ -223,10 +162,7 @@ class LiveTelegramMonitor:
                 entity = await self.join_group_if_needed(link)
                 if entity:
                     self.monitored_groups[entity.id] = entity.title
-                    
-                    # İlk tarama yap
-                    if initial_scan:
-                        await self.get_initial_users(entity, limit=10000)
+                    print(f"   ✅ İzleniyor: {entity.title}")
                     
                 await asyncio.sleep(2)
                 
@@ -235,8 +171,10 @@ class LiveTelegramMonitor:
                 continue
         
         print("\n" + "="*80)
-        print(f"✅ {len(self.monitored_groups)} GRUP AKTİF İZLENİYOR")
+        print(f"✅ {len(self.monitored_groups)} GRUP CANLI İZLENİYOR")
         print("="*80)
+        print(f"📊 Mevcut kullanıcı sayısı: {len(self.all_users)}")
+        print("🔴 SADECE YENİ MESAJ ATANLAR BİLDİRİLECEK\n")
         
         # Yeni mesaj handler'ı ekle
         @self.client.on(events.NewMessage(chats=list(self.monitored_groups.keys())))
@@ -341,8 +279,7 @@ async def main():
     ]
     
     print(f"\n📋 İzlenecek grup sayısı: {len(group_links)}")
-    print(f"📊 İlk tarama: Son 10.000 mesaj")
-    print(f"🔴 Canlı izleme: AÇIK (Sürekli)")
+    print(f"🔴 Canlı izleme: AÇIK (İlk tarama YOK)")
     print(f"💾 Otomatik kaydet: Her yeni kullanıcıda")
     
     response = input("\n▶️  Başlatmak için ENTER'a basın (q = çık): ")
@@ -366,7 +303,7 @@ async def main():
         await monitor.connect()
         
         # İzlemeyi başlat
-        await monitor.setup_monitoring(group_links, initial_scan=True)
+        await monitor.setup_monitoring(group_links)
         
         # Sürekli çalış
         while monitor.running:
