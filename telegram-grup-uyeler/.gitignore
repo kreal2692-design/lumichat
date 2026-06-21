@@ -1,0 +1,19 @@
+.env
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.session
+*.session-journal
+
+# Scraper outputs
+*_telegram_users.txt
+*_telegram_users.json
+*_telegram_users.csv
+live_*.txt
+live_*.json
+live_*.csv
