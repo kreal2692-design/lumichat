@@ -8,14 +8,7 @@
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#00e5ff" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="LumiMatch" />
-  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-  <!-- PWA -->
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#00e5ff" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="LumiMatch" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
@@ -2197,12 +2190,12 @@
 
     debug("Script hazır");
 
-    // Service Worker kaydet (PWA)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(() => console.log('[PWA] Service Worker kayıtlı'))
-        .catch(err => console.warn('[PWA] Service Worker hatası:', err));
-    }
+    // Service Worker kaydet (PWA) — devre dışı, no-cache header'ları yeterli
+    // if ('serviceWorker' in navigator) {
+    //   navigator.serviceWorker.register('/service-worker.js')
+    //     .then(() => console.log('[PWA] Service Worker kayıtlı'))
+    //     .catch(err => console.warn('[PWA] Service Worker hatası:', err));
+    // }
 
     // Dil sistemini başlat
     buildLangDropdown();
@@ -3388,7 +3381,14 @@
       selectedAvatarBlob = file;
       const reader = new FileReader();
       reader.onload = (ev) => {
-        document.getElementById('avatarPreview').innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;"/>`;
+        const prev = document.getElementById('avatarPreview');
+        if (prev) {
+          const img = document.createElement('img');
+          img.src = ev.target.result;
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+          prev.innerHTML = '';
+          prev.appendChild(img);
+        }
         document.getElementById('uploadAvatarBtn').style.display = 'block';
       };
       reader.readAsDataURL(file);
