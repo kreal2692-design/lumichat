@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lumimatch-v1';
+const CACHE_NAME = 'lumimatch-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -30,10 +30,18 @@ self.addEventListener('activate', (event) => {
 
 // Fetch — network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-  // Socket.io ve API isteklerini cache'leme
+  const url = event.request.url;
+
+  // Şunları cache'leme: socket.io, API, dış domain'ler, data: URL'ler
   if (
-    event.request.url.includes('/socket.io') ||
-    event.request.url.includes('/api/') ||
+    url.includes('/socket.io') ||
+    url.includes('/api/') ||
+    url.startsWith('data:') ||
+    url.includes('supabase.co') ||
+    url.includes('effectivecpmnetwork') ||
+    url.includes('adsterra') ||
+    url.includes('cdn.jsdelivr') ||
+    !url.startsWith(self.location.origin) ||
     event.request.method !== 'GET'
   ) {
     return;
@@ -42,15 +50,13 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Başarılı yanıtı cache'e kaydet
-        if (response && response.status === 200) {
+        if (response && response.status === 200 && response.type === 'basic') {
           const cloned = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
         }
         return response;
       })
       .catch(() => {
-        // Network yoksa cache'den sun
         return caches.match(event.request);
       })
   );
