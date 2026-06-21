@@ -10,10 +10,16 @@ __pycache__/
 *.session
 *.session-journal
 
-# Scraper outputs
+# Scraper outputs - hassas veriler
 *_telegram_users.txt
 *_telegram_users.json
 *_telegram_users.csv
 live_*.txt
 live_*.json
 live_*.csv
+üyeler.txt
+üyeler.json
+üyeler.csv
+
+# Test dosyaları
+test_*.py

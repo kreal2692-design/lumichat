@@ -1,9 +1,10 @@
 {
-  "last_update": "2026-06-21T20:25:38.784966",
-  "total_users": 215,
+  "last_update": "2026-06-21T20:28:43.923073",
+  "total_users": 278,
   "monitored_groups": [
     "ÖĞRENCİ | SOHBET GRUBU",
-    "YKS SOHBET YARDIMLAŞMA 2027"
+    "YKS SOHBET YARDIMLAŞMA 2027",
+    "yks sohbet"
   ],
   "users": [
     {
@@ -14,10 +15,11 @@
       "full_name": "Svnc. 🌸 None",
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU",
-        "YKS SOHBET YARDIMLAŞMA 2027"
+        "YKS SOHBET YARDIMLAŞMA 2027",
+        "Bilinmeyen"
       ],
       "first_seen": "2026-06-21T20:23:55.034127",
-      "message_count": 1
+      "message_count": 2
     },
     {
       "id": 7613186802,
@@ -38,10 +40,11 @@
       "last_name": null,
       "full_name": "A. None",
       "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
+        "ÖĞRENCİ | SOHBET GRUBU",
+        "Bilinmeyen"
       ],
       "first_seen": "2026-06-21T20:23:55.034292",
-      "message_count": 1
+      "message_count": 2
     },
     {
       "id": 637738671,
@@ -110,7 +113,8 @@
       "last_name": null,
       "full_name": "Deve çalan oevladı None",
       "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
+        "ÖĞRENCİ | SOHBET GRUBU",
+        "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:23:55.035964",
       "message_count": 1
@@ -342,7 +346,8 @@
       "last_name": null,
       "full_name": "Bekir 🇹🇷 None",
       "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
+        "ÖĞRENCİ | SOHBET GRUBU",
+        "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:23:55.042089",
       "message_count": 1
@@ -366,7 +371,8 @@
       "last_name": null,
       "full_name": "Çağla None",
       "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
+        "ÖĞRENCİ | SOHBET GRUBU",
+        "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:23:55.042808",
       "message_count": 1
@@ -752,7 +758,8 @@
       "full_name": "B None",
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU",
-        "YKS SOHBET YARDIMLAŞMA 2027"
+        "YKS SOHBET YARDIMLAŞMA 2027",
+        "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:23:55.052944",
       "message_count": 1
@@ -836,7 +843,8 @@
       "last_name": null,
       "full_name": "meloş💅 None",
       "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
+        "ÖĞRENCİ | SOHBET GRUBU",
+        "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:23:55.058033",
       "message_count": 1
@@ -944,7 +952,8 @@
       "last_name": null,
       "full_name": "duan None",
       "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
+        "ÖĞRENCİ | SOHBET GRUBU",
+        "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:23:55.060551",
       "message_count": 1
@@ -1964,7 +1973,8 @@
       "last_name": null,
       "full_name": "Enes None",
       "groups": [
-        "YKS SOHBET YARDIMLAŞMA 2027"
+        "YKS SOHBET YARDIMLAŞMA 2027",
+        "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:25:38.758272",
       "message_count": 1
@@ -2564,7 +2574,8 @@
       "last_name": null,
       "full_name": "arif None",
       "groups": [
-        "YKS SOHBET YARDIMLAŞMA 2027"
+        "YKS SOHBET YARDIMLAŞMA 2027",
+        "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:25:38.782404",
       "message_count": 1
@@ -2591,6 +2602,764 @@
         "YKS SOHBET YARDIMLAŞMA 2027"
       ],
       "first_seen": "2026-06-21T20:25:38.783409",
+      "message_count": 1
+    },
+    {
+      "id": 7691937754,
+      "username": "midenidelerbukaplardalean",
+      "first_name": "mirac",
+      "last_name": "#leantarifi",
+      "full_name": "mirac #leantarifi",
+      "groups": [
+        "yks sohbet",
+        "Bilinmeyen"
+      ],
+      "first_seen": "2026-06-21T20:27:21.106169",
+      "message_count": 2
+    },
+    {
+      "id": 8381584678,
+      "username": "ayeftooosss",
+      "first_name": "Eftelyaa",
+      "last_name": null,
+      "full_name": "Eftelyaa None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.106512",
+      "message_count": 1
+    },
+    {
+      "id": 8829679538,
+      "username": "loser9676",
+      "first_name": "Life",
+      "last_name": null,
+      "full_name": "Life None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.108660",
+      "message_count": 1
+    },
+    {
+      "id": 1028502197,
+      "username": "Emrakm",
+      "first_name": "Emre",
+      "last_name": null,
+      "full_name": "Emre None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.108937",
+      "message_count": 1
+    },
+    {
+      "id": 8895522432,
+      "username": "narsistsavarr",
+      "first_name": "🐨",
+      "last_name": null,
+      "full_name": "🐨 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.109283",
+      "message_count": 1
+    },
+    {
+      "id": 8377827127,
+      "username": "entelektueldiyarbakirli",
+      "first_name": "éclairé#berkayozlemi",
+      "last_name": null,
+      "full_name": "éclairé#berkayozlemi None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.109521",
+      "message_count": 1
+    },
+    {
+      "id": 1542557015,
+      "username": "vartolisaadettinabi",
+      "first_name": "Denizz",
+      "last_name": null,
+      "full_name": "Denizz None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.109846",
+      "message_count": 1
+    },
+    {
+      "id": 8587829928,
+      "username": "aykiriyim",
+      "first_name": "𝐊𝐋𝐀𝐔𝐒 🇬🇪",
+      "last_name": null,
+      "full_name": "𝐊𝐋𝐀𝐔𝐒 🇬🇪 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.110150",
+      "message_count": 1
+    },
+    {
+      "id": 8367746115,
+      "username": "Amktgnin",
+      "first_name": "𝐌𝐢𝐧𝐚 𝐩𝐞𝐤𝐤𝐚",
+      "last_name": null,
+      "full_name": "𝐌𝐢𝐧𝐚 𝐩𝐞𝐤𝐤𝐚 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.110407",
+      "message_count": 1
+    },
+    {
+      "id": 8623004718,
+      "username": "sachaboeycnm",
+      "first_name": "seher",
+      "last_name": null,
+      "full_name": "seher None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.110635",
+      "message_count": 1
+    },
+    {
+      "id": 7978771864,
+      "username": "nerdesin2m",
+      "first_name": "𝟐𝐦✶",
+      "last_name": null,
+      "full_name": "𝟐𝐦✶ None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.110988",
+      "message_count": 1
+    },
+    {
+      "id": 8232576831,
+      "username": "sakinlesmicem",
+      "first_name": "sevval#berkayozlemi",
+      "last_name": null,
+      "full_name": "sevval#berkayozlemi None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.111321",
+      "message_count": 1
+    },
+    {
+      "id": 8824816772,
+      "username": "kingnasirbaba",
+      "first_name": "king nasir",
+      "last_name": null,
+      "full_name": "king nasir None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.111615",
+      "message_count": 1
+    },
+    {
+      "id": 8890250740,
+      "username": "txnricayim",
+      "first_name": "Xbrnxra",
+      "last_name": null,
+      "full_name": "Xbrnxra None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.111933",
+      "message_count": 1
+    },
+    {
+      "id": 8317111048,
+      "username": "Aiseee1",
+      "first_name": "Aişeee🌷🐾",
+      "last_name": null,
+      "full_name": "Aişeee🌷🐾 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.112254",
+      "message_count": 1
+    },
+    {
+      "id": 6993829074,
+      "username": "baba_pro_6",
+      "first_name": ".",
+      "last_name": null,
+      "full_name": ". None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.112551",
+      "message_count": 1
+    },
+    {
+      "id": 8772060652,
+      "username": "kiriliyorum",
+      "first_name": "🌸 #AFK",
+      "last_name": null,
+      "full_name": "🌸 #AFK None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.112834",
+      "message_count": 1
+    },
+    {
+      "id": 8257298033,
+      "username": "nerdesinbetul",
+      "first_name": "buttercup",
+      "last_name": null,
+      "full_name": "buttercup None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.113777",
+      "message_count": 1
+    },
+    {
+      "id": 6550623493,
+      "username": "BehavioralRift",
+      "first_name": "Lecter's",
+      "last_name": null,
+      "full_name": "Lecter's None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.113931",
+      "message_count": 1
+    },
+    {
+      "id": 8788486421,
+      "username": "chimerabie",
+      "first_name": "ćhimerabie",
+      "last_name": null,
+      "full_name": "ćhimerabie None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.114210",
+      "message_count": 1
+    },
+    {
+      "id": 8695175036,
+      "username": "bagirtma",
+      "first_name": "İbrahim",
+      "last_name": null,
+      "full_name": "İbrahim None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.114524",
+      "message_count": 1
+    },
+    {
+      "id": 5862760096,
+      "username": "lucasbey",
+      "first_name": "Niki Lauda",
+      "last_name": null,
+      "full_name": "Niki Lauda None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.114967",
+      "message_count": 1
+    },
+    {
+      "id": 1449215716,
+      "username": "xpollatx",
+      "first_name": "POLAT",
+      "last_name": null,
+      "full_name": "POLAT None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.115327",
+      "message_count": 1
+    },
+    {
+      "id": 8258282885,
+      "username": "herryerdesen",
+      "first_name": "!il nas😛",
+      "last_name": null,
+      "full_name": "!il nas😛 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.115706",
+      "message_count": 1
+    },
+    {
+      "id": 8603057614,
+      "username": "halislerdeyim",
+      "first_name": "kocamans2mvar 😆",
+      "last_name": null,
+      "full_name": "kocamans2mvar 😆 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.116281",
+      "message_count": 1
+    },
+    {
+      "id": 8584143058,
+      "username": "kiymetliyim",
+      "first_name": "𝑲𝑬𝑹𝑬𝑴#𝑯𝑼𝑲𝑼𝑴𝑺𝑼𝒁",
+      "last_name": null,
+      "full_name": "𝑲𝑬𝑹𝑬𝑴#𝑯𝑼𝑲𝑼𝑴𝑺𝑼𝒁 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.117316",
+      "message_count": 1
+    },
+    {
+      "id": 8622636369,
+      "username": "realgaddar",
+      "first_name": "𓆩 𝐆𝐀𝐃𝐃𝐀𝐑 𓆪",
+      "last_name": "#𝐀𝐅𝐅𝐘𝐎𝐊",
+      "full_name": "𓆩 𝐆𝐀𝐃𝐃𝐀𝐑 𓆪 #𝐀𝐅𝐅𝐘𝐎𝐊",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.118613",
+      "message_count": 1
+    },
+    {
+      "id": 8822041645,
+      "username": "morfiiz",
+      "first_name": "altay",
+      "last_name": null,
+      "full_name": "altay None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.120452",
+      "message_count": 1
+    },
+    {
+      "id": 5015721622,
+      "username": "fenerdusmani",
+      "first_name": "berkay | ultrAslan vekili",
+      "last_name": null,
+      "full_name": "berkay | ultrAslan vekili None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.120739",
+      "message_count": 1
+    },
+    {
+      "id": 8402119056,
+      "username": "Gezdin_tozdunn",
+      "first_name": "Sᴜᴅᴇ",
+      "last_name": null,
+      "full_name": "Sᴜᴅᴇ None",
+      "groups": [
+        "yks sohbet",
+        "Bilinmeyen"
+      ],
+      "first_seen": "2026-06-21T20:27:21.121151",
+      "message_count": 3
+    },
+    {
+      "id": 8520069194,
+      "username": "Oguzalaturk",
+      "first_name": "OĞUZ",
+      "last_name": null,
+      "full_name": "OĞUZ None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.121802",
+      "message_count": 1
+    },
+    {
+      "id": 8415571777,
+      "username": "nerdesinelif",
+      "first_name": "ergen",
+      "last_name": null,
+      "full_name": "ergen None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.122747",
+      "message_count": 1
+    },
+    {
+      "id": 8679011870,
+      "username": "Sonageldikgibii",
+      "first_name": "ĐɆⱠ₣ł̇₦♡“∞”",
+      "last_name": null,
+      "full_name": "ĐɆⱠ₣ł̇₦♡“∞” None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.123265",
+      "message_count": 1
+    },
+    {
+      "id": 8537207666,
+      "username": "irdelerim",
+      "first_name": "zrnxy",
+      "last_name": null,
+      "full_name": "zrnxy None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.123917",
+      "message_count": 1
+    },
+    {
+      "id": 8506460376,
+      "username": "maurosrl",
+      "first_name": "Sercan",
+      "last_name": null,
+      "full_name": "Sercan None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.124097",
+      "message_count": 1
+    },
+    {
+      "id": 5629479156,
+      "username": "becausesecrett",
+      "first_name": "Secret",
+      "last_name": null,
+      "full_name": "Secret None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.124719",
+      "message_count": 1
+    },
+    {
+      "id": 7494484001,
+      "username": "moussasowofficial",
+      "first_name": "Moussa Sow",
+      "last_name": null,
+      "full_name": "Moussa Sow None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.124762",
+      "message_count": 1
+    },
+    {
+      "id": 8528500933,
+      "username": "S_101_148",
+      "first_name": "sevde",
+      "last_name": null,
+      "full_name": "sevde None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.125261",
+      "message_count": 1
+    },
+    {
+      "id": 8152623947,
+      "username": "fenerisikiyorum",
+      "first_name": "n",
+      "last_name": null,
+      "full_name": "n None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.125424",
+      "message_count": 1
+    },
+    {
+      "id": 8590058566,
+      "username": "yuvarlakkaplumbaga",
+      "first_name": "Eren",
+      "last_name": null,
+      "full_name": "Eren None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.125657",
+      "message_count": 1
+    },
+    {
+      "id": 6516100447,
+      "username": "E6n4g",
+      "first_name": "Enes",
+      "last_name": null,
+      "full_name": "Enes None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.126588",
+      "message_count": 1
+    },
+    {
+      "id": 7303523172,
+      "username": "deniz_1921",
+      "first_name": "Deniz𒉭",
+      "last_name": "ㅤㅤ",
+      "full_name": "Deniz𒉭 ㅤㅤ",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.127254",
+      "message_count": 1
+    },
+    {
+      "id": 8541771522,
+      "username": "abi_Su_ya",
+      "first_name": "Su",
+      "last_name": null,
+      "full_name": "Su None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.127424",
+      "message_count": 1
+    },
+    {
+      "id": 7175028709,
+      "username": "goktuggokcun",
+      "first_name": "Göktuğ",
+      "last_name": null,
+      "full_name": "Göktuğ None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.127999",
+      "message_count": 1
+    },
+    {
+      "id": 8514708070,
+      "username": "kutlukaganturk",
+      "first_name": "⚓️",
+      "last_name": null,
+      "full_name": "⚓️ None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.133126",
+      "message_count": 1
+    },
+    {
+      "id": 6122410522,
+      "username": "Vaadesiz",
+      "first_name": "Pole",
+      "last_name": null,
+      "full_name": "Pole None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.133745",
+      "message_count": 1
+    },
+    {
+      "id": 7725681149,
+      "username": "tolgallame",
+      "first_name": "Tolga",
+      "last_name": null,
+      "full_name": "Tolga None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.136175",
+      "message_count": 1
+    },
+    {
+      "id": 1158347689,
+      "username": "aes1476",
+      "first_name": "Emre",
+      "last_name": null,
+      "full_name": "Emre None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.136364",
+      "message_count": 1
+    },
+    {
+      "id": 7921543298,
+      "username": "uslanmazprens",
+      "first_name": "AFK𓊈𒆜 ᴇᴍɪʀ❘ᵖʳᵉⁿˢ ツ𒆜𓊉",
+      "last_name": null,
+      "full_name": "AFK𓊈𒆜 ᴇᴍɪʀ❘ᵖʳᵉⁿˢ ツ𒆜𓊉 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.136899",
+      "message_count": 1
+    },
+    {
+      "id": 7757788487,
+      "username": "Selenaygelenekadarkapaliyiz",
+      "first_name": "Aykut kocaman",
+      "last_name": null,
+      "full_name": "Aykut kocaman None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.137476",
+      "message_count": 1
+    },
+    {
+      "id": 7014078467,
+      "username": "cempradabasi",
+      "first_name": "prada cembaşı",
+      "last_name": null,
+      "full_name": "prada cembaşı None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.139096",
+      "message_count": 1
+    },
+    {
+      "id": 8748522219,
+      "username": "gurcuex",
+      "first_name": "𝔊𝔞𝔩𝔞𝔡𝔯𝔦𝔢𝔩",
+      "last_name": null,
+      "full_name": "𝔊𝔞𝔩𝔞𝔡𝔯𝔦𝔢𝔩 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.139349",
+      "message_count": 1
+    },
+    {
+      "id": 8803981636,
+      "username": "ylmazia",
+      "first_name": "ylmazia²",
+      "last_name": null,
+      "full_name": "ylmazia² None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.139544",
+      "message_count": 1
+    },
+    {
+      "id": 7834698433,
+      "username": "patience55555",
+      "first_name": "Patience",
+      "last_name": null,
+      "full_name": "Patience None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.140481",
+      "message_count": 1
+    },
+    {
+      "id": 8265367017,
+      "username": "tiksinmem",
+      "first_name": "KEREM",
+      "last_name": null,
+      "full_name": "KEREM None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.140599",
+      "message_count": 1
+    },
+    {
+      "id": 8279470810,
+      "username": "gecmisinpesinibirakmayanadam",
+      "first_name": ".",
+      "last_name": null,
+      "full_name": ". None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.141078",
+      "message_count": 1
+    },
+    {
+      "id": 8642128286,
+      "username": "visnelifrappe",
+      "first_name": "cherry",
+      "last_name": null,
+      "full_name": "cherry None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.141625",
+      "message_count": 1
+    },
+    {
+      "id": 8600434166,
+      "username": "Sikiskensaraylii",
+      "first_name": "Arda #yunusfedaisi",
+      "last_name": null,
+      "full_name": "Arda #yunusfedaisi None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.141856",
+      "message_count": 1
+    },
+    {
+      "id": 8906320290,
+      "username": "elifn10",
+      "first_name": "elif",
+      "last_name": null,
+      "full_name": "elif None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.142289",
+      "message_count": 1
+    },
+    {
+      "id": 8456030477,
+      "username": "oyleboyleistee",
+      "first_name": "S🧚",
+      "last_name": null,
+      "full_name": "S🧚 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.142527",
+      "message_count": 1
+    },
+    {
+      "id": 7131728740,
+      "username": "Isk1907",
+      "first_name": "🍾🥃🚬",
+      "last_name": null,
+      "full_name": "🍾🥃🚬 None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.142918",
+      "message_count": 1
+    },
+    {
+      "id": 8790093718,
+      "username": "iflynveilwthin",
+      "first_name": "veil",
+      "last_name": null,
+      "full_name": "veil None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.145177",
+      "message_count": 1
+    },
+    {
+      "id": 8490222956,
+      "username": "mellvac",
+      "first_name": "mew",
+      "last_name": null,
+      "full_name": "mew None",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T20:27:21.145349",
       "message_count": 1
     }
   ]

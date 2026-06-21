@@ -149,6 +149,10 @@ class LiveTelegramMonitor:
     
     def add_user(self, user, group_name, silent=False):
         """Kullanıcıyı listeye ekle (sadece yeni ise, kullanıcı adı varsa ve bot değilse)"""
+        # Kullanıcı kontrolü
+        if not user:
+            return
+            
         user_id = user.id
         username = user.username if hasattr(user, 'username') else None
         is_bot = user.bot if hasattr(user, 'bot') else False
@@ -223,7 +227,16 @@ class LiveTelegramMonitor:
             if event.sender_id:
                 try:
                     user = await event.get_sender()
-                    group_name = self.monitored_groups.get(event.chat_id, 'Bilinmeyen')
+                    # Grup adını al
+                    group_name = self.monitored_groups.get(event.chat_id)
+                    if not group_name:
+                        # Eğer grup adı bulunamazsa, chat'i al
+                        try:
+                            chat = await self.client.get_entity(event.chat_id)
+                            group_name = chat.title if hasattr(chat, 'title') else 'Bilinmeyen'
+                        except:
+                            group_name = 'Bilinmeyen'
+                    
                     self.add_user(user, group_name)
                 except Exception as e:
                     print(f"⚠️  Mesaj işleme hatası: {str(e)}")
