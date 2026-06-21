@@ -180,7 +180,7 @@
     .lang-option.active { color: var(--accent); }
 
     .layout {
-      display: grid; grid-template-columns: 1fr 1fr 280px;
+      display: grid; grid-template-columns: 1fr 1fr 340px;
       gap: 14px; flex: 1; min-height: 0; overflow: hidden;
     }
     .box {
@@ -342,20 +342,20 @@
     }
 
     @media (max-width: 1024px) {
-      .layout { grid-template-columns: 1fr; }
-      .video-area { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
-      .controls { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+      .layout { grid-template-columns: 1fr 1fr 280px; }
+      .sidebar-left, .sidebar-right { display: none; }
+      .controls { display: flex !important; flex-direction: row; flex-wrap: wrap; justify-content: center; }
       .chat-container { min-height: 350px; }
     }
     @media (max-width: 720px) {
       body { overflow: auto; }
       #main-app { padding: 8px; height: auto; min-height: 100vh; }
       .layout { grid-template-columns: 1fr; }
-      .video-area { grid-template-columns: 1fr; }
+      .sidebar-left, .sidebar-right { display: none; }
       .topbar { flex-direction: column; align-items: flex-start; gap: 8px; }
       .topbar-right { width: 100%; justify-content: flex-start; }
       .brand { font-size: 26px; }
-      .controls { flex-direction: row; gap: 8px; padding: 8px; flex-wrap: wrap; justify-content: center; }
+      .controls { display: flex !important; flex-direction: row; gap: 8px; padding: 8px; flex-wrap: wrap; justify-content: center; }
       .filter-select { font-size: 13px; padding: 8px 10px; }
       .btn { padding: 10px 14px; font-size: 14px; }
       .chat-container { min-height: 300px; }
@@ -618,10 +618,27 @@
       </div>
 
       <div class="layout">
+        <!-- Sol Sidebar -->
+        <div class="sidebar-left">
+          <button id="matchBtn" class="btn btn-primary">Eşleş</button>
+          <button id="stopBtn" class="btn btn-secondary" style="display:none;">⏹ Dur</button>
+          <div style="margin-top:8px;">
+            <div class="filter-label" style="font-size:11px;margin-bottom:6px;">Filtre:</div>
+            <select id="genderFilter" class="filter-select" style="width:100%;font-size:12px;padding:8px;">
+              <option value="all">Hepsi</option>
+              <option value="erkek">👨 Erkek</option>
+              <option value="kadin">👩 Kadın</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Video 1 -->
         <div class="box">
           <div class="video-label" id="myLabel">Sen</div>
           <video id="localVideo" autoplay muted playsinline></video>
         </div>
+
+        <!-- Video 2 -->
         <div class="box">
           <div class="video-label" id="remoteLabel">Bekleniyor...</div>
           <video id="remoteVideo" autoplay playsinline></video>
@@ -632,6 +649,8 @@
             <button id="addFriendBtn" style="display:none;background:rgba(46,204,113,0.18);border:1px solid rgba(46,204,113,0.5);color:#2ecc71;padding:8px 12px;border-radius:999px;cursor:pointer;font-size:13px;" title="Arkadaş Ekle">➕ Arkadaş Ekle</button>
           </div>
         </div>
+
+        <!-- Chat -->
         <aside class="chat-container">
           <div id="chatBox">
             <div class="typing-indicator" id="typingIndicator">
@@ -648,24 +667,16 @@
             <button id="sendBtn" class="send-btn" disabled>Gönder</button>
           </div>
         </aside>
-      </div>
 
-      <div class="controls">
-        <div class="controls-left">
-          <button id="matchBtn" class="btn btn-primary">Eşleş</button>
-          <button id="stopBtn" class="btn btn-secondary" style="display:none;">⏹ Dur</button>
-          <span class="filter-label">Filtre:</span>
-          <select id="genderFilter" class="filter-select">
-            <option value="all">Hepsi</option>
-            <option value="erkek">👨 Erkek</option>
-            <option value="kadin">👩 Kadın</option>
-          </select>
-        </div>
-        <div class="controls-right">
+        <!-- Sağ Sidebar -->
+        <div class="sidebar-right">
           <button id="saveChatBtn" class="btn btn-secondary" style="display:none;" title="Sohbeti kaydet">💾 Kaydet</button>
           <button id="nextBtn" class="btn btn-secondary">Sıradaki</button>
           <button id="leaveBtn" class="btn btn-danger">Ayrıl</button>
         </div>
+      </div>
+
+      <div class="controls" style="display:none;">
       </div>
     </div>
   </div>
