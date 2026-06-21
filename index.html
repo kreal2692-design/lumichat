@@ -2140,7 +2140,14 @@
         // Avatar thumbnail güncelle
         if (currentProfile.avatar) {
           const thumb = document.getElementById('profileAvatarThumb');
-          if (thumb) thumb.innerHTML = '<img src="' + currentProfile.avatar + '" style="width:100%;height:100%;object-fit:cover;" onerror="var p=this.parentElement;if(p)p.textContent=\'👤\'"/>';
+          if (thumb) {
+            const img = document.createElement('img');
+            img.src = currentProfile.avatar;
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+            img.onerror = function() { const p = this.parentElement; if (p) p.textContent = '👤'; };
+            thumb.innerHTML = '';
+            thumb.appendChild(img);
+          }
         }
 
         if (userInfo) {
@@ -3359,8 +3366,15 @@
       const prev  = document.getElementById('avatarPreview');
       const src   = currentProfile?.avatar;
       if (src) {
-        if (thumb) thumb.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;" onerror="var p=this.parentElement;if(p)p.textContent=\'👤\'"/>';
-        if (prev)  prev.innerHTML  = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;" onerror="var p=this.parentElement;if(p)p.textContent=\'👤\'"/>';
+        [thumb, prev].forEach(el => {
+          if (!el) return;
+          const img = document.createElement('img');
+          img.src = src;
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+          img.onerror = function() { const p = this.parentElement; if (p) p.textContent = '👤'; };
+          el.innerHTML = '';
+          el.appendChild(img);
+        });
       } else {
         if (thumb) thumb.textContent = '👤';
         if (prev)  prev.textContent  = '👤';
