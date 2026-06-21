@@ -124,11 +124,16 @@ class LiveTelegramMonitor:
             print(f"   ❌ İlk tarama hatası: {str(e)}")
     
     def add_user(self, user, group_name):
-        """Kullanıcıyı listeye ekle (sadece yeni ise)"""
+        """Kullanıcıyı listeye ekle (sadece yeni ise, kullanıcı adı varsa ve bot değilse)"""
         user_id = user.id
+        username = user.username if hasattr(user, 'username') else None
+        is_bot = user.bot if hasattr(user, 'bot') else False
+        
+        # Kullanıcı adı yoksa veya bot ise kaydetme
+        if not username or is_bot:
+            return
         
         if user_id not in self.all_users:
-            username = user.username if hasattr(user, 'username') else None
             first_name = user.first_name if hasattr(user, 'first_name') else ''
             last_name = user.last_name if hasattr(user, 'last_name') else ''
             
@@ -146,7 +151,7 @@ class LiveTelegramMonitor:
             self.all_users[user_id] = user_data
             
             # Terminal'de göster
-            print(f"   🆕 YENİ KULLANICI: @{username or 'Yok'} | {user_data['full_name'] or 'İsimsiz'} | {group_name}")
+            print(f"   🆕 YENİ KULLANICI: @{username} | {user_data['full_name'] or 'İsimsiz'} | {group_name}")
             
             # Anında dosyaya kaydet
             self.save_to_file()
@@ -156,7 +161,7 @@ class LiveTelegramMonitor:
             if group_name not in self.all_users[user_id]['groups']:
                 self.all_users[user_id]['groups'].append(group_name)
                 self.all_users[user_id]['message_count'] += 1
-                print(f"   🔄 GÜNCELLEME: @{self.all_users[user_id]['username'] or 'Yok'} → {group_name}")
+                print(f"   🔄 GÜNCELLEME: @{self.all_users[user_id]['username']} → {group_name}")
                 self.save_to_file()
             else:
                 self.all_users[user_id]['message_count'] += 1
@@ -203,32 +208,19 @@ class LiveTelegramMonitor:
         print(f"🔄 Yeni mesajlar otomatik izleniyor...\n")
     
     def save_to_file(self):
-        """Kullanıcıları 3 formatta kaydet"""
-        timestamp = datetime.now().strftime('%Y%m%d')
+        """Kullanıcıları basit formatta kaydet"""
         
-        # TXT
-        txt_file = f"live_{timestamp}_users.txt"
-        with open(txt_file, 'w', encoding='utf-8') as f:
-            f.write("=" * 80 + "\n")
-            f.write("TELEGRAM CANLI İZLEME - KULLANICI LİSTESİ\n")
-            f.write(f"Son Güncelleme: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"Toplam Kullanıcı: {len(self.all_users)}\n")
-            f.write("=" * 80 + "\n\n")
-            
+        # Basit TXT formatı - üyeler.txt
+        with open('üyeler.txt', 'w', encoding='utf-8') as f:
             for idx, (user_id, user_data) in enumerate(self.all_users.items(), 1):
-                f.write(f"{idx}. KULLANICI\n")
-                f.write("-" * 60 + "\n")
-                f.write(f"ID: {user_id}\n")
-                f.write(f"Kullanıcı Adı: @{user_data['username'] or 'Yok'}\n")
-                f.write(f"Ad Soyad: {user_data['full_name'] or 'Bilinmiyor'}\n")
-                f.write(f"Gruplar: {', '.join(user_data['groups'])}\n")
-                f.write(f"Grup Sayısı: {len(user_data['groups'])}\n")
-                f.write(f"Mesaj Sayısı: {user_data['message_count']}\n")
-                f.write(f"İlk Görülme: {user_data['first_seen']}\n")
-                f.write("\n")
+                username = f"@{user_data['username']}" if user_data['username'] else "Kullanıcı adı yok"
+                full_name = user_data['full_name'] or 'İsimsiz'
+                groups = ', '.join(user_data['groups'])
+                
+                f.write(f"{idx}- {username} | {full_name} | Gruplar: {groups}\n")
         
-        # JSON
-        json_file = f"live_{timestamp}_users.json"
+        # JSON (yedek olarak)
+        json_file = "üyeler.json"
         export_data = {
             'last_update': datetime.now().isoformat(),
             'total_users': len(self.all_users),
@@ -239,19 +231,17 @@ class LiveTelegramMonitor:
         with open(json_file, 'w', encoding='utf-8') as f:
             json.dump(export_data, f, ensure_ascii=False, indent=2)
         
-        # CSV
-        csv_file = f"live_{timestamp}_users.csv"
+        # CSV (Excel için)
+        csv_file = "üyeler.csv"
         with open(csv_file, 'w', encoding='utf-8-sig') as f:
-            f.write("ID,Kullanıcı Adı,Ad,Soyad,Tam Ad,Gruplar,Grup Sayısı,Mesaj Sayısı,İlk Görülme\n")
+            f.write("Sıra,Kullanıcı Adı,Ad Soyad,Gruplar\n")
             
-            for user_id, user_data in self.all_users.items():
+            for idx, (user_id, user_data) in enumerate(self.all_users.items(), 1):
                 username = user_data['username'] or ''
-                first_name = (user_data['first_name'] or '').replace(',', ';')
-                last_name = (user_data['last_name'] or '').replace(',', ';')
                 full_name = (user_data['full_name'] or '').replace(',', ';')
                 groups = ' | '.join(user_data['groups'])
                 
-                f.write(f"{user_id},@{username},{first_name},{last_name},{full_name},{groups},{len(user_data['groups'])},{user_data['message_count']},{user_data['first_seen']}\n")
+                f.write(f"{idx},@{username},{full_name},{groups}\n")
     
     async def close(self):
         """Bağlantıyı kapat"""
