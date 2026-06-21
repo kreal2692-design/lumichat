@@ -94,59 +94,58 @@ class LiveTelegramMonitor:
             return None
     
     async def get_initial_users(self, entity, limit=10000):
-        """İlk taramada son mesaj atanları al - optimize edilmiş"""
+        """İlk taramada son mesaj atanları al - SÜPER HIZLI versiyon"""
         print(f"\n📊 İlk tarama başlıyor: {entity.title}")
-        print(f"   ⏳ {limit} mesaj çekiliyor (bu biraz sürebilir)...")
+        print(f"   ⏳ {limit} mesaj çekiliyor...")
         
         try:
             # Tüm mesajları toplu al
             messages = await self.client.get_messages(entity, limit=limit)
-            print(f"   ✅ {len(messages)} mesaj çekildi")
+            print(f"   ✅ {len(messages)} mesaj çekildi, kullanıcılar işleniyor...\n")
             
-            # Benzersiz user ID'leri topla
-            unique_user_ids = set()
-            for message in messages:
-                if message.from_id:
-                    user_id = None
-                    if hasattr(message.from_id, 'user_id'):
-                        user_id = message.from_id.user_id
-                    elif hasattr(message, 'sender_id'):
-                        user_id = message.sender_id
-                    
-                    if user_id and user_id not in self.all_users:
-                        unique_user_ids.add(user_id)
-            
-            print(f"   🔍 {len(unique_user_ids)} benzersiz kullanıcı bulundu, bilgileri alınıyor...")
-            
-            # Toplu olarak kullanıcı bilgilerini çek
             processed = 0
-            batch_size = 50  # Her seferde 50 kullanıcı
-            user_ids_list = list(unique_user_ids)
-            
-            for i in range(0, len(user_ids_list), batch_size):
-                batch = user_ids_list[i:i+batch_size]
+            for message in messages:
+                # Mesajdan direkt sender bilgisini al (API çağrısı gerektirmez!)
+                sender = message.sender
                 
-                for user_id in batch:
-                    try:
-                        user = await self.client.get_entity(user_id)
-                        self.add_user(user, entity.title, silent=True)
-                        processed += 1
-                    except Exception as e:
-                        continue
-                
-                # İlerleme göster
-                if processed % 100 == 0:
-                    print(f"   📈 İşlenen: {processed}/{len(unique_user_ids)}")
-                
-                # Rate limiting için kısa bekleme
-                await asyncio.sleep(0.5)
+                if sender and not sender.bot:  # Bot değilse
+                    username = sender.username if hasattr(sender, 'username') else None
+                    
+                    if username:  # Kullanıcı adı varsa
+                        user_id = sender.id
+                        
+                        if user_id not in self.all_users:
+                            first_name = sender.first_name if hasattr(sender, 'first_name') else ''
+                            last_name = sender.last_name if hasattr(sender, 'last_name') else ''
+                            full_name = f"{first_name} {last_name}".strip()
+                            
+                            user_data = {
+                                'id': user_id,
+                                'username': username,
+                                'first_name': first_name,
+                                'last_name': last_name,
+                                'full_name': full_name,
+                                'groups': [entity.title],
+                                'first_seen': datetime.now().isoformat(),
+                                'message_count': 1
+                            }
+                            
+                            self.all_users[user_id] = user_data
+                            processed += 1
+                            
+                            # Anında bildir
+                            print(f"   🆕 {processed}- @{username} | {full_name or 'İsimsiz'} | {entity.title}")
+                        else:
+                            # Zaten var ama farklı grupta mesaj attıysa grup ekle
+                            if entity.title not in self.all_users[user_id]['groups']:
+                                self.all_users[user_id]['groups'].append(entity.title)
             
             # Tek seferde kaydet
             self.save_to_file()
-            print(f"   ✅ İlk tarama tamamlandı: {len(self.all_users)} kullanıcı kaydedildi")
+            print(f"\n   ✅ Tarama tamamlandı: {processed} yeni kullanıcı bulundu (Toplam: {len(self.all_users)})")
             
         except Exception as e:
-            print(f"   ❌ İlk tarama hatası: {str(e)}")
+            print(f"   ❌ Tarama hatası: {str(e)}")
     
     def add_user(self, user, group_name, silent=False):
         """Kullanıcıyı listeye ekle (sadece yeni ise, kullanıcı adı varsa ve bot değilse)"""
