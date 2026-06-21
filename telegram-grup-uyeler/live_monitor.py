@@ -41,6 +41,26 @@ class LiveTelegramMonitor:
         self.all_users = {}
         self.monitored_groups = {}
         self.running = True
+        self.scanned_groups = self.load_scanned_groups()
+        
+    def load_scanned_groups(self):
+        """Önceden taranan grupları yükle"""
+        try:
+            if os.path.exists('scanned_groups.json'):
+                with open('scanned_groups.json', 'r', encoding='utf-8') as f:
+                    return set(json.load(f))
+        except:
+            pass
+        return set()
+    
+    def save_scanned_group(self, group_id):
+        """Taranan grubu kaydet"""
+        self.scanned_groups.add(group_id)
+        try:
+            with open('scanned_groups.json', 'w', encoding='utf-8') as f:
+                json.dump(list(self.scanned_groups), f)
+        except Exception as e:
+            print(f"⚠️  Scanned groups kaydedilemedi: {e}")
         
     async def connect(self):
         """Telegram'a bağlan"""
@@ -95,6 +115,12 @@ class LiveTelegramMonitor:
     
     async def get_initial_users(self, entity, limit=10000):
         """İlk taramada son mesaj atanları al - SÜPER HIZLI versiyon"""
+        
+        # Daha önce taranmış mı kontrol et
+        if entity.id in self.scanned_groups:
+            print(f"\n⏭️  ATLANDI: {entity.title} (Daha önce tarandı)")
+            return
+        
         print(f"\n📊 İlk tarama başlıyor: {entity.title}")
         print(f"   ⏳ {limit} mesaj çekiliyor...")
         
@@ -115,16 +141,9 @@ class LiveTelegramMonitor:
                         user_id = sender.id
                         
                         if user_id not in self.all_users:
-                            first_name = sender.first_name if hasattr(sender, 'first_name') else ''
-                            last_name = sender.last_name if hasattr(sender, 'last_name') else ''
-                            full_name = f"{first_name} {last_name}".strip()
-                            
                             user_data = {
                                 'id': user_id,
                                 'username': username,
-                                'first_name': first_name,
-                                'last_name': last_name,
-                                'full_name': full_name,
                                 'groups': [entity.title],
                                 'first_seen': datetime.now().isoformat(),
                                 'message_count': 1
@@ -134,7 +153,7 @@ class LiveTelegramMonitor:
                             processed += 1
                             
                             # Anında bildir
-                            print(f"   🆕 {processed}- @{username} | {full_name or 'İsimsiz'} | {entity.title}")
+                            print(f"   🆕 {processed}- @{username} | {entity.title}")
                         else:
                             # Zaten var ama farklı grupta mesaj attıysa grup ekle
                             if entity.title not in self.all_users[user_id]['groups']:
@@ -142,13 +161,17 @@ class LiveTelegramMonitor:
             
             # Tek seferde kaydet
             self.save_to_file()
+            
+            # Bu grubu taranan gruplar listesine ekle
+            self.save_scanned_group(entity.id)
+            
             print(f"\n   ✅ Tarama tamamlandı: {processed} yeni kullanıcı bulundu (Toplam: {len(self.all_users)})")
             
         except Exception as e:
             print(f"   ❌ Tarama hatası: {str(e)}")
     
     def add_user(self, user, group_name, silent=False):
-        """Kullanıcıyı listeye ekle (sadece yeni ise, kullanıcı adı varsa ve bot değilse)"""
+        """Kullanıcıyı listeye ekle (sadece username, isim yok)"""
         # Kullanıcı kontrolü
         if not user:
             return
@@ -162,15 +185,9 @@ class LiveTelegramMonitor:
             return
         
         if user_id not in self.all_users:
-            first_name = user.first_name if hasattr(user, 'first_name') else ''
-            last_name = user.last_name if hasattr(user, 'last_name') else ''
-            
             user_data = {
                 'id': user_id,
                 'username': username,
-                'first_name': first_name,
-                'last_name': last_name,
-                'full_name': f"{first_name} {last_name}".strip(),
                 'groups': [group_name],
                 'first_seen': datetime.now().isoformat(),
                 'message_count': 1
@@ -180,7 +197,7 @@ class LiveTelegramMonitor:
             
             # Terminal'de göster (sadece canlı izlemede)
             if not silent:
-                print(f"   🆕 YENİ KULLANICI: @{username} | {user_data['full_name'] or 'İsimsiz'} | {group_name}")
+                print(f"   🆕 YENİ KULLANICI: @{username} | {group_name}")
                 # Anında dosyaya kaydet
                 self.save_to_file()
             
@@ -246,16 +263,15 @@ class LiveTelegramMonitor:
         print(f"🔄 Yeni mesajlar otomatik izleniyor...\n")
     
     def save_to_file(self):
-        """Kullanıcıları basit formatta kaydet"""
+        """Kullanıcıları basit formatta kaydet - sadece username"""
         
         # Basit TXT formatı - üyeler.txt
         with open('üyeler.txt', 'w', encoding='utf-8') as f:
             for idx, (user_id, user_data) in enumerate(self.all_users.items(), 1):
                 username = f"@{user_data['username']}" if user_data['username'] else "Kullanıcı adı yok"
-                full_name = user_data['full_name'] or 'İsimsiz'
                 groups = ', '.join(user_data['groups'])
                 
-                f.write(f"{idx}- {username} | {full_name} | Gruplar: {groups}\n")
+                f.write(f"{idx}- {username} | Gruplar: {groups}\n")
         
         # JSON (yedek olarak)
         json_file = "üyeler.json"
@@ -272,14 +288,13 @@ class LiveTelegramMonitor:
         # CSV (Excel için)
         csv_file = "üyeler.csv"
         with open(csv_file, 'w', encoding='utf-8-sig') as f:
-            f.write("Sıra,Kullanıcı Adı,Ad Soyad,Gruplar\n")
+            f.write("Sıra,Kullanıcı Adı,Gruplar\n")
             
             for idx, (user_id, user_data) in enumerate(self.all_users.items(), 1):
                 username = user_data['username'] or ''
-                full_name = (user_data['full_name'] or '').replace(',', ';')
                 groups = ' | '.join(user_data['groups'])
                 
-                f.write(f"{idx},@{username},{full_name},{groups}\n")
+                f.write(f"{idx},@{username},{groups}\n")
     
     async def close(self):
         """Bağlantıyı kapat"""

@@ -20,6 +20,7 @@ live_*.csv
 üyeler.txt
 üyeler.json
 üyeler.csv
+scanned_groups.json
 
 # Test dosyaları
 test_*.py
