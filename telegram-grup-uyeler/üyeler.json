@@ -1,12 +1,22 @@
 {
-  "last_update": "2026-06-21T20:13:11.396596",
-  "total_users": 25,
+  "last_update": "2026-06-21T20:18:10.265853",
+  "total_users": 17,
   "monitored_groups": [
-    "ÖĞRENCİ | SOHBET GRUBU",
-    "YKS SOHBET YARDIMLAŞMA 2027",
-    "yks sohbet"
+    "ÖĞRENCİ | SOHBET GRUBU"
   ],
   "users": [
+    {
+      "id": 637738671,
+      "username": "Nazdravia",
+      "first_name": "Can",
+      "last_name": null,
+      "full_name": "Can None",
+      "groups": [
+        "ÖĞRENCİ | SOHBET GRUBU"
+      ],
+      "first_seen": "2026-06-21T20:17:41.559978",
+      "message_count": 1
+    },
     {
       "id": 6790474524,
       "username": "Sessizruhh",
@@ -16,7 +26,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:25.505655",
+      "first_seen": "2026-06-21T20:17:41.999715",
       "message_count": 1
     },
     {
@@ -28,21 +38,8 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:25.995404",
+      "first_seen": "2026-06-21T20:17:43.863561",
       "message_count": 1
-    },
-    {
-      "id": 637738671,
-      "username": "Nazdravia",
-      "first_name": "Can",
-      "last_name": null,
-      "full_name": "Can None",
-      "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU",
-        "Bilinmeyen"
-      ],
-      "first_seen": "2026-06-21T20:10:26.067047",
-      "message_count": 2
     },
     {
       "id": 7613186802,
@@ -53,7 +50,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:27.431801",
+      "first_seen": "2026-06-21T20:17:45.492856",
       "message_count": 1
     },
     {
@@ -65,7 +62,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:28.137609",
+      "first_seen": "2026-06-21T20:17:46.213750",
       "message_count": 1
     },
     {
@@ -77,7 +74,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:29.203071",
+      "first_seen": "2026-06-21T20:17:47.114881",
       "message_count": 1
     },
     {
@@ -89,7 +86,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:32.245547",
+      "first_seen": "2026-06-21T20:17:49.739875",
       "message_count": 1
     },
     {
@@ -101,7 +98,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:34.377598",
+      "first_seen": "2026-06-21T20:17:51.333037",
       "message_count": 1
     },
     {
@@ -113,7 +110,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:41.099477",
+      "first_seen": "2026-06-21T20:17:59.257775",
       "message_count": 1
     },
     {
@@ -125,7 +122,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:41.171891",
+      "first_seen": "2026-06-21T20:17:59.329290",
       "message_count": 1
     },
     {
@@ -137,7 +134,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:44.776859",
+      "first_seen": "2026-06-21T20:18:03.757622",
       "message_count": 1
     },
     {
@@ -149,7 +146,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:45.294667",
+      "first_seen": "2026-06-21T20:18:04.266090",
       "message_count": 1
     },
     {
@@ -161,7 +158,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:45.706971",
+      "first_seen": "2026-06-21T20:18:04.716035",
       "message_count": 1
     },
     {
@@ -173,7 +170,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:47.528868",
+      "first_seen": "2026-06-21T20:18:06.565484",
       "message_count": 1
     },
     {
@@ -185,7 +182,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:48.850325",
+      "first_seen": "2026-06-21T20:18:07.910707",
       "message_count": 1
     },
     {
@@ -197,7 +194,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:49.696969",
+      "first_seen": "2026-06-21T20:18:08.768600",
       "message_count": 1
     },
     {
@@ -209,103 +206,7 @@
       "groups": [
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
-      "first_seen": "2026-06-21T20:10:51.193521",
-      "message_count": 1
-    },
-    {
-      "id": 7610701416,
-      "username": "esma2610",
-      "first_name": "Esma",
-      "last_name": null,
-      "full_name": "Esma None",
-      "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
-      ],
-      "first_seen": "2026-06-21T20:10:53.609565",
-      "message_count": 1
-    },
-    {
-      "id": 7708137885,
-      "username": "notusualone",
-      "first_name": "Esma",
-      "last_name": null,
-      "full_name": "Esma None",
-      "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
-      ],
-      "first_seen": "2026-06-21T20:10:53.815683",
-      "message_count": 1
-    },
-    {
-      "id": 8482464332,
-      "username": "berkgreatagain",
-      "first_name": "berk",
-      "last_name": null,
-      "full_name": "berk None",
-      "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
-      ],
-      "first_seen": "2026-06-21T20:10:54.328009",
-      "message_count": 1
-    },
-    {
-      "id": 1787398151,
-      "username": "d0elta0",
-      "first_name": "∆",
-      "last_name": null,
-      "full_name": "∆ None",
-      "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
-      ],
-      "first_seen": "2026-06-21T20:11:31.399601",
-      "message_count": 1
-    },
-    {
-      "id": 5746434143,
-      "username": "melsicik",
-      "first_name": "𝘔𝘦𝘭𝘴𝘪𝘤𝘪𝘬",
-      "last_name": null,
-      "full_name": "𝘔𝘦𝘭𝘴𝘪𝘤𝘪𝘬 None",
-      "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
-      ],
-      "first_seen": "2026-06-21T20:11:32.322844",
-      "message_count": 1
-    },
-    {
-      "id": 7483334025,
-      "username": "victusomenus",
-      "first_name": "chico",
-      "last_name": null,
-      "full_name": "chico None",
-      "groups": [
-        "ÖĞRENCİ | SOHBET GRUBU"
-      ],
-      "first_seen": "2026-06-21T20:11:40.796192",
-      "message_count": 1
-    },
-    {
-      "id": 7819989477,
-      "username": "birhorozborcumvarodeyin",
-      "first_name": "numb",
-      "last_name": null,
-      "full_name": "numb None",
-      "groups": [
-        "YKS SOHBET YARDIMLAŞMA 2027"
-      ],
-      "first_seen": "2026-06-21T20:11:56.894987",
-      "message_count": 1
-    },
-    {
-      "id": 8085446541,
-      "username": "otuzbiraltmisdokuzz",
-      "first_name": "xavier",
-      "last_name": null,
-      "full_name": "xavier None",
-      "groups": [
-        "YKS SOHBET YARDIMLAŞMA 2027"
-      ],
-      "first_seen": "2026-06-21T20:11:58.953150",
+      "first_seen": "2026-06-21T20:18:10.265343",
       "message_count": 1
     }
   ]

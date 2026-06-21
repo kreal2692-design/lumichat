@@ -93,37 +93,62 @@ class LiveTelegramMonitor:
             print(f"   ❌ Katılma hatası: {str(e)}")
             return None
     
-    async def get_initial_users(self, entity, limit=1000):
-        """İlk taramada son mesaj atanları al"""
+    async def get_initial_users(self, entity, limit=10000):
+        """İlk taramada son mesaj atanları al - optimize edilmiş"""
         print(f"\n📊 İlk tarama başlıyor: {entity.title}")
+        print(f"   ⏳ {limit} mesaj çekiliyor (bu biraz sürebilir)...")
         
         try:
+            # Tüm mesajları toplu al
             messages = await self.client.get_messages(entity, limit=limit)
-            initial_count = 0
+            print(f"   ✅ {len(messages)} mesaj çekildi")
             
+            # Benzersiz user ID'leri topla
+            unique_user_ids = set()
             for message in messages:
                 if message.from_id:
                     user_id = None
-                    
                     if hasattr(message.from_id, 'user_id'):
                         user_id = message.from_id.user_id
                     elif hasattr(message, 'sender_id'):
                         user_id = message.sender_id
                     
                     if user_id and user_id not in self.all_users:
-                        try:
-                            user = await self.client.get_entity(user_id)
-                            self.add_user(user, entity.title)
-                            initial_count += 1
-                        except:
-                            continue
-                            
-            print(f"   ✅ İlk tarama tamamlandı: {initial_count} kullanıcı bulundu")
+                        unique_user_ids.add(user_id)
+            
+            print(f"   🔍 {len(unique_user_ids)} benzersiz kullanıcı bulundu, bilgileri alınıyor...")
+            
+            # Toplu olarak kullanıcı bilgilerini çek
+            processed = 0
+            batch_size = 50  # Her seferde 50 kullanıcı
+            user_ids_list = list(unique_user_ids)
+            
+            for i in range(0, len(user_ids_list), batch_size):
+                batch = user_ids_list[i:i+batch_size]
+                
+                for user_id in batch:
+                    try:
+                        user = await self.client.get_entity(user_id)
+                        self.add_user(user, entity.title, silent=True)
+                        processed += 1
+                    except Exception as e:
+                        continue
+                
+                # İlerleme göster
+                if processed % 100 == 0:
+                    print(f"   📈 İşlenen: {processed}/{len(unique_user_ids)}")
+                
+                # Rate limiting için kısa bekleme
+                await asyncio.sleep(0.5)
+            
+            # Tek seferde kaydet
+            self.save_to_file()
+            print(f"   ✅ İlk tarama tamamlandı: {len(self.all_users)} kullanıcı kaydedildi")
             
         except Exception as e:
             print(f"   ❌ İlk tarama hatası: {str(e)}")
     
-    def add_user(self, user, group_name):
+    def add_user(self, user, group_name, silent=False):
         """Kullanıcıyı listeye ekle (sadece yeni ise, kullanıcı adı varsa ve bot değilse)"""
         user_id = user.id
         username = user.username if hasattr(user, 'username') else None
@@ -150,19 +175,20 @@ class LiveTelegramMonitor:
             
             self.all_users[user_id] = user_data
             
-            # Terminal'de göster
-            print(f"   🆕 YENİ KULLANICI: @{username} | {user_data['full_name'] or 'İsimsiz'} | {group_name}")
-            
-            # Anında dosyaya kaydet
-            self.save_to_file()
+            # Terminal'de göster (sadece canlı izlemede)
+            if not silent:
+                print(f"   🆕 YENİ KULLANICI: @{username} | {user_data['full_name'] or 'İsimsiz'} | {group_name}")
+                # Anında dosyaya kaydet
+                self.save_to_file()
             
         else:
             # Zaten var ama farklı grupta mesaj attıysa grup ekle
             if group_name not in self.all_users[user_id]['groups']:
                 self.all_users[user_id]['groups'].append(group_name)
                 self.all_users[user_id]['message_count'] += 1
-                print(f"   🔄 GÜNCELLEME: @{self.all_users[user_id]['username']} → {group_name}")
-                self.save_to_file()
+                if not silent:
+                    print(f"   🔄 GÜNCELLEME: @{self.all_users[user_id]['username']} → {group_name}")
+                    self.save_to_file()
             else:
                 self.all_users[user_id]['message_count'] += 1
     
