@@ -1,0 +1,16 @@
+{
+  "name": "telegram-grup-uyeler",
+  "version": "1.0.0",
+  "description": "Telegram gruplarındaki üyeleri listeleyen sistem",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "keywords": ["telegram", "bot", "grup", "üye"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0",
+    "dotenv": "^16.4.5"
+  }
+}

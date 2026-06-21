@@ -86,8 +86,8 @@
 
     /* ── Butonlar ── */
     .btn {
-      border: none; border-radius: 12px;
-      padding: 12px 18px; font-size: 16px;
+      border: none; border-radius: 10px;
+      padding: 8px 14px; font-size: 13px;
       cursor: pointer; color: white; transition: 0.2s ease;
     }
     .btn:hover { transform: translateY(-1px); }
@@ -127,30 +127,29 @@
     .token-pkg .price { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
     /* ── Ana uygulama ── */
-    #main-app { display: none; width: 100%; max-width: 1280px; margin: 0 auto; padding: 18px; height: 100vh; overflow: hidden; }
+    #main-app { display: none; width: 100%; max-width: 1400px; margin: 0 auto; padding: 14px; height: 100vh; overflow: hidden; }
     #main-app.visible { display: block !important; }
-    .app-shell { display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden; }
+    .app-shell { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow: hidden; }
 
     .topbar {
       display: flex; justify-content: space-between; align-items: center;
-      gap: 16px; padding: 14px 16px; border-radius: 16px;
+      gap: 10px; padding: 10px 14px; border-radius: 12px;
       background: rgba(20,32,48,0.92); border: 1px solid rgba(0,229,255,0.25);
       box-shadow: var(--shadow); flex-shrink: 0;
     }
-    .brand { font-size: 36px; font-weight: bold; color: white; }
-    .topbar-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .topbar-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .brand { font-size: 28px; font-weight: bold; color: white; }
+    .topbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 
-    #userInfo { color: var(--muted); font-size: 14px; }
+    #userInfo { color: var(--muted); font-size: 13px; }
     .status-pill {
-      padding: 8px 12px; border-radius: 999px;
+      padding: 6px 10px; border-radius: 999px;
       border: 1px solid rgba(0,229,255,0.25);
-      background: rgba(0,229,255,0.08); color: var(--text); font-size: 14px;
+      background: rgba(0,229,255,0.08); color: var(--text); font-size: 13px;
     }
     .token-pill {
-      padding: 8px 12px; border-radius: 999px;
+      padding: 6px 10px; border-radius: 999px;
       border: 1px solid rgba(255,200,0,0.35);
-      background: rgba(255,200,0,0.08); color: #ffe566; font-size: 14px;
+      background: rgba(255,200,0,0.08); color: #ffe566; font-size: 13px;
       cursor: pointer; transition: 0.2s;
     }
     .token-pill:hover { background: rgba(255,200,0,0.18); }
@@ -181,7 +180,7 @@
 
     .layout {
       display: grid; grid-template-columns: 1fr 1fr 340px;
-      gap: 14px; flex: 1; min-height: 0; overflow: hidden;
+      gap: 12px; flex: 1; min-height: 0; overflow: hidden;
     }
     .box {
       position: relative; border-radius: 16px; overflow: hidden;
@@ -253,16 +252,17 @@
     .media-btn.inactive { background: rgba(255,71,87,0.2);  border: 1px solid rgba(255,71,87,0.5); }
     .media-btn:hover    { transform: scale(1.08); }
 
-    .chat-input-row { display: flex; gap: 6px; align-items: center; flex-shrink: 0; width: 100%; }
+    .chat-input-row { display: flex; gap: 6px; align-items: center; flex-shrink: 0; width: 100%; min-width: 0; }
     #msgInput {
       flex: 1; min-width: 0; padding: 11px 12px; border-radius: 10px;
       border: 1px solid rgba(0,229,255,0.4); outline: none;
       background: rgba(15,23,42,0.9); color: var(--text); font-size: 14px;
     }
     .send-btn {
-      border: none; border-radius: 10px; padding: 11px 14px;
+      border: none; border-radius: 10px; padding: 10px 16px;
       cursor: pointer; background: var(--accent); color: #00131a;
       font-weight: bold; white-space: nowrap; flex-shrink: 0;
+      font-size: 13px;
     }
 
     /* ── Emoji picker ── */
@@ -296,13 +296,17 @@
     .chat-input-wrap { position: relative; display: flex; gap: 8px; align-items: center; flex: 1; }
 
     .controls {
-      display: flex; gap: 12px; align-items: center; justify-content: space-between;
-      padding: 10px 16px; border-radius: 12px;
+      display: flex; gap: 10px; align-items: center; justify-content: center;
+      padding: 8px; border-radius: 10px;
       background: rgba(8,12,24,0.9); border: 1px solid rgba(0,229,255,0.25);
       box-shadow: var(--shadow); flex-wrap: wrap; flex-shrink: 0;
     }
-    .controls-left { display: flex; gap: 10px; align-items: center; }
-    .controls-right { display: flex; gap: 10px; align-items: center; }
+    .filter-label { color: var(--muted); font-size: 14px; }
+    .filter-select {
+      padding: 10px 14px; border-radius: 10px;
+      border: 1px solid rgba(0,229,255,0.3); outline: none;
+      background: rgba(15,23,42,0.9); color: var(--text); font-size: 14px; cursor: pointer;
+    }
     .filter-label { color: var(--muted); font-size: 13px; margin-top: 8px; }
     .filter-select {
       padding: 9px 12px; border-radius: 10px; width: 100%;
@@ -342,20 +346,17 @@
     }
 
     @media (max-width: 1024px) {
-      .layout { grid-template-columns: 1fr 1fr 280px; }
-      .sidebar-left, .sidebar-right { display: none; }
-      .controls { display: flex !important; flex-direction: row; flex-wrap: wrap; justify-content: center; }
-      .chat-container { min-height: 350px; }
+      .layout { grid-template-columns: 1fr 1fr; }
+      .chat-container { grid-column: 1 / -1; min-height: 420px; }
     }
     @media (max-width: 720px) {
       body { overflow: auto; }
       #main-app { padding: 8px; height: auto; min-height: 100vh; }
       .layout { grid-template-columns: 1fr; }
-      .sidebar-left, .sidebar-right { display: none; }
       .topbar { flex-direction: column; align-items: flex-start; gap: 8px; }
       .topbar-right { width: 100%; justify-content: flex-start; }
       .brand { font-size: 26px; }
-      .controls { display: flex !important; flex-direction: row; gap: 8px; padding: 8px; flex-wrap: wrap; justify-content: center; }
+      .controls { gap: 8px; padding: 8px; }
       .filter-select { font-size: 13px; padding: 8px 10px; }
       .btn { padding: 10px 14px; font-size: 14px; }
       .chat-container { min-height: 300px; }
@@ -589,20 +590,16 @@
   <div id="main-app">
     <div class="app-shell">
       <div class="topbar">
-        <div style="display:flex;gap:16px;align-items:center;">
-          <div class="brand">LumiMatch</div>
-          <div class="topbar-left">
-            <div id="statusText" class="status-pill">Yükleniyor</div>
-            <div id="tokenDisplay" class="token-pill" title="Jeton satın al">🪙 0 Jeton</div>
-            <div id="premiumBadge" style="display:none;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,200,0,0.5);background:rgba(255,200,0,0.12);color:#ffe566;font-size:14px;cursor:pointer;" title="Premium üye — tıkla">⭐ Premium</div>
-            <div id="getPremiumBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(255,200,0,0.3);background:rgba(255,200,0,0.06);color:#ffe566;font-size:14px;cursor:pointer;" title="Premium satın al" onclick="document.getElementById('premiumModal').classList.add('open')">⭐ Premium Al</div>
-          </div>
-        </div>
+        <div class="brand">LumiMatch</div>
         <div class="topbar-right">
           <div id="userInfo"></div>
-          <div id="watchAdBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);color:var(--accent);font-size:14px;cursor:pointer;" title="Reklam izle, jeton kazan" onclick="startRewardedAd()">📺 +10 🪙</div>
-          <div id="dailyTaskBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(46,204,113,0.3);background:rgba(46,204,113,0.06);color:#2ecc71;font-size:14px;cursor:pointer;" title="Günlük görevler" onclick="openTaskModal()">📋 Görevler</div>
-          <div id="themeBtn" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:var(--text);font-size:14px;cursor:pointer;" title="Tema değiştir" onclick="toggleTheme()">🌙</div>
+          <div id="tokenDisplay" class="token-pill" title="Jeton satın al">🪙 0 Jeton</div>
+          <div id="premiumBadge" style="display:none;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,200,0,0.5);background:rgba(255,200,0,0.12);color:#ffe566;font-size:13px;cursor:pointer;" title="Premium üye — tıkla">⭐ Premium</div>
+          <div id="getPremiumBtn" style="padding:6px 10px;border-radius:999px;border:1px solid rgba(255,200,0,0.3);background:rgba(255,200,0,0.06);color:#ffe566;font-size:13px;cursor:pointer;" title="Premium satın al" onclick="document.getElementById('premiumModal').classList.add('open')">⭐ Premium Al</div>
+          <div id="watchAdBtn" style="padding:6px 10px;border-radius:999px;border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);color:var(--accent);font-size:13px;cursor:pointer;" title="Reklam izle, jeton kazan" onclick="startRewardedAd()">📺 +10 🪙</div>
+          <div id="dailyTaskBtn" style="padding:6px 10px;border-radius:999px;border:1px solid rgba(46,204,113,0.3);background:rgba(46,204,113,0.06);color:#2ecc71;font-size:13px;cursor:pointer;" title="Günlük görevler" onclick="openTaskModal()">📋 Görevler</div>
+          <div id="themeBtn" style="padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:var(--text);font-size:13px;cursor:pointer;" title="Tema değiştir" onclick="toggleTheme()">🌙</div>
+          <div id="statusText" class="status-pill">Yükleniyor</div>
           <!-- Arkadaşlar butonu (badge'li - istekler dahil) -->
           <div style="position:relative;display:inline-block;">
             <button class="btn btn-secondary" id="friendsBtn">👥 Arkadaşlar</button>
@@ -618,27 +615,10 @@
       </div>
 
       <div class="layout">
-        <!-- Sol Sidebar -->
-        <div class="sidebar-left">
-          <button id="matchBtn" class="btn btn-primary">Eşleş</button>
-          <button id="stopBtn" class="btn btn-secondary" style="display:none;">⏹ Dur</button>
-          <div style="margin-top:8px;">
-            <div class="filter-label" style="font-size:11px;margin-bottom:6px;">Filtre:</div>
-            <select id="genderFilter" class="filter-select" style="width:100%;font-size:12px;padding:8px;">
-              <option value="all">Hepsi</option>
-              <option value="erkek">👨 Erkek</option>
-              <option value="kadin">👩 Kadın</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Video 1 -->
         <div class="box">
           <div class="video-label" id="myLabel">Sen</div>
           <video id="localVideo" autoplay muted playsinline></video>
         </div>
-
-        <!-- Video 2 -->
         <div class="box">
           <div class="video-label" id="remoteLabel">Bekleniyor...</div>
           <video id="remoteVideo" autoplay playsinline></video>
@@ -649,8 +629,6 @@
             <button id="addFriendBtn" style="display:none;background:rgba(46,204,113,0.18);border:1px solid rgba(46,204,113,0.5);color:#2ecc71;padding:8px 12px;border-radius:999px;cursor:pointer;font-size:13px;" title="Arkadaş Ekle">➕ Arkadaş Ekle</button>
           </div>
         </div>
-
-        <!-- Chat -->
         <aside class="chat-container">
           <div id="chatBox">
             <div class="typing-indicator" id="typingIndicator">
@@ -667,16 +645,14 @@
             <button id="sendBtn" class="send-btn" disabled>Gönder</button>
           </div>
         </aside>
-
-        <!-- Sağ Sidebar -->
-        <div class="sidebar-right">
-          <button id="saveChatBtn" class="btn btn-secondary" style="display:none;" title="Sohbeti kaydet">💾 Kaydet</button>
-          <button id="nextBtn" class="btn btn-secondary">Sıradaki</button>
-          <button id="leaveBtn" class="btn btn-danger">Ayrıl</button>
-        </div>
       </div>
 
-      <div class="controls" style="display:none;">
+      <div class="controls">
+        <button id="matchBtn" class="btn btn-primary">Eşleş</button>
+        <button id="stopBtn" class="btn btn-secondary" style="display:none;">⏹ Dur</button>
+        <button id="nextBtn" class="btn btn-secondary">Sıradaki</button>
+        <button id="leaveBtn" class="btn btn-danger">Ayrıl</button>
+        <button id="saveChatBtn" class="btn btn-secondary" style="display:none;" title="Sohbeti kaydet">💾 Kaydet</button>
       </div>
     </div>
   </div>

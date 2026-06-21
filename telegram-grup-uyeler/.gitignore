@@ -1,0 +1,20 @@
+node_modules/
+.env
+*.log
+members_*.json
+members_*.csv
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.session
+*.session-journal
+
+# Scraper outputs
+*_telegram_users.txt
+*_telegram_users.json
+*_telegram_users.csv
