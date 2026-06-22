@@ -88,25 +88,28 @@ class LiveTelegramMonitor:
         try:
             entity = await self.client.get_entity(group_link)
             
+            # Link'ten grup ismini çıkar (t.me/ykssohbetz -> ykssohbetz)
+            custom_name = group_link.split('/')[-1]
+            
             # Gruba zaten üye miyiz kontrol et
             try:
                 participant = await self.client.get_permissions(entity)
                 if participant:
-                    print(f"   ✅ Zaten üyesiniz: {entity.title}")
-                    return entity
+                    print(f"   ✅ Zaten üyesiniz: {custom_name}")
+                    return entity, custom_name
             except:
                 pass
             
             # Gruba katıl
-            print(f"   🔄 Gruba katılıyor: {entity.title}")
+            print(f"   🔄 Gruba katılıyor: {custom_name}")
             await self.client(JoinChannelRequest(entity))
             await asyncio.sleep(2)
-            print(f"   ✅ Gruba katıldı: {entity.title}")
-            return entity
+            print(f"   ✅ Gruba katıldı: {custom_name}")
+            return entity, custom_name
             
         except Exception as e:
             print(f"   ❌ Katılma hatası: {str(e)}")
-            return None
+            return None, None
     
 
     def add_user(self, user, group_name, silent=False):
@@ -151,18 +154,63 @@ class LiveTelegramMonitor:
             else:
                 self.all_users[user_id]['message_count'] += 1
     
+    async def get_initial_users(self, entity, group_name, limit=10000):
+        """Grubun son N mesajını tara ve kullanıcıları topla"""
+        print(f"\n📊 İlk tarama başlıyor: {group_name}")
+        print(f"   🔍 Son {limit} mesaj taranıyor...")
+        
+        try:
+            message_count = 0
+            new_users = 0
+            
+            async for message in self.client.iter_messages(entity, limit=limit):
+                message_count += 1
+                
+                if message.sender_id:
+                    try:
+                        user = await message.get_sender()
+                        
+                        # Kullanıcı adı yoksa veya bot ise atla
+                        if not user or not hasattr(user, 'username') or not user.username:
+                            continue
+                        if hasattr(user, 'bot') and user.bot:
+                            continue
+                        
+                        user_id = user.id
+                        
+                        # Sadece yeni kullanıcıları say
+                        if user_id not in self.all_users:
+                            new_users += 1
+                            self.add_user(user, group_name, silent=True)
+                        
+                    except Exception as e:
+                        pass
+                
+                # Her 1000 mesajda bir ilerleme göster
+                if message_count % 1000 == 0:
+                    print(f"   ⏳ {message_count}/{limit} mesaj tarandı - Yeni kullanıcı: {new_users}")
+            
+            print(f"   ✅ Tarama tamamlandı: {message_count} mesaj - {new_users} yeni kullanıcı bulundu")
+            self.save_to_file()
+            
+        except Exception as e:
+            print(f"   ⚠️  Tarama hatası: {str(e)}")
+    
     async def setup_monitoring(self, group_links):
-        """Grupları izlemeye başla - İLK TARAMA YOK, SADECE CANLI İZLEME"""
+        """Grupları izlemeye başla - İLK TARAMA + CANLI İZLEME"""
         print("\n" + "="*80)
-        print("📡 GRUPLARA KATILIYOR VE CANLI İZLEME BAŞLIYOR")
+        print("📡 GRUPLARA KATILIYOR VE İLK TARAMA BAŞLIYOR")
         print("="*80)
         
         for link in group_links:
             try:
-                entity = await self.join_group_if_needed(link)
-                if entity:
-                    self.monitored_groups[entity.id] = entity.title
-                    print(f"   ✅ İzleniyor: {entity.title}")
+                entity, custom_name = await self.join_group_if_needed(link)
+                if entity and custom_name:
+                    self.monitored_groups[entity.id] = custom_name
+                    print(f"   ✅ İzleniyor: {custom_name}")
+                    
+                    # İlk tarama yap
+                    await self.get_initial_users(entity, custom_name, limit=10000)
                     
                 await asyncio.sleep(2)
                 
@@ -173,8 +221,20 @@ class LiveTelegramMonitor:
         print("\n" + "="*80)
         print(f"✅ {len(self.monitored_groups)} GRUP CANLI İZLENİYOR")
         print("="*80)
-        print(f"📊 Mevcut kullanıcı sayısı: {len(self.all_users)}")
-        print("🔴 SADECE YENİ MESAJ ATANLAR BİLDİRİLECEK\n")
+        print(f"📊 Toplam kullanıcı sayısı: {len(self.all_users)}")
+        print("🔴 CANLI İZLEME BAŞLIYOR - Yeni mesajlar takip ediliyor\n")
+        
+        # Yeni mesaj handler'ı ekle
+        @self.client.on(events.NewMessage(chats=list(self.monitored_groups.keys())))
+        async def handle_new_message(event):
+            if event.sender_id:
+                try:
+                    user = await event.get_sender()
+                    # Grup adını monitored_groups'tan al
+                    group_name = self.monitored_groups.get(event.chat_id, 'Bilinmeyen')
+                    self.add_user(user, group_name)
+                except Exception as e:
+                    print(f"⚠️  Mesaj işleme hatası: {str(e)}")
         
         # Yeni mesaj handler'ı ekle
         @self.client.on(events.NewMessage(chats=list(self.monitored_groups.keys())))
@@ -192,6 +252,18 @@ class LiveTelegramMonitor:
                         except:
                             group_name = 'Bilinmeyen'
                     
+                    self.add_user(user, group_name)
+                except Exception as e:
+                    print(f"⚠️  Mesaj işleme hatası: {str(e)}")
+        
+        # Yeni mesaj handler'ı ekle
+        @self.client.on(events.NewMessage(chats=list(self.monitored_groups.keys())))
+        async def handle_new_message(event):
+            if event.sender_id:
+                try:
+                    user = await event.get_sender()
+                    # Grup adını monitored_groups'tan al
+                    group_name = self.monitored_groups.get(event.chat_id, 'Bilinmeyen')
                     self.add_user(user, group_name)
                 except Exception as e:
                     print(f"⚠️  Mesaj işleme hatası: {str(e)}")
@@ -281,7 +353,8 @@ async def main():
     ]
     
     print(f"\n📋 İzlenecek grup sayısı: {len(group_links)}")
-    print(f"🔴 Canlı izleme: AÇIK (İlk tarama YOK)")
+    print(f"🔍 İlk tarama: Son 10000 mesaj (her gruptan)")
+    print(f"🔴 Canlı izleme: AÇIK (sürekli)")
     print(f"💾 Otomatik kaydet: Her yeni kullanıcıda")
     
     response = input("\n▶️  Başlatmak için ENTER'a basın (q = çık): ")
