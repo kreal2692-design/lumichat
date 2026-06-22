@@ -1,6 +1,6 @@
 {
-  "last_update": "2026-06-21T21:38:44.462642",
-  "total_users": 286,
+  "last_update": "2026-06-22T10:58:27.232047",
+  "total_users": 298,
   "monitored_groups": [
     "ÖĞRENCİ | SOHBET GRUBU",
     "YKS SOHBET YARDIMLAŞMA 2027",
@@ -52,7 +52,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.411886",
-      "message_count": 1
+      "message_count": 6
     },
     {
       "id": 7613186802,
@@ -61,7 +61,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.411934",
-      "message_count": 1
+      "message_count": 10
     },
     {
       "id": 8732643763,
@@ -70,7 +70,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.412434",
-      "message_count": 1
+      "message_count": 20
     },
     {
       "id": 6160472877,
@@ -88,7 +88,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.412801",
-      "message_count": 1
+      "message_count": 50
     },
     {
       "id": 7630955203,
@@ -107,7 +107,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:41:29.413409",
-      "message_count": 1
+      "message_count": 15
     },
     {
       "id": 7117177978,
@@ -199,7 +199,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.416300",
-      "message_count": 2
+      "message_count": 14
     },
     {
       "id": 5746434143,
@@ -208,7 +208,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.416763",
-      "message_count": 1
+      "message_count": 9
     },
     {
       "id": 7483334025,
@@ -217,7 +217,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.417069",
-      "message_count": 1
+      "message_count": 9
     },
     {
       "id": 7742419393,
@@ -236,7 +236,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.417574",
-      "message_count": 1
+      "message_count": 49
     },
     {
       "id": 1469051515,
@@ -245,7 +245,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.417884",
-      "message_count": 1
+      "message_count": 7
     },
     {
       "id": 5801511539,
@@ -264,7 +264,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:41:29.418415",
-      "message_count": 3
+      "message_count": 4
     },
     {
       "id": 8635960532,
@@ -392,7 +392,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.425540",
-      "message_count": 1
+      "message_count": 4
     },
     {
       "id": 7440573393,
@@ -518,7 +518,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.430480",
-      "message_count": 1
+      "message_count": 4
     },
     {
       "id": 1324599031,
@@ -583,7 +583,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.432566",
-      "message_count": 1
+      "message_count": 16
     },
     {
       "id": 5440482649,
@@ -610,7 +610,7 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T20:41:29.433185",
-      "message_count": 1
+      "message_count": 2
     },
     {
       "id": 7830045584,
@@ -1972,7 +1972,7 @@
         "YKS SOHBET YARDIMLAŞMA 2027"
       ],
       "first_seen": "2026-06-21T20:43:11.688194",
-      "message_count": 1
+      "message_count": 8
     },
     {
       "id": 8666300149,
@@ -2045,7 +2045,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.244715",
-      "message_count": 1
+      "message_count": 12
     },
     {
       "id": 8402119056,
@@ -2054,7 +2054,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.245058",
-      "message_count": 1
+      "message_count": 3
     },
     {
       "id": 7691937754,
@@ -2063,7 +2063,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.247050",
-      "message_count": 1
+      "message_count": 141
     },
     {
       "id": 8232576831,
@@ -2072,7 +2072,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.247280",
-      "message_count": 1
+      "message_count": 57
     },
     {
       "id": 8829679538,
@@ -2081,7 +2081,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.247675",
-      "message_count": 1
+      "message_count": 21
     },
     {
       "id": 1028502197,
@@ -2090,7 +2090,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.247896",
-      "message_count": 1
+      "message_count": 2
     },
     {
       "id": 8895522432,
@@ -2099,7 +2099,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.248152",
-      "message_count": 10
+      "message_count": 173
     },
     {
       "id": 8377827127,
@@ -2108,7 +2108,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.248481",
-      "message_count": 1
+      "message_count": 21
     },
     {
       "id": 1542557015,
@@ -2117,7 +2117,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.248768",
-      "message_count": 1
+      "message_count": 14
     },
     {
       "id": 8587829928,
@@ -2126,7 +2126,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.249054",
-      "message_count": 1
+      "message_count": 16
     },
     {
       "id": 8367746115,
@@ -2144,7 +2144,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.249846",
-      "message_count": 1
+      "message_count": 77
     },
     {
       "id": 7978771864,
@@ -2153,7 +2153,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.250232",
-      "message_count": 1
+      "message_count": 16
     },
     {
       "id": 8824816772,
@@ -2216,7 +2216,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.252830",
-      "message_count": 1
+      "message_count": 15
     },
     {
       "id": 8788486421,
@@ -2243,7 +2243,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.254373",
-      "message_count": 1
+      "message_count": 116
     },
     {
       "id": 1449215716,
@@ -2261,7 +2261,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.257381",
-      "message_count": 1
+      "message_count": 69
     },
     {
       "id": 8603057614,
@@ -2279,7 +2279,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.258886",
-      "message_count": 1
+      "message_count": 80
     },
     {
       "id": 8622636369,
@@ -2288,7 +2288,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.260095",
-      "message_count": 1
+      "message_count": 2
     },
     {
       "id": 8822041645,
@@ -2297,7 +2297,7 @@
         "yks sohbet"
       ],
       "first_seen": "2026-06-21T20:44:54.260355",
-      "message_count": 1
+      "message_count": 8
     },
     {
       "id": 5015721622,
@@ -2594,6 +2594,114 @@
         "ÖĞRENCİ | SOHBET GRUBU"
       ],
       "first_seen": "2026-06-21T21:38:44.461455",
+      "message_count": 1
+    },
+    {
+      "id": 839017479,
+      "username": "evrenmahkumutipci",
+      "groups": [
+        "ÖĞRENCİ | SOHBET GRUBU"
+      ],
+      "first_seen": "2026-06-21T22:34:28.563593",
+      "message_count": 7
+    },
+    {
+      "id": 7211574259,
+      "username": "mustafababapiro",
+      "groups": [
+        "ÖĞRENCİ | SOHBET GRUBU"
+      ],
+      "first_seen": "2026-06-21T22:36:47.475674",
+      "message_count": 17
+    },
+    {
+      "id": 6237186078,
+      "username": "nargileicersinmi",
+      "groups": [
+        "ÖĞRENCİ | SOHBET GRUBU"
+      ],
+      "first_seen": "2026-06-21T22:44:14.805936",
+      "message_count": 3
+    },
+    {
+      "id": 6821961084,
+      "username": "milenargent",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T22:44:54.744905",
+      "message_count": 1
+    },
+    {
+      "id": 8556961943,
+      "username": "uffbus",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T22:44:57.301907",
+      "message_count": 10
+    },
+    {
+      "id": 8514765665,
+      "username": "lilyreinx",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-21T23:33:42.658670",
+      "message_count": 40
+    },
+    {
+      "id": 7601394793,
+      "username": "vampirebru",
+      "groups": [
+        "ÖĞRENCİ | SOHBET GRUBU"
+      ],
+      "first_seen": "2026-06-21T23:59:59.610351",
+      "message_count": 1
+    },
+    {
+      "id": 8132360836,
+      "username": "alfcay",
+      "groups": [
+        "ÖĞRENCİ | SOHBET GRUBU"
+      ],
+      "first_seen": "2026-06-22T01:04:57.577981",
+      "message_count": 12
+    },
+    {
+      "id": 8330878999,
+      "username": "Nlayats",
+      "groups": [
+        "ÖĞRENCİ | SOHBET GRUBU"
+      ],
+      "first_seen": "2026-06-22T02:52:18.716986",
+      "message_count": 2
+    },
+    {
+      "id": 8399472704,
+      "username": "simisimos",
+      "groups": [
+        "ÖĞRENCİ | SOHBET GRUBU"
+      ],
+      "first_seen": "2026-06-22T03:03:18.757092",
+      "message_count": 1
+    },
+    {
+      "id": 1410822046,
+      "username": "doktorrm",
+      "groups": [
+        "ÖĞRENCİ | SOHBET GRUBU"
+      ],
+      "first_seen": "2026-06-22T10:40:09.064002",
+      "message_count": 4
+    },
+    {
+      "id": 7860816889,
+      "username": "revactayim",
+      "groups": [
+        "yks sohbet"
+      ],
+      "first_seen": "2026-06-22T10:58:27.230714",
       "message_count": 1
     }
   ]

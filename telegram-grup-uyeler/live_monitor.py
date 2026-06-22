@@ -276,6 +276,8 @@ async def main():
         'https://t.me/ykssohbetV2',
         'https://t.me/ykssohbetc',
         'https://t.me/ykskrallik',
+        'https://t.me/ykssohbetz',
+        'https://t.me/ykssohbetiniz',
     ]
     
     print(f"\n📋 İzlenecek grup sayısı: {len(group_links)}")
