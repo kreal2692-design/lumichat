@@ -1,0 +1,95 @@
+╔══════════════════════════════════════════════════════════════╗
+║  🚀 LUMIMATCH SUPABASE HIZLI KURULUM (5 DAKİKA)             ║
+╚══════════════════════════════════════════════════════════════╝
+
+ADIM 1: SUPABASE DASHBOARD'A GİT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔗 https://supabase.com/dashboard/project/aaszyppzidhazpbmcipv
+
+
+ADIM 2: SQL EDITOR'DA TABLOLARIoluştur
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Sol menü → SQL Editor
+2. "New query" butonuna tıkla
+3. Dosyayı aç: lumimatch-app\supabase_video_streaming.sql
+4. Tüm içeriği KOPYALA-YAPIŞTIR
+5. "RUN" butonuna bas (veya F5)
+6. ✅ "Success" mesajını bekle
+
+⏱️ Süre: ~30 saniye
+
+
+ADIM 3: REALTIME'I AKTİFLEŞTİR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Sol menü → Database → Replication
+2. Bu 5 tabloyu bul ve "Enable" butonuna bas:
+
+   ┌─────────────────────┬─────────┐
+   │ Tablo Adı           │ Status  │
+   ├─────────────────────┼─────────┤
+   │ stream_comments     │ □ Enable│ ← Tıkla
+   │ stream_gifts        │ □ Enable│ ← Tıkla
+   │ stream_viewers      │ □ Enable│ ← Tıkla
+   │ webrtc_signals      │ □ Enable│ ← Tıkla
+   │ user_presence       │ □ Enable│ ← Tıkla
+   └─────────────────────┴─────────┘
+
+⏱️ Süre: ~1 dakika
+
+
+ADIM 4: KONTROL ET (SQL Editor'da)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Yeni sorgu aç ve çalıştır:
+
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+AND table_name IN (
+  'live_streams',
+  'stream_viewers',
+  'stream_comments',
+  'stream_gifts',
+  'video_call_sessions',
+  'webrtc_signals',
+  'user_presence',
+  'stream_settings'
+);
+
+✅ Sonuç: 8 satır görmelisin
+❌ Daha az ise: ADIM 2'ye geri dön
+
+
+ADIM 5: REALTIME TEST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SQL Editor'da:
+
+SELECT tablename 
+FROM pg_publication_tables 
+WHERE pubname = 'supabase_realtime'
+AND tablename IN (
+  'stream_comments',
+  'stream_gifts',
+  'stream_viewers',
+  'webrtc_signals',
+  'user_presence'
+);
+
+✅ Sonuç: 5 satır görmelisin
+❌ Görmediysen: ADIM 3'e geri dön
+
+
+ADIM 6: REACT NATIVE APP'TE TEST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Terminal'de (lumimatch-app klasöründe):
+
+npx expo start
+
+Sonra app'te herhangi bir ekran aç ve console'da hata yoksa ✅
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  ✅ KURULUM TAMAMLANDI - BUILD ALABİLİRSİN!                  ║
+╚══════════════════════════════════════════════════════════════╝
+
+Sorun mu var? Detaylı rehber:
+📄 lumimatch-app\SUPABASE_SETUP_CHECKLIST.md

@@ -1,0 +1,8 @@
+# Reduce upload size
+node_modules/**/*
+.expo/**/*
+.git/**/*
+android/.gradle/**/*
+android/app/build/**/*
+android/.cxx/**/*
+*.log

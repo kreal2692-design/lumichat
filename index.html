@@ -527,49 +527,15 @@
           <div style="font-size:11px;color:#ffe566;margin-top:2px;">₺0.35/jeton %56 indirim 🔥</div>
         </div>
       </div>
-      <div id="tokenSelectedInfo" style="color:var(--muted);font-size:14px;margin-bottom:14px;">Bir paket seç</div>
+      <div id="tokenSelectedInfo" style="color:var(--muted);font-size:14px;margin-bottom:14px;text-align:center;">Bir paket seç</div>
 
-      <!-- Ödeme yöntemleri — paket seçince görünür -->
-      <div id="paymentMethods" style="display:none;margin-bottom:16px;">
-        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-align:center;">Ödeme yöntemi seç:</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-
-          <!-- Papara -->
-          <div id="payPapara" style="padding:14px 16px;border-radius:12px;border:1px solid rgba(128,0,255,0.3);background:rgba(128,0,255,0.08);cursor:pointer;transition:0.2s;" onclick="showPaymentDetail('papara')">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span style="font-size:22px;">💜</span>
-                <div>
-                  <div style="font-weight:bold;font-size:14px;">Papara ile Öde</div>
-                  <div style="font-size:12px;color:var(--muted);">Anında transfer</div>
-                </div>
-              </div>
-              <span style="color:#a855f7;font-size:12px;">→</span>
-            </div>
-          </div>
-
-          <!-- Havale/EFT -->
-          <div id="payIban" style="padding:14px 16px;border-radius:12px;border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);cursor:pointer;transition:0.2s;" onclick="showPaymentDetail('iban')">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span style="font-size:22px;">🏦</span>
-                <div>
-                  <div style="font-weight:bold;font-size:14px;">Havale / EFT</div>
-                  <div style="font-size:12px;color:var(--muted);">Tüm bankalar</div>
-                </div>
-              </div>
-              <span style="color:var(--accent);font-size:12px;">→</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Ödeme detayı -->
-        <div id="paymentDetail" style="display:none;margin-top:12px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);">
-          <div id="paymentDetailContent"></div>
-          <div style="margin-top:12px;padding:10px;background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.2);border-radius:8px;">
-            <div style="font-size:12px;color:#ffe566;font-weight:bold;">⚠️ Önemli:</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;" id="paymentNote"></div>
-          </div>
+      <!-- Yakında mesajı -->
+      <div style="padding:24px;border-radius:12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);text-align:center;margin-bottom:16px;">
+        <div style="font-size:32px;margin-bottom:12px;">🚀</div>
+        <div style="font-size:16px;font-weight:bold;color:var(--accent);margin-bottom:8px;">Ödeme Sistemi Hazırlanıyor</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+          Güvenli ödeme sistemi entegrasyonu devam ediyor.<br>
+          Çok yakında kredi kartı ve diğer ödeme yöntemleri aktif olacak!
         </div>
       </div>
 
@@ -764,7 +730,7 @@
           <div onclick="buyNickColor('orange')" style="padding:10px;border-radius:10px;border:1px solid rgba(255,153,68,0.3);background:rgba(255,153,68,0.06);cursor:pointer;text-align:center;"><div style="color:#ff9944;font-weight:bold;font-size:14px;">🟠 Turuncu</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">300 🪙</div></div>
           <div onclick="buyNickColor('gold')"   style="padding:10px;border-radius:10px;border:1px solid rgba(255,229,102,0.4);background:rgba(255,229,102,0.08);cursor:pointer;text-align:center;"><div style="color:#ffe566;font-weight:bold;font-size:14px;">🌟 Altın</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">500 🪙</div></div>
           <div onclick="buyNickColor('red')"    style="padding:10px;border-radius:10px;border:1px solid rgba(255,71,87,0.3);background:rgba(255,71,87,0.06);cursor:pointer;text-align:center;"><div style="color:#ff4757;font-weight:bold;font-size:14px;">🔴 Kırmızı</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">500 🪙</div></div>
-          <div onclick="buyNickColor('rainbow')" style="padding:10px;border-radius:10px;border:1px solid rgba(255,100,200,0.4);background:rgba(255,100,200,0.06);cursor:pointer;text-align:center;grid-column:span 2;"><div style="background:linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;font-size:14px;">🌈 Gökkuşağı</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">1000 🪙</div></div>
+          <div onclick="buyNickColor('rainbow')" style="padding:10px;border-radius:10px;border:1px solid rgba(255,100,200,0.4);background:rgba(255,100,200,0.06);cursor:pointer;text-align:center;grid-column:span 2;"><div style="background:linear-gradient(90deg,#ff4757,#ff9944,#ffe566,#2ecc71,#00e5ff,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;font-size:14px;">🌈 Gökkuşağı</div><div style="font-size:12px;color:#ffe566;margin-top:4px;">1000 🪙</div></div>
         </div>
 
         <!-- Jetonla Premium -->
@@ -963,34 +929,14 @@
         </div>
       </div>
 
-      <!-- Ödeme yöntemi -->
-      <div id="premiumPaymentSection" style="display:none;margin-bottom:16px;">
-        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-align:center;">Ödeme yöntemi seç:</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="padding:14px 16px;border-radius:12px;border:1px solid rgba(128,0,255,0.3);background:rgba(128,0,255,0.08);cursor:pointer;" onclick="showPremiumPaymentDetail('papara')">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span style="font-size:22px;">💜</span>
-                <div><div style="font-weight:bold;font-size:14px;">Papara ile Öde</div><div style="font-size:12px;color:var(--muted);">Anında transfer</div></div>
-              </div>
-              <span style="color:#a855f7;">→</span>
-            </div>
-          </div>
-          <div style="padding:14px 16px;border-radius:12px;border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);cursor:pointer;" onclick="showPremiumPaymentDetail('iban')">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span style="font-size:22px;">🏦</span>
-                <div><div style="font-weight:bold;font-size:14px;">Havale / EFT</div><div style="font-size:12px;color:var(--muted);">Tüm bankalar</div></div>
-              </div>
-              <span style="color:var(--accent);">→</span>
-            </div>
-          </div>
-        </div>
-        <div id="premiumPaymentDetail" style="display:none;margin-top:12px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);">
-          <div id="premiumPaymentContent"></div>
-          <div style="margin-top:12px;padding:10px;background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.2);border-radius:8px;">
-            <div style="font-size:12px;color:#ffe566;font-weight:bold;">⚠️ Önemli:</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;" id="premiumPaymentNote"></div>
+      <!-- Ödeme Sistemi Hazırlanıyor -->
+      <div id="premiumPaymentSection" style="margin-bottom:16px;">
+        <div style="padding:20px;border-radius:12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);text-align:center;">
+          <div style="font-size:32px;margin-bottom:12px;">🚀</div>
+          <div style="font-size:15px;font-weight:bold;color:var(--accent);margin-bottom:8px;">Ödeme Sistemi Hazırlanıyor</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+            Güvenli ödeme sistemi entegrasyonu devam ediyor.<br>
+            Çok yakında kredi kartı ve diğer ödeme yöntemleri aktif olacak!
           </div>
         </div>
       </div>
@@ -1738,46 +1684,9 @@
         document.querySelectorAll(".token-pkg").forEach(p => p.classList.remove("selected"));
         pkg.classList.add("selected");
         selectedTokenPkg = { amount: pkg.dataset.amount, price: pkg.dataset.price };
-        tokenSelectedInfo.textContent = `${pkg.dataset.amount} jeton — ₺${pkg.dataset.price}`;
-        // Ödeme yöntemlerini göster
-        document.getElementById("paymentMethods").style.display = "block";
-        document.getElementById("paymentDetail").style.display = "none";
+        tokenSelectedInfo.textContent = `${pkg.dataset.amount} jeton seçildi — ₺${pkg.dataset.price}`;
       });
     });
-
-    // Ödeme detayı göster
-    window.showPaymentDetail = (method) => {
-      if (!selectedTokenPkg) return;
-      const detail  = document.getElementById("paymentDetail");
-      const content = document.getElementById("paymentDetailContent");
-      const note    = document.getElementById("paymentNote");
-      const email   = currentUser?.email || "e-posta adresiniz";
-      const amount  = selectedTokenPkg.amount;
-      const price   = selectedTokenPkg.price;
-
-      detail.style.display = "block";
-
-      if (method === "papara") {
-        content.innerHTML = `
-          <div style="font-size:13px;font-weight:bold;margin-bottom:8px;color:#a855f7;">💜 Papara ile Ödeme</div>
-          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Papara No:</span><span style="font-weight:bold;color:white;cursor:pointer;" onclick="navigator.clipboard.writeText('1620279711')">1620279711 📋</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Ad Soyad:</span><span style="font-weight:bold;">Eyüp Güneş</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Tutar:</span><span style="font-weight:bold;color:#ffe566;">₺${price}</span></div>
-          </div>`;
-        note.textContent = `Açıklama kısmına adınızı ve soyadınızı yazarak ${price}₺ gönderin. Ödeme onaylandıktan sonra ${amount} jetonunuz hesabınıza eklenecektir (genellikle 1-2 saat içinde).`;
-      } else {
-        content.innerHTML = `
-          <div style="font-size:13px;font-weight:bold;margin-bottom:8px;color:var(--accent);">🏦 Havale / EFT</div>
-          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">IBAN:</span><span style="font-weight:bold;color:white;font-size:12px;cursor:pointer;" onclick="navigator.clipboard.writeText('TR5400829000094916202797 11')">TR54 0082 9000 0949 1620 2797 11 📋</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Ad Soyad:</span><span style="font-weight:bold;">Eyüp Güneş</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Banka:</span><span style="font-weight:bold;">Garanti BBVA</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Tutar:</span><span style="font-weight:bold;color:#ffe566;">₺${price}</span></div>
-          </div>`;
-        note.textContent = `Açıklama kısmına adınızı ve soyadınızı yazarak ${price}₺ havale yapın. Ödeme onaylandıktan sonra ${amount} jetonunuz hesabınıza eklenecektir (genellikle 1-2 saat içinde).`;
-      }
-    };
 
     // ── Emoji picker ─────────────────────────────────────────────────
     const emojis = [
@@ -3155,33 +3064,8 @@
     });
 
     window.showPremiumPaymentDetail = (method) => {
-      if (!selectedPremiumPkg) return;
-      const detail  = document.getElementById("premiumPaymentDetail");
-      const content = document.getElementById("premiumPaymentContent");
-      const note    = document.getElementById("premiumPaymentNote");
-      const price   = selectedPremiumPkg.price;
-      const days    = selectedPremiumPkg.days;
-      detail.style.display = "block";
-
-      if (method === "papara") {
-        content.innerHTML = `
-          <div style="font-size:13px;font-weight:bold;margin-bottom:8px;color:#a855f7;">💜 Papara ile Ödeme</div>
-          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Papara No:</span><span style="font-weight:bold;cursor:pointer;" onclick="navigator.clipboard.writeText('1620279711')">1620279711 📋</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Ad Soyad:</span><span style="font-weight:bold;">Eyüp Güneş</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Tutar:</span><span style="font-weight:bold;color:#ffe566;">₺${price}</span></div>
-          </div>`;
-      } else {
-        content.innerHTML = `
-          <div style="font-size:13px;font-weight:bold;margin-bottom:8px;color:var(--accent);">🏦 Havale / EFT</div>
-          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">IBAN:</span><span style="font-weight:bold;font-size:12px;cursor:pointer;" onclick="navigator.clipboard.writeText('TR54008290000949162027 9711')">TR54 0082 9000 0949 1620 2797 11 📋</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Ad Soyad:</span><span style="font-weight:bold;">Eyüp Güneş</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Banka:</span><span style="font-weight:bold;">Garanti BBVA</span></div>
-            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Tutar:</span><span style="font-weight:bold;color:#ffe566;">₺${price}</span></div>
-          </div>`;
-      }
-      note.textContent = `Açıklama kısmına adınızı ve soyadınızı yazarak ₺${price} gönderin. Ödeme onaylandıktan sonra ${days} günlük Premium üyeliğiniz aktif edilecektir (genellikle 1-2 saat içinde).`;
+      // Ödeme sistemi hazırlanıyor - fonksiyon devre dışı
+      return;
     };
 
     // Premium durumunu kontrol et ve badge göster/gizle
