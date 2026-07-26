@@ -11,6 +11,11 @@ jobs:
   build-android:
     runs-on: ubuntu-latest
     
+    # ÖNEMLİ: Tüm işlemler lumimatch-app klasörü içinde yapılacak
+    defaults:
+      run:
+        working-directory: lumimatch-app
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,9 +23,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache-dependency-path: 'lumimatch-app/package-lock.json'
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -44,6 +49,9 @@ jobs:
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> android/gradle.properties
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> android/gradle.properties
 
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
       - name: Build Release APK
         run: |
           cd android
@@ -55,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lumimatch-release-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: lumimatch-app/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
       - name: Get APK info
